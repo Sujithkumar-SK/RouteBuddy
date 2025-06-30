@@ -1,0 +1,43 @@
+Tables DB
+
+1. Users
+UserID (PK), Name, Email (Unique), Password, Phone, Role (guest/user/vendor/admin), CreatedAt, UpdatedAt
+
+2. Buses
+BusID (PK), BusName, VendorID (FK), Type, RegistrationNo, Status (Active/Inactive)
+
+3. Routes
+RouteID (PK), Source, Destination, Distance, Duration
+
+4. Bus_Schedules
+ScheduleID (PK), BusID (FK), RouteID (FK), TravelDate, DepartureTime, ArrivalTime, Fare
+
+5. Bookings
+BookingID (PK), UserID (FK), BusID (FK), TravelDate, SeatNumbers, Status (Booked/Cancelled), PaymentID (FK), BookedAt
+
+6. Payments
+PaymentID, BookingID, Amount, PaymentMethod, PaymentStatus
+
+7. Seat Availability
+BusID, TravelDate, AvailableSeats, TotalSeats
+
+8. Vendor (Partner) Collection
+vendorID, Name, Email, buses_managed, status
+
+9. Feedback/Reviews
+ReviewID, UserID, BusID, Rating, Comment, CreatedAt
+-------------------------------------------------------------
+Microservicesplan to Build
+
+| Service Name         | Handles              |
+| -------------------- | -------------------- |
+| **Auth Service**     | Login/Register, Role |
+| **User Service**     | Profile, History     |
+| **Bus Service**      | Buses CRUD           |
+| **Route Service**    | Routes & Stops       |
+| **Schedule Service** | Bus\_Schedules       |
+| **Booking Service**  | Bookings, Seat Check |
+| **Payment Service**  | Payment simulation   |
+| **Vendor Service**   | Vendor dashboard     |
+| **Admin Service**    | System control       |
+| **Review Service**   | Feedback storage     |
