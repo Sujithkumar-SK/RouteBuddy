@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Booking Records | Route Buddy - Admin</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --glass-border: rgba(255,255,255,0.2);
+      --shadow-light: 0 8px 32px rgba(102,126,234,0.09);
+      --shadow-medium: 0 12px 40px rgba(102,126,234,0.1);
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      --bg-primary: #f7fafc;
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 0;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      display: flex; flex-direction: row; min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .sidebar {
+      width: 280px;
+      background: var(--primary-gradient);
+      color: white;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      position: sticky; top: 0;
+      box-shadow: var(--shadow-medium);
+      border-right: 1px solid var(--glass-border);
+      z-index: 1000; transition: left 0.3s;
+    }
+    .sidebar-header { margin-bottom: 3rem; }
+    .sidebar h2 { font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .sidebar h2 i { color: #ffd700; font-size: 2rem; }
+    .nav-menu { list-style: none; padding: 0; }
+    .nav-item { margin: 0.5rem 0; }
+    .nav-link {
+      color: rgba(255,255,255,0.96); text-decoration: none; font-weight: 500;
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.25rem; border-radius: 12px; position: relative;
+      transition: var(--transition);
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(255,255,255,0.15); font-weight: 600; color: #ffd700; transform: translateX(8px);
+    }
+    .nav-link.active { background: rgba(255,255,255,0.2); color: white; }
+    .nav-link i { font-size: 1.12rem; width: 20px; text-align: center; }
+    /* Main */
+    .main {
+      flex: 1; padding: 2.5rem 2.7rem;
+      background: var(--bg-primary); position: relative; overflow-x: auto; min-height: 100vh;
+    }
+    .main-header { margin-bottom: 2.7rem; }
+    .main h1 { font-size: 2.1rem; font-weight: 700; background: var(--primary-gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 0.3rem; }
+    .main-subtitle { color: var(--text-secondary); font-size: 1.06rem; }
+    .filter-form {
+      display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; align-items: center;
+    }
+    .filter-form input[type="text"], .filter-form input[type="date"], .filter-form select {
+      padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid #e2e8f0;
+      font-size: 1rem; font-family: inherit; outline: none; background: #fff;
+      min-width: 130px; transition: border-color 0.2s;
+    }
+    .filter-form input[type="date"] { max-width: 150px;}
+    .filter-form button {
+      padding: 0.58rem 1.25rem; border-radius: 16px; border: none;
+      background: var(--primary-gradient); color: white; font-family: inherit; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 0.7rem; box-shadow: 0 2px 8px #667eea11;
+      transition: var(--transition); font-size: 1rem;
+    }
+    .filter-form button:active { transform: scale(0.98); }
+    .btn-export { background: #38c77a; margin-left:0.5rem;}
+    .btn-export:hover { background: #27a766; }
+    /* Table */
+    .records-table-section {
+      background: #fff; border-radius: var(--border-radius);
+      box-shadow: var(--shadow-light);
+      padding: 2rem; width: 100%; overflow-x: auto; min-width: 0;
+    }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 0.6rem; }
+    th, td {
+      padding: 0.82rem 1rem; border-bottom: 1px solid #edf2f7;
+      vertical-align: middle; font-size: 1rem; text-align: left;
+    }
+    th { font-size: 0.98rem; color: var(--text-secondary); background: #f8fafc; font-weight: 600;}
+    tr:hover { background: #f7f7fa; }
+    .badge {
+      padding: 0.18rem 0.8rem; border-radius: 12px; font-size: 0.89rem; display: inline-block; font-weight: 600; user-select: none;
+    }
+    .badge-confirmed { background: #e7fbe7; color: #1da74a;}
+    .badge-cancelled { background: #ffe7e7; color: #db3939;}
+    #noRecordsFound {
+      text-align: center; color: #b1b5bb;
+      margin-top: 2.2rem; display: none; font-size: 1.08rem; user-select: none;
+    }
+    #noRecordsFound i { opacity: 0.36; font-size: 1.7rem; margin-bottom: 0.2rem; }
+    @media (max-width: 900px) {
+      .filter-form { flex-direction: column; align-items: stretch;}
+      .filter-form input[type="text"], .filter-form input[type="date"], .filter-form select, .filter-form button {
+        flex: none; width: 100%;
+      }
+    }
+    @media (max-width: 768px) {
+      .sidebar {position: fixed; left: -282px; z-index: 1000; top: 0; height: 100vh; width: 240px; transition: left 0.3s;}
+      .sidebar.open { left: 0;}
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-route"></i> RouteBuddy</h2>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+      <li class="nav-item"><a href="manage-users.html" class="nav-link"><i class="fas fa-users"></i> Manage Users</a></li>
+      <li class="nav-item"><a href="manage-vendors.html" class="nav-link"><i class="fas fa-store"></i> Manage Vendors</a></li>
+      <li class="nav-item"><a href="requests.html" class="nav-link"><i class="fas fa-clipboard-list"></i> Requests</a></li>
+      <li class="nav-item"><a href="feedbacks.html" class="nav-link"><i class="fas fa-comments"></i> Feedbacks</a></li>
+      <li class="nav-item"><a href="records.html" class="nav-link active"><i class="fas fa-calendar-check"></i> Booking Records</a></li>
+      <li class="nav-item"><a href="transactions.html" class="nav-link"><i class="fas fa-credit-card"></i> Transactions</a></li>
+      <li class="nav-item"><a href="settings.html" class="nav-link"><i class="fas fa-shield-alt"></i> Security Settings</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="main-header">
+      <h1>Booking Records</h1>
+      <p class="main-subtitle">View, search, and export all booking records.</p>
+    </div>
+    <form class="filter-form" id="recordsFilterForm" onsubmit="filterRecords(event)" autocomplete="off" novalidate>
+      <input type="text" id="searchBooking" placeholder="Booking ID, PNR, or Email" />
+      <select id="filterStatus" aria-label="Filter by Status">
+        <option value="">All Status</option>
+        <option value="Confirmed">Confirmed</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+      <input type="date" id="filterDateStart" aria-label="From Date" />
+      <input type="date" id="filterDateEnd" aria-label="To Date" />
+      <button type="submit"><i class="fas fa-search"></i> Filter</button>
+      <button type="button" class="btn-export" onclick="exportRecordsCSV()">
+        <i class="fas fa-file-csv"></i> Export CSV
+      </button>
+    </form>
+    <section class="records-table-section" id="recordsTableSection">
+      <table id="recordsTable" role="grid" aria-label="Booking Records Table">
+        <thead>
+          <tr>
+            <th>Booking ID</th><th>PNR</th><th>Name</th><th>Bus Name</th>
+            <th>Travel Date</th><th>Seat Numbers</th><th>Status</th><th>Payment ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+      <div id="noRecordsFound">
+        <i class="fas fa-search-minus"></i><br />No booking records found.
+      </div>
+    </section>
+  </main>
+  <script>
+    let bookings = [
+      {
+        id: "B001", pnr: "ABC123", name: "Alice Johnson", bus: "Chennai Express",
+        date: "2024-07-25", seats: "A1,A2", status: "Confirmed", payment: "PAY1234"
+      },
+      {
+        id: "B002", pnr: "XDE456", name: "Robert Singh", bus: "Bangalore Deluxe",
+        date: "2024-08-04", seats: "B1,B2,B3", status: "Cancelled", payment: "PAY5678"
+      },
+      {
+        id: "B003", pnr: "PQR789", name: "Priya Menon", bus: "Madurai Star",
+        date: "2024-07-28", seats: "C2", status: "Confirmed", payment: "PAY8910"
+      },
+      {
+        id: "B004", pnr: "JKL135", name: "John Abraham", bus: "Greenline",
+        date: "2024-07-30", seats: "D1,D2", status: "Confirmed", payment: "PAY2468"
+      },
+      {
+        id: "B005", pnr: "VWX246", name: "Fatima Noor", bus: "Coimbatore Rapid",
+        date: "2024-08-01", seats: "E1", status: "Cancelled", payment: "PAY3579"
+      }
+    ];
+
+    document.addEventListener('DOMContentLoaded', renderRecords);
+
+    function renderRecords() {
+      const tbody = document.querySelector('#recordsTable tbody');
+      tbody.innerHTML = "";
+      const filtered = filterRecordsData();
+      if (filtered.length === 0) {
+        document.getElementById('noRecordsFound').style.display = "block";
+      } else {
+        document.getElementById('noRecordsFound').style.display = "none";
+        filtered.forEach(rec => {
+          const statusClass = rec.status === "Confirmed" ? "badge-confirmed" : "badge-cancelled";
+          tbody.innerHTML += `
+            <tr>
+              <td>${rec.id}</td>
+              <td>${rec.pnr}</td>
+              <td>${rec.name}</td>
+              <td>${rec.bus}</td>
+              <td>${rec.date}</td>
+              <td>${rec.seats}</td>
+              <td><span class="badge ${statusClass}">${rec.status}</span></td>
+              <td>${rec.payment}</td>
+            </tr>`;
+        });
+      }
+    }
+
+    function filterRecords(event) {
+      if (event) event.preventDefault();
+      renderRecords();
+      return false;
+    }
+
+    function filterRecordsData() {
+      const q = document.getElementById('searchBooking').value.trim().toLowerCase();
+      const status = document.getElementById('filterStatus').value;
+      const startDate = document.getElementById('filterDateStart').value;
+      const endDate = document.getElementById('filterDateEnd').value;
+
+      return bookings.filter(rec =>
+        (!q ||
+          rec.id.toLowerCase().includes(q) ||
+          rec.pnr.toLowerCase().includes(q) ||
+          rec.name.toLowerCase().includes(q) ||
+          rec.bus.toLowerCase().includes(q) ||
+          rec.seats.toLowerCase().includes(q) ||
+          rec.payment.toLowerCase().includes(q)
+        ) &&
+        (!status || rec.status === status) &&
+        (!startDate || rec.date >= startDate) &&
+        (!endDate || rec.date <= endDate)
+      );
+    }
+
+    function exportRecordsCSV() {
+      const rows = filterRecordsData();
+      if (!rows.length) return alert("No data to export!");
+      let str = "Booking ID,PNR,Name,Bus Name,Travel Date,Seat Numbers,Status,Payment ID\n";
+      rows.forEach(r =>
+        str += [r.id, r.pnr, r.name, r.bus, r.date, r.seats, r.status, r.payment].join(",") + "\n"
+      );
+      const blob = new Blob([str], {type:'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = "booking_records.csv";
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+  </script>
+</body>
+</html>

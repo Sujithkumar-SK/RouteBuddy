@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Feedbacks | Route Buddy - Admin</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --shadow-light: 0 8px 32px rgba(102, 126, 234, 0.09);
+      --shadow-medium: 0 12px 40px rgba(102, 126, 234, 0.1);
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      --bg-primary: #f7fafc;
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: row;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--primary-gradient);
+      color: white;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      position: sticky;
+      top: 0;
+      box-shadow: var(--shadow-medium);
+      border-right: 1px solid var(--glass-border);
+      height: 100%;
+      z-index: 1000;
+      transition: left 0.3s;
+    }
+    .sidebar-header {
+      margin-bottom: 3rem;
+    }
+    .sidebar h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .sidebar h2 i {
+      color: #ffd700;
+      font-size: 2rem;
+    }
+    .nav-menu {
+      list-style: none;
+      padding: 0;
+    }
+    .nav-item {
+      margin: 0.5rem 0;
+    }
+    .nav-link {
+      color: rgba(255, 255, 255, 0.96);
+      text-decoration: none;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      transition: var(--transition);
+      position: relative;
+    }
+    .nav-link:hover,
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.15);
+      font-weight: 600;
+      color: #ffd700;
+      transform: translateX(8px);
+    }
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+    .nav-link i {
+      font-size: 1.12rem;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* Main Content */
+    .main {
+      flex: 1;
+      padding: 2.5rem 2.7rem;
+      background: var(--bg-primary);
+      position: relative;
+      overflow-x: auto;
+      min-height: 100vh;
+    }
+    .main-header {
+      margin-bottom: 2.7rem;
+    }
+    .main h1 {
+      font-size: 2.1rem;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.3rem;
+    }
+    .main-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.06rem;
+    }
+
+    /* Filters */
+    .filter-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      align-items: center;
+    }
+    .filter-form input[type="text"],
+    .filter-form select {
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      background: #fff;
+      flex: 1 1 200px;
+      min-width: 160px;
+      transition: border-color 0.2s;
+    }
+    .filter-form button {
+      padding: 0.58rem 1.25rem;
+      border-radius: 16px;
+      border: none;
+      background: var(--primary-gradient);
+      color: white;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      box-shadow: 0 2px 8px #667eea11;
+      transition: var(--transition);
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
+    .filter-form button:active {
+      transform: scale(0.98);
+    }
+
+    /* Feedbacks Table */
+    .feedbacks-table-section {
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-light);
+      padding: 2rem;
+      width: 100%;
+      overflow-x: auto;
+      min-width: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 0.6rem;
+    }
+    th,
+    td {
+      padding: 0.82rem 1rem;
+      border-bottom: 1px solid #edf2f7;
+      vertical-align: middle;
+      font-size: 1rem;
+      text-align: left;
+    }
+    th {
+      font-size: 0.98rem;
+      color: var(--text-secondary);
+      background: #f8fafc;
+      font-weight: 600;
+    }
+    tr:hover {
+      background: #f7f7fa;
+    }
+
+    /* Badges */
+    .badge {
+      padding: 0.18rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.89rem;
+      display: inline-block;
+      font-weight: 600;
+      user-select: none;
+    }
+    .badge-new {
+      background: #ffe986;
+      color: #836b01;
+    }
+    .badge-reviewed {
+      background: #e7fbe7;
+      color: #1da74a;
+    }
+
+    /* Actions buttons */
+    .btn-table {
+      padding: 0.33rem 0.75rem;
+      border-radius: 10px;
+      font-size: 0.96rem;
+      margin-right: 0.4rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.18s;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      user-select: none;
+    }
+    .btn-view {
+      background: #667eea;
+    }
+    .btn-view:hover {
+      background: #5561c1;
+    }
+
+    /* No results message */
+    #noFeedbacksFound {
+      text-align: center;
+      color: #b1b5bb;
+      margin-top: 2.2rem;
+      display: none;
+      font-size: 1.08rem;
+      user-select: none;
+    }
+    #noFeedbacksFound i {
+      opacity: 0.36;
+      font-size: 1.7rem;
+      margin-bottom: 0.2rem;
+    }
+
+    /* Modal Backdrop & Modal */
+    #feedbackModalBackdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.36);
+      z-index: 1100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal {
+      background: #fff;
+      border-radius: 18px;
+      padding: 2rem 2.2rem;
+      box-shadow: var(--shadow-medium);
+      position: relative;
+      animation: fadeInUp 0.3s ease forwards;
+      max-width: 520px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .modal h2 {
+      color: var(--primary-gradient);
+      margin-bottom: 1.4rem;
+      font-weight: 600;
+      font-size: 1.5rem;
+    }
+    #feedbackDetails p {
+      margin: 0.4rem 0;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: var(--text-primary);
+      user-select: text;
+    }
+    #feedbackText {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f1f5f9;
+      border-radius: 12px;
+      white-space: pre-wrap;
+      color: #555;
+      border: 1px solid #e2e8f0;
+      max-height: 180px;
+      overflow-y: auto;
+      user-select: text;
+      font-style: italic;
+    }
+
+    .modal-footer {
+      margin-top: 1.8rem;
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 0.5rem 1.1rem;
+      font-size: 1rem;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      transition: background 0.3s ease;
+      user-select: none;
+      color: white;
+    }
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #444;
+    }
+    .btn-secondary:hover {
+      background: #cbd5e1;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .filter-form input[type="text"],
+      .filter-form select,
+      .filter-form button {
+        flex: none;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: -282px;
+        z-index: 1000;
+        top: 0;
+        height: 100vh;
+        width: 240px;
+        transition: left 0.3s;
+      }
+      .sidebar.open {
+        left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-route"></i> RouteBuddy</h2>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+      <li class="nav-item"><a href="manage-users.html" class="nav-link"><i class="fas fa-users"></i> Manage Users</a></li>
+      <li class="nav-item"><a href="manage-vendors.html" class="nav-link"><i class="fas fa-store"></i> Manage Vendors</a></li>
+      <li class="nav-item"><a href="requests.html" class="nav-link"><i class="fas fa-clipboard-list"></i> Requests</a></li>
+      <li class="nav-item"><a href="feedbacks.html" class="nav-link active"><i class="fas fa-comments"></i> Feedbacks</a></li>
+      <li class="nav-item"><a href="records.html" class="nav-link"><i class="fas fa-calendar-check"></i> Booking Records</a></li>
+      <li class="nav-item"><a href="transactions.html" class="nav-link"><i class="fas fa-credit-card"></i> Transactions</a></li>
+      <li class="nav-item"><a href="settings.html" class="nav-link"><i class="fas fa-shield-alt"></i> Security Settings</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="main-header">
+      <h1>Feedbacks</h1>
+      <p class="main-subtitle">View, search, and manage user and vendor feedback.</p>
+    </div>
+
+    <form class="filter-form" id="feedbackFilterForm" onsubmit="filterFeedbacks(event)" autocomplete="off" novalidate>
+      <input type="text" id="searchFeedback" placeholder="Search by name, email or feedback text" />
+      <select id="filterUserType" aria-label="Filter by User Type">
+        <option value="">All User Types</option>
+        <option value="User">User</option>
+        <option value="Vendor">Vendor</option>
+      </select>
+      <select id="filterFeedbackStatus" aria-label="Filter by Status">
+        <option value="">All Status</option>
+        <option value="New">New</option>
+        <option value="Reviewed">Reviewed</option>
+      </select>
+      <button type="submit"><i class="fas fa-search"></i> Filter</button>
+    </form>
+
+    <section class="feedbacks-table-section">
+      <table id="feedbacksTable" role="grid" aria-label="Feedbacks Table">
+        <thead>
+          <tr>
+            <th scope="col">Feedback ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">User Type</th>
+            <th scope="col">Feedback Text</th>
+            <th scope="col">Date</th>
+            <th scope="col">Status</th>
+            <th scope="col" style="min-width: 100px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows added dynamically -->
+        </tbody>
+      </table>
+
+      <div id="noFeedbacksFound">
+        <i class="fas fa-search-minus"></i><br />
+        No feedbacks found.
+      </div>
+    </section>
+  </main>
+
+  <!-- Feedback Details Modal -->
+  <div class="modal-backdrop" id="feedbackModalBackdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="feedbackModalLabel" tabindex="-1">
+    <div class="modal">
+      <h2 id="feedbackModalLabel">Feedback Details</h2>
+      <div id="feedbackDetails"></div>
+      <div id="feedbackText" title="Full Feedback"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" onclick="closeFeedbackModal()" aria-label="Close modal">
+          <i class="fas fa-times-circle"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let feedbacks = [
+      {
+        id: "F001",
+        name: "Alice Johnson",
+        email: "alice@mail.com",
+        userType: "User",
+        text: "I love the new booking interface, very smooth and user friendly.",
+        date: "2024-06-10",
+        status: "New"
+      },
+      {
+        id: "F002",
+        name: "Robert Singh",
+        email: "robert@mail.com",
+        userType: "Vendor",
+        text: "Vendor dashboard needs more detailed analytics.",
+        date: "2024-06-09",
+        status: "Reviewed"
+      },
+      {
+        id: "F003",
+        name: "Priya Menon",
+        email: "priya@mail.com",
+        userType: "User",
+        text: "Could you please add a mobile app for easier access?",
+        date: "2024-06-08",
+        status: "New"
+      },
+      {
+        id: "F004",
+        name: "John Abraham",
+        email: "john@mail.com",
+        userType: "Vendor",
+        text: "The support team was very helpful. Great service!",
+        date: "2024-06-05",
+        status: "Reviewed"
+      }
+    ];
+
+    let selectedFeedbackId = null;
+
+    document.addEventListener('DOMContentLoaded', renderFeedbacks);
+
+    function renderFeedbacks() {
+      const tbody = document.querySelector('#feedbacksTable tbody');
+      tbody.innerHTML = "";
+      const filtered = filterFeedbacksData();
+      if (filtered.length === 0) {
+        document.getElementById('noFeedbacksFound').style.display = "block";
+      } else {
+        document.getElementById('noFeedbacksFound').style.display = "none";
+        filtered.forEach(fb => {
+          const statusClass = fb.status === "New" ? "badge-new" : "badge-reviewed";
+          // Show truncated feedback text max 30 chars with ellipsis
+          let truncatedText = fb.text.length > 30 ? fb.text.substring(0, 27) + "…" : fb.text;
+          tbody.innerHTML += `
+            <tr>
+              <td>${fb.id}</td>
+              <td>${fb.name}</td>
+              <td>${fb.email}</td>
+              <td>${fb.userType}</td>
+              <td title="${fb.text.replace(/"/g, "&quot;")}">${truncatedText}</td>
+              <td>${fb.date}</td>
+              <td><span class="badge ${statusClass}">${fb.status}</span></td>
+              <td>
+                <button class="btn-table btn-view" onclick="viewFeedback('${fb.id}')" aria-label="View feedback ${fb.id}">
+                  <i class="fas fa-eye"></i> View
+                </button>
+              </td>
+            </tr>`;
+        });
+      }
+    }
+
+    function filterFeedbacks(event) {
+      if (event) event.preventDefault();
+      renderFeedbacks();
+      return false;
+    }
+
+    function filterFeedbacksData() {
+      const q = document.getElementById('searchFeedback').value.trim().toLowerCase();
+      const userType = document.getElementById('filterUserType').value;
+      const status = document.getElementById('filterFeedbackStatus').value;
+      return feedbacks.filter(fb =>
+        (!q ||
+          fb.name.toLowerCase().includes(q) ||
+          fb.email.toLowerCase().includes(q) ||
+          fb.text.toLowerCase().includes(q)
+        ) &&
+        (!userType || fb.userType === userType) &&
+        (!status || fb.status === status)
+      );
+    }
+
+    function viewFeedback(feedbackId) {
+  selectedFeedbackId = feedbackId;
+  const modalBackdrop = document.getElementById('feedbackModalBackdrop');
+  const detailsContainer = document.getElementById('feedbackDetails');
+  const textContainer = document.getElementById('feedbackText');
+
+  const fb = feedbacks.find(f => f.id === feedbackId);
+  if (!fb) return;
+
+  // If status is "New", change it to "Reviewed"
+  if (fb.status === "New") {
+    fb.status = "Reviewed";
+  }
+
+  detailsContainer.innerHTML = `
+    <p><strong>Feedback ID:</strong> ${fb.id}</p>
+    <p><strong>Name:</strong> ${fb.name}</p>
+    <p><strong>Email:</strong> ${fb.email}</p>
+    <p><strong>User Type:</strong> ${fb.userType}</p>
+    <p><strong>Date:</strong> ${fb.date}</p>
+    <p><strong>Status:</strong> <span class="badge ${fb.status === "New" ? "badge-new" : "badge-reviewed"}">${fb.status}</span></p>
+  `;
+
+  textContainer.textContent = fb.text;
+
+  modalBackdrop.style.display = "flex";
+  modalBackdrop.setAttribute('aria-hidden', 'false');
+
+  // Re-render the table to reflect status change
+  renderFeedbacks();
+
+  // Focus on close button or modal for accessibility
+  modalBackdrop.querySelector('.btn-secondary').focus();
+}
+
+
+    function closeFeedbackModal() {
+      const modalBackdrop = document.getElementById('feedbackModalBackdrop');
+      modalBackdrop.style.display = "none";
+      modalBackdrop.setAttribute('aria-hidden', 'true');
+      selectedFeedbackId = null;
+    }
+
+    // Close modal when clicking outside modal content
+    document.getElementById('feedbackModalBackdrop').addEventListener('click', function (e) {
+      if (e.target === this) closeFeedbackModal();
+    });
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function (e) {
+      if (e.key === "Escape" && document.getElementById('feedbackModalBackdrop').style.display === "flex") {
+        closeFeedbackModal();
+      }
+    });
+  </script>
+</body>
+</html>

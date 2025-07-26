@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Requests | Route Buddy - Admin</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --glass-border: rgba(255, 255, 255, 0.2);
+      --shadow-light: 0 8px 32px rgba(102, 126, 234, 0.09);
+      --shadow-medium: 0 12px 40px rgba(102, 126, 234, 0.1);
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      --bg-primary: #f7fafc;
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 0;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      display: flex;
+      flex-direction: row;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      background: var(--primary-gradient);
+      color: white;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      position: sticky;
+      top: 0;
+      box-shadow: var(--shadow-medium);
+      border-right: 1px solid var(--glass-border);
+      height: 100%;
+      z-index: 1000;
+      transition: left 0.3s;
+    }
+    .sidebar-header {
+      margin-bottom: 3rem;
+    }
+    .sidebar h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .sidebar h2 i {
+      color: #ffd700;
+      font-size: 2rem;
+    }
+    .nav-menu {
+      list-style: none;
+      padding: 0;
+    }
+    .nav-item {
+      margin: 0.5rem 0;
+    }
+    .nav-link {
+      color: rgba(255, 255, 255, 0.96);
+      text-decoration: none;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      transition: var(--transition);
+      position: relative;
+    }
+    .nav-link:hover,
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.15);
+      font-weight: 600;
+      color: #ffd700;
+      transform: translateX(8px);
+    }
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+    .nav-link i {
+      font-size: 1.12rem;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* MainContent */
+    .main {
+      flex: 1;
+      padding: 2.5rem 2.7rem;
+      background: var(--bg-primary);
+      position: relative;
+      overflow-x: auto;
+      min-height: 100vh;
+    }
+    .main-header {
+      margin-bottom: 2.7rem;
+    }
+    .main h1 {
+      font-size: 2.1rem;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.3rem;
+    }
+    .main-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.06rem;
+    }
+
+    /* Filters Section */
+    .filter-form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      align-items: center;
+    }
+    .filter-form input[type="text"],
+    .filter-form select {
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      background: #fff;
+      flex: 1 1 200px;
+      min-width: 160px;
+      transition: border-color 0.2s;
+    }
+    .filter-form button {
+      padding: 0.58rem 1.25rem;
+      border-radius: 16px;
+      border: none;
+      background: var(--primary-gradient);
+      color: white;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      box-shadow: 0 2px 8px #667eea11;
+      transition: var(--transition);
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
+    .filter-form button:active {
+      transform: scale(0.98);
+    }
+
+    /* Requests Table */
+    .requests-table-section {
+      background: #fff;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow-light);
+      padding: 2rem;
+      width: 100%;
+      overflow-x: auto;
+      min-width: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 0.6rem;
+    }
+    th,
+    td {
+      padding: 0.82rem 1rem;
+      border-bottom: 1px solid #edf2f7;
+      vertical-align: middle;
+      font-size: 1rem;
+      text-align: left;
+    }
+    th {
+      font-size: 0.98rem;
+      color: var(--text-secondary);
+      background: #f8fafc;
+      font-weight: 600;
+    }
+    tr:hover {
+      background: #f7f7fa;
+    }
+    /* Status badges for request */
+    .badge {
+      padding: 0.18rem 0.8rem;
+      border-radius: 12px;
+      font-size: 0.89rem;
+      display: inline-block;
+      font-weight: 600;
+      user-select: none;
+    }
+    .badge-pending {
+      background: #ffe986;
+      color: #836b01;
+    }
+    .badge-approved {
+      background: #e7fbe7;
+      color: #1da74a;
+    }
+    .badge-rejected {
+      background: #ffe7e7;
+      color: #db3939;
+    }
+
+    /* Action Buttons */
+    .btn-table {
+      padding: 0.33rem 0.75rem;
+      border-radius: 10px;
+      font-size: 0.96rem;
+      margin-right: 0.4rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.18s;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      user-select: none;
+    }
+    .btn-approve {
+      background: #2dd36f;
+      border: 1px solid #2dd36f;
+    }
+    .btn-approve:hover {
+      background: #27c163;
+    }
+    .btn-reject {
+      background: #eb445a;
+      border: 1px solid #eb445a;
+    }
+    .btn-reject:hover {
+      background: #cf3c4f;
+    }
+    .btn-view {
+      background: #667eea;
+    }
+    .btn-view:hover {
+      background: #5561c1;
+    }
+
+    /* No results message */
+    #noRequestsFound {
+      text-align: center;
+      color: #b1b5bb;
+      margin-top: 2.2rem;
+      display: none;
+      font-size: 1.08rem;
+      user-select: none;
+    }
+    #noRequestsFound i {
+      opacity: 0.36;
+      font-size: 1.7rem;
+      margin-bottom: 0.2rem;
+    }
+
+    /* Modal Backdrop & Modal */
+    #requestModalBackdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.36);
+      z-index: 1100;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal {
+      background: #fff;
+      border-radius: 18px;
+      padding: 2rem 2.2rem;
+      box-shadow: var(--shadow-medium);
+      position: relative;
+      animation: fadeInUp 0.3s ease forwards;
+      max-width: 460px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .modal h2 {
+      color: #38a;
+      margin-bottom: 1.4rem;
+      font-weight: 600;
+      font-size: 1.5rem;
+    }
+    #requestDetails p {
+      margin: 0.4rem 0;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: var(--text-primary);
+      user-select: text;
+    }
+    #requestDetails p strong {
+      color: var(--primary-gradient);
+    }
+    /* Message styling */
+    #requestMessage {
+      margin-top: 1.2rem;
+      padding: 0.9rem 1rem;
+      background: #f1f5f9;
+      border-radius: 12px;
+      font-style: italic;
+      color: #555;
+      white-space: pre-wrap;
+      max-height: 180px;
+      overflow-y: auto;
+      border: 1px solid #e2e8f0;
+      user-select: text;
+    }
+
+    .modal-footer {
+      margin-top: 1.8rem;
+      display: flex;
+      gap: 0.9rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 0.5rem 1.1rem;
+      font-size: 1rem;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+      transition: background 0.3s ease;
+      user-select: none;
+      color: white;
+    }
+    .btn-approve {
+      background: #2dd36f;
+      border: 1px solid #2dd36f;
+    }
+    .btn-approve:hover:not(:disabled) {
+      background: #27c163;
+    }
+    .btn-approve:disabled {
+      background: #a8d9b6;
+      cursor: not-allowed;
+      border-color: #a8d9b6;
+      color: #444;
+    }
+    .btn-reject {
+      background: #eb445a;
+      border: 1px solid #eb445a;
+    }
+    .btn-reject:hover:not(:disabled) {
+      background: #cf3c4f;
+    }
+    .btn-reject:disabled {
+      background: #f4a6b1;
+      cursor: not-allowed;
+      border-color: #f4a6b1;
+      color: #444;
+    }
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #444;
+    }
+    .btn-secondary:hover {
+      background: #cbd5e1;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .filter-form input[type="text"],
+      .filter-form select,
+      .filter-form button {
+        flex: none;
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: -282px;
+        z-index: 1000;
+        top: 0;
+        height: 100vh;
+        width: 240px;
+        transition: left 0.3s;
+      }
+      .sidebar.open {
+        left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-route"></i> RouteBuddy</h2>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+      <li class="nav-item"><a href="manage-users.html" class="nav-link"><i class="fas fa-users"></i> Manage Users</a></li>
+      <li class="nav-item"><a href="manage-vendors.html" class="nav-link"><i class="fas fa-store"></i> Manage Vendors</a></li>
+      <li class="nav-item"><a href="requests.html" class="nav-link active"><i class="fas fa-clipboard-list"></i> Requests</a></li>
+      <li class="nav-item"><a href="feedbacks.html" class="nav-link"><i class="fas fa-comments"></i> Feedbacks</a></li>
+      <li class="nav-item"><a href="records.html" class="nav-link"><i class="fas fa-calendar-check"></i> Booking Records</a></li>
+      <li class="nav-item"><a href="transactions.html" class="nav-link"><i class="fas fa-credit-card"></i> Transactions</a></li>
+      <li class="nav-item"><a href="settings.html" class="nav-link"><i class="fas fa-shield-alt"></i> Security Settings</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+    <div class="main-header">
+      <h1>Requests</h1>
+      <p class="main-subtitle">Review, filter, and manage incoming requests.</p>
+    </div>
+
+    <form class="filter-form" id="requestFilterForm" onsubmit="filterRequests(event)" autocomplete="off" novalidate>
+      <input type="text" id="searchRequest" placeholder="Search by name, email or request ID" />
+      <select id="filterRequestType" aria-label="Filter by Request Type">
+        <option value="">All Request Types</option>
+        <option value="User">User</option>
+        <option value="Vendor">Vendor</option>
+      </select>
+      <select id="filterRequestStatus" aria-label="Filter by Status">
+        <option value="">All Status</option>
+        <option value="Pending">Pending</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+      <button type="submit"><i class="fas fa-search"></i> Filter</button>
+    </form>
+
+    <section class="requests-table-section">
+      <table id="requestsTable" role="grid" aria-label="Requests Table">
+        <thead>
+          <tr>
+            <th scope="col">Request ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Request Type</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Request Date</th>
+            <th scope="col">Status</th>
+            <th scope="col" style="min-width: 100px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows added by JS -->
+        </tbody>
+      </table>
+
+      <div id="noRequestsFound">
+        <i class="fas fa-search-minus"></i><br />
+        No requests found.
+      </div>
+    </section>
+  </main>
+
+  <!-- Request Details Modal -->
+  <div class="modal-backdrop" id="requestModalBackdrop" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="requestModalLabel" tabindex="-1">
+    <div class="modal">
+      <h2 id="requestModalLabel">Request Details</h2>
+      <div id="requestDetails"></div>
+      <div id="requestMessage" title="Request Message"></div>
+      <div class="modal-footer">
+        <button id="approveBtn" class="btn btn-approve" type="button" aria-label="Approve request">
+          <i class="fas fa-check"></i> Approve
+        </button>
+        <button id="rejectBtn" class="btn btn-reject" type="button" aria-label="Reject request">
+          <i class="fas fa-times"></i> Reject
+        </button>
+        <button class="btn btn-secondary" type="button" onclick="closeRequestModal()" aria-label="Cancel and close modal">
+          <i class="fas fa-times-circle"></i> Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let requests = [
+      {
+        id: "R001",
+        name: "Alice Johnson",
+        type: "User",
+        email: "alice@mail.com",
+        phone: "9876543210",
+        date: "2024-06-10",
+        status: "Pending",
+        message: "I would like to update my profile details and request for additional privileges."
+      },
+      {
+        id: "R002",
+        name: "Robert Singh",
+        type: "Vendor",
+        email: "robert@mail.com",
+        phone: "9851012378",
+        date: "2024-06-09",
+        status: "Approved",
+        message: "Request to add new bus routes in the southern region."
+      },
+      {
+        id: "R003",
+        name: "Priya Menon",
+        type: "User",
+        email: "priya@mail.com",
+        phone: "9930120022",
+        date: "2024-06-09",
+        status: "Rejected",
+        message: "Request for refund of last booking due to cancellation."
+      },
+      {
+        id: "R004",
+        name: "John Abraham",
+        type: "Vendor",
+        email: "john@mail.com",
+        phone: "9988776655",
+        date: "2024-06-08",
+        status: "Pending",
+        message: "Seeking approval to update vendor profile and contact details."
+      }
+    ];
+
+    let selectedRequestId = null;
+
+    document.addEventListener('DOMContentLoaded', renderRequests);
+
+    function renderRequests() {
+      const tbody = document.querySelector('#requestsTable tbody');
+      tbody.innerHTML = "";
+      let filtered = filterRequestsData();
+      if (filtered.length === 0) {
+        document.getElementById('noRequestsFound').style.display = "block";
+      } else {
+        document.getElementById('noRequestsFound').style.display = "none";
+        filtered.forEach(r => {
+          const statusClass = r.status === "Pending" ? "badge-pending" :
+            (r.status === "Approved" ? "badge-approved" : "badge-rejected");
+          tbody.innerHTML += `
+            <tr>
+              <td>${r.id}</td>
+              <td>${r.name}</td>
+              <td>${r.type}</td>
+              <td>${r.email}</td>
+              <td>${r.phone}</td>
+              <td>${r.date}</td>
+              <td><span class="badge ${statusClass}">${r.status}</span></td>
+              <td>
+                <button class="btn-table btn-view" onclick="viewRequest('${r.id}')" aria-label="View request ${r.id}">
+                  <i class="fas fa-eye"></i> View
+                </button>
+              </td>
+            </tr>`;
+        });
+      }
+    }
+
+    function filterRequests(event) {
+      if (event) event.preventDefault();
+      renderRequests();
+      return false;
+    }
+
+    function filterRequestsData() {
+      const q = document.getElementById('searchRequest').value.trim().toLowerCase();
+      const type = document.getElementById('filterRequestType').value;
+      const status = document.getElementById('filterRequestStatus').value;
+      return requests.filter(r =>
+        (!q ||
+          r.name.toLowerCase().includes(q) ||
+          r.email.toLowerCase().includes(q) ||
+          r.id.toLowerCase().includes(q)
+        ) &&
+        (!type || r.type === type) &&
+        (!status || r.status === status)
+      );
+    }
+
+    function viewRequest(requestId) {
+      selectedRequestId = requestId;
+      const modalBackdrop = document.getElementById('requestModalBackdrop');
+      const detailsContainer = document.getElementById('requestDetails');
+      const messageContainer = document.getElementById('requestMessage');
+      const approveBtn = document.getElementById('approveBtn');
+      const rejectBtn = document.getElementById('rejectBtn');
+
+      const req = requests.find(r => r.id === requestId);
+      if (!req) return;
+
+      detailsContainer.innerHTML = `
+        <p><strong>Request ID:</strong> ${req.id}</p>
+        <p><strong>Name:</strong> ${req.name}</p>
+        <p><strong>Request Type:</strong> ${req.type}</p>
+        <p><strong>Email:</strong> ${req.email}</p>
+        <p><strong>Phone:</strong> ${req.phone}</p>
+        <p><strong>Date:</strong> ${req.date}</p>
+        <p><strong>Status:</strong> <span class="badge ${req.status.toLowerCase()}">${req.status}</span></p>
+      `;
+
+      messageContainer.textContent = req.message || "(No message provided)";
+
+      if (req.status === "Pending") {
+        approveBtn.disabled = false;
+        rejectBtn.disabled = false;
+      } else {
+        approveBtn.disabled = true;
+        rejectBtn.disabled = true;
+      }
+
+      modalBackdrop.style.display = "flex";
+      modalBackdrop.setAttribute('aria-hidden', 'false');
+      approveBtn.focus();
+    }
+
+    function closeRequestModal() {
+      const modalBackdrop = document.getElementById('requestModalBackdrop');
+      modalBackdrop.style.display = "none";
+      modalBackdrop.setAttribute('aria-hidden', 'true');
+      selectedRequestId = null;
+    }
+
+    document.getElementById('approveBtn').addEventListener('click', function () {
+      if (!selectedRequestId) return;
+      updateRequestStatus(selectedRequestId, 'Approved');
+      closeRequestModal();
+    });
+
+    document.getElementById('rejectBtn').addEventListener('click', function () {
+      if (!selectedRequestId) return;
+      updateRequestStatus(selectedRequestId, 'Rejected');
+      closeRequestModal();
+    });
+
+    function updateRequestStatus(requestId, newStatus) {
+      const idx = requests.findIndex(r => r.id === requestId);
+      if (idx !== -1) {
+        requests[idx].status = newStatus;
+        renderRequests();
+        alert(`Request ${requestId} ${newStatus.toLowerCase()}!`);
+      }
+    }
+
+    // Close modal when clicking outside modal content
+    document.getElementById('requestModalBackdrop').addEventListener('click', function (e) {
+      if (e.target === this) closeRequestModal();
+    });
+
+    // Close modal on ESC key
+    document.addEventListener('keydown', function (e) {
+      if (e.key === "Escape" && document.getElementById('requestModalBackdrop').style.display === "flex") {
+        closeRequestModal();
+      }
+    });
+  </script>
+</body>
+</html>

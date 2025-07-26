@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Security Settings | Route Buddy - Admin</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --glass-border: rgba(255,255,255,0.2);
+      --shadow-light: 0 8px 32px rgba(102,126,234,0.09);
+      --shadow-medium: 0 12px 40px rgba(102,126,234,0.1);
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      --bg-primary: #f7fafc;
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 0;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      display: flex; flex-direction: row; min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .sidebar {
+      width: 280px;
+      background: var(--primary-gradient);
+      color: white;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      position: sticky; top: 0;
+      box-shadow: var(--shadow-medium);
+      border-right: 1px solid var(--glass-border);
+      z-index: 1000; transition: left 0.3s;
+    }
+    .sidebar-header { margin-bottom: 3rem; }
+    .sidebar h2 { font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .sidebar h2 i { color: #ffd700; font-size: 2rem; }
+    .nav-menu { list-style: none; padding: 0; }
+    .nav-item { margin: 0.5rem 0; }
+    .nav-link {
+      color: rgba(255,255,255,0.96); text-decoration: none; font-weight: 500;
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.25rem; border-radius: 12px;
+      position: relative; transition: var(--transition);
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(255,255,255,0.15); font-weight: 600; color: #ffd700; transform: translateX(8px);
+    }
+    .nav-link.active { background: rgba(255,255,255,0.2); color: white; }
+    .nav-link i { font-size: 1.12rem; width: 20px; text-align: center; }
+    /* Main */
+    .main {
+      flex: 1; padding: 2.5rem 2.7rem;
+      background: var(--bg-primary); position: relative; overflow-x: auto; min-height: 100vh;
+    }
+    .main-header { margin-bottom: 2.7rem; }
+    .main h1 { font-size: 2.1rem; font-weight: 700; background: var(--primary-gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 0.3rem; }
+    .main-subtitle { color: var(--text-secondary); font-size: 1.06rem; margin-bottom: 2rem; }
+
+    /* Section cards */
+    .card {
+      background: #fff;
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: var(--shadow-light);
+      margin-bottom: 2.5rem;
+      max-width: 720px;
+      width: 100%;
+    }
+
+    /* Password Change Form */
+    form label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    form input[type="password"] {
+      width: 100%;
+      padding: 0.65rem 1rem;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      font-size: 1rem;
+      margin-bottom: 1.2rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    form input[type="password"]:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 6px #667eea7a;
+    }
+    form button {
+      padding: 0.7rem 1.8rem;
+      border-radius: 16px;
+      border: none;
+      background: var(--primary-gradient);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    form button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    .input-error {
+      color: #e74c3c;
+      font-size: 0.85rem;
+      margin-top: -1rem;
+      margin-bottom: 1rem;
+      min-height: 1em;
+    }
+
+    /* 2FA Toggle */
+    .twofa-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.4rem;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0; height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px; width: 20px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #667eea;
+    }
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+    .switch-label {
+      font-weight: 600;
+      user-select: none;
+      color: var(--text-primary);
+    }
+
+    /* Login Activity Table */
+    .activity-table-section {
+      max-width: 920px;
+      width: 100%;
+      background: #fff;
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: var(--shadow-light);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 1rem;
+      vertical-align: middle;
+    }
+    th {
+      color: var(--text-secondary);
+      font-weight: 600;
+      background: #f8fafc;
+    }
+    tr:hover {
+      background: #f7f7fa;
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        padding: 1.5rem;
+      }
+      .card, .activity-table-section {
+        padding: 1.2rem 1rem;
+        margin-bottom: 1.8rem;
+      }
+      form button {
+        width: 100%;
+      }
+      table th, table td {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-route"></i> RouteBuddy</h2>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+      <li class="nav-item"><a href="manage-users.html" class="nav-link"><i class="fas fa-users"></i> Manage Users</a></li>
+      <li class="nav-item"><a href="manage-vendors.html" class="nav-link"><i class="fas fa-store"></i> Manage Vendors</a></li>
+      <li class="nav-item"><a href="requests.html" class="nav-link"><i class="fas fa-clipboard-list"></i> Requests</a></li>
+      <li class="nav-item"><a href="feedbacks.html" class="nav-link"><i class="fas fa-comments"></i> Feedbacks</a></li>
+      <li class="nav-item"><a href="records.html" class="nav-link"><i class="fas fa-calendar-check"></i> Booking Records</a></li>
+      <li class="nav-item"><a href="transactions.html" class="nav-link"><i class="fas fa-credit-card"></i> Transactions</a></li>
+      <li class="nav-item"><a href="settings.html" class="nav-link active"><i class="fas fa-shield-alt"></i> Security Settings</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="main-header">
+      <h1>Security Settings</h1>
+      <p class="main-subtitle">Manage your password, two-factor authentication, and view recent login activity.</p>
+    </div>
+
+    <!-- Password Change Card -->
+    <section class="card" aria-label="Password change form">
+      <h2 style="color: #667eea; margin-bottom: 1.5rem;">Change Password</h2>
+      <form id="passwordForm" onsubmit="return validatePasswordChange(event)" novalidate>
+        <label for="currentPassword">Current Password</label>
+        <input type="password" id="currentPassword" name="currentPassword" required minlength="6" autocomplete="current-password" />
+        <div class="input-error" id="errCurrentPassword"></div>
+
+        <label for="newPassword">New Password</label>
+        <input type="password" id="newPassword" name="newPassword" required minlength="8" autocomplete="new-password" />
+        <div class="input-error" id="errNewPassword"></div>
+
+        <label for="confirmPassword">Confirm New Password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8" autocomplete="new-password" />
+        <div class="input-error" id="errConfirmPassword"></div>
+
+        <button type="submit">Change Password</button>
+      </form>
+    </section>
+
+    <!-- 2FA Toggle Card -->
+    <section class="card" aria-label="Two-factor authentication settings">
+      <h2 style="color: #667eea; margin-bottom: 1.5rem;">Two-Factor Authentication (2FA)</h2>
+      <div class="twofa-container">
+        <label class="switch" for="twofaToggle">
+          <input type="checkbox" id="twofaToggle" />
+          <span class="slider"></span>
+        </label>
+        <span class="switch-label" id="twofaStatusLabel">2FA is currently disabled</span>
+      </div>
+    </section>
+
+    <!-- Login Activity Card -->
+    <section class="activity-table-section" aria-label="Recent login activity">
+      <h2 style="color: #667eea; margin-bottom: 1rem;">Recent Login Activity</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>IP Address</th>
+            <th>Device</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="loginActivityBody">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    // Sample login activity data
+    const loginActivity = [
+      { datetime: "2025-07-25 09:15", ip: "192.168.1.20", device: "Chrome on Windows", status: "Success" },
+      { datetime: "2025-07-24 18:04", ip: "192.168.1.15", device: "Firefox on MacOS", status: "Success" },
+      { datetime: "2025-07-23 22:10", ip: "192.168.1.33", device: "Mobile Safari on iPhone", status: "Failed" },
+      { datetime: "2025-07-22 08:50", ip: "192.168.1.22", device: "Edge on Windows", status: "Success" },
+    ];
+
+    function renderLoginActivity() {
+      const tbody = document.getElementById('loginActivityBody');
+      tbody.innerHTML = "";
+      loginActivity.forEach(entry => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${entry.datetime}</td>
+            <td>${entry.ip}</td>
+            <td>${entry.device}</td>
+            <td><span class="badge ${entry.status === "Success" ? "badge-success" : "badge-danger"}">${entry.status}</span></td>
+          </tr>`;
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderLoginActivity();
+
+      // 2FA toggle setup
+      const twofaToggle = document.getElementById('twofaToggle');
+      const statusLabel = document.getElementById('twofaStatusLabel');
+
+      // Assume 2FA initially disabled; toggle stores status in localStorage (for demo)
+      const saved2FA = localStorage.getItem('twofa-enabled') === 'true';
+      twofaToggle.checked = saved2FA;
+      statusLabel.textContent = saved2FA ? "2FA is currently enabled" : "2FA is currently disabled";
+
+      twofaToggle.addEventListener('change', () => {
+        if (twofaToggle.checked) {
+          statusLabel.textContent = "2FA is currently enabled";
+          alert("Two-factor authentication has been enabled.");
+          localStorage.setItem('twofa-enabled', 'true');
+        } else {
+          statusLabel.textContent = "2FA is currently disabled";
+          alert("Two-factor authentication has been disabled.");
+          localStorage.setItem('twofa-enabled', 'false');
+        }
+      });
+    });
+
+    // Password change form validation
+    function validatePasswordChange(event) {
+      event.preventDefault();
+      const current = document.getElementById('currentPassword');
+      const newPwd = document.getElementById('newPassword');
+      const confirmPwd = document.getElementById('confirmPassword');
+
+      let valid = true;
+
+      // Clear errors
+      document.getElementById('errCurrentPassword').textContent = "";
+      document.getElementById('errNewPassword').textContent = "";
+      document.getElementById('errConfirmPassword').textContent = "";
+
+      if (!current.value || current.value.length < 6) {
+        document.getElementById('errCurrentPassword').textContent = "Please enter your current password (min 6 characters).";
+        valid = false;
+      }
+      if (!newPwd.value || newPwd.value.length < 8) {
+        document.getElementById('errNewPassword').textContent = "New password must be at least 8 characters.";
+        valid = false;
+      }
+      if (newPwd.value !== confirmPwd.value) {
+        document.getElementById('errConfirmPassword').textContent = "Passwords do not match.";
+        valid = false;
+      }
+      if (!valid) return false;
+
+      // For demo, just alert success here
+      alert("Password changed successfully!");
+      // Reset inputs
+      current.value = "";
+      newPwd.value = "";
+      confirmPwd.value = "";
+
+      return false;
+    }
+  </script>
+</body>
+</html>
