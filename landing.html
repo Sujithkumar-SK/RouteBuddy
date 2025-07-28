@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Route Buddy - Your Ultimate Bus Booking Platform</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+        }
+
+        /* HEADER STYLES */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 2rem;
+            height: 65px;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.6rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            color: #ffd700;
+        }
+
+        .nav-center {
+            display: flex;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 1.8rem;
+            align-items: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-login, .btn-register {
+            background: transparent;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            padding: 0.6rem 1.2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-register {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-login:hover, .btn-register:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+            border-color: white;
+        }
+
+        /* Mobile Hamburger */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 4px;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: white;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%),
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23667eea" width="1200" height="600"/><rect fill="%23764ba2" x="0" y="300" width="1200" height="300" opacity="0.8"/><circle fill="%23ffffff" cx="900" cy="150" r="80" opacity="0.1"/><circle fill="%23ffffff" cx="300" cy="400" r="60" opacity="0.1"/></svg>');
+            background-size: cover;
+            background-position: center;
+            min-height: 80vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+            padding: 4rem 2rem;
+        }
+
+        .hero-content {
+            max-width: 900px;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 3rem;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+
+        .btn-primary {
+            background: #ffd700;
+            color: #333;
+            padding: 1rem 2.5rem;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            background: #ffed4a;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: white;
+            padding: 1rem 2.5rem;
+            border: 2px solid white;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-3px);
+        }
+
+        /* Search Box */
+        .search-container {
+            position: relative;
+            margin-top: 2rem;
+        }
+
+        .search-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .search-field {
+            position: relative;
+        }
+
+        .search-field label {
+            display: block;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .search-field input,
+        .search-field select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .search-field input:focus,
+        .search-field select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            align-self: flex-end;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        /* SECTIONS */
+        .section {
+            padding: 5rem 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 4rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* FEATURES SECTION */
+        .features {
+            background: white;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            text-align: center;
+            padding: 2.5rem;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.7;
+        }
+
+        /* HOW IT WORKS */
+        .how-it-works {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+        }
+
+        .step {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4a 100%);
+            color: #333;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .step h3 {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .step p {
+            color: #666;
+            line-height: 1.7;
+        }
+
+        /* VENDOR CTA */
+        .vendor-cta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .vendor-cta .section-title,
+        .vendor-cta .section-subtitle {
+            color: white;
+        }
+
+        .vendor-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .vendor-feature {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .vendor-feature:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .vendor-feature h4 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .vendor-feature p {
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+
+        /* FOOTER STYLES */
+        .footer {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem 1rem;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3 {
+            color: #ffd700;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li a {
+            color: #bdc3c7;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li a:hover {
+            color: #ffd700;
+        }
+
+        .footer-section p {
+            color: #bdc3c7;
+            margin-bottom: 0.5rem;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 50%;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            background: #ffd700;
+            color: #333;
+            transform: translateY(-3px);
+        }
+
+        .newsletter-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .newsletter-input {
+            flex: 1;
+            padding: 0.7rem;
+            border: none;
+            border-radius: 25px;
+            outline: none;
+        }
+
+        .newsletter-btn {
+            background: #ffd700;
+            color: #333;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .newsletter-btn:hover {
+            background: #ffed4a;
+            transform: translateY(-2px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 0;
+            text-align: center;
+            color: #bdc3c7;
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 1024px) {
+            .navbar {
+                padding: 0.8rem 1.5rem;
+            }
+            
+            .nav-menu {
+                gap: 1.2rem;
+            }
+            
+            .nav-link {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.9rem;
+            }
+
+            .hero h1 {
+                font-size: 3rem;
+            }
+
+            .search-box {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 1rem;
+                height: auto;
+                min-height: 60px;
+            }
+
+            .nav-center {
+                display: none;
+            }
+
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 60px;
+                flex-direction: column;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+                padding: 2rem 0;
+                gap: 0.5rem;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .nav-right {
+                gap: 0.5rem;
+            }
+
+            .btn-login, .btn-register {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .hero {
+                min-height: 70vh;
+                padding: 2rem 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .search-box {
+                padding: 1.5rem;
+                grid-template-columns: 1fr;
+                margin: 0 1rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .section {
+                padding: 3rem 0;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid,
+            .steps-grid,
+            .vendor-features {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .footer-content {
+                padding: 2rem 1rem 1rem;
+            }
+
+            .newsletter-form {
+                flex-direction: column;
+            }
+
+            .logo {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 0.8rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .search-box {
+                padding: 1rem;
+            }
+
+            .feature-card,
+            .step {
+                padding: 1.5rem;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="header">
+        <nav class="navbar">
+            <!-- Logo -->
+            <a href="#" class="logo">
+                <i class="fas fa-route"></i>
+                Route Buddy
+            </a>
+
+            <!-- Navigation Menu - Center -->
+            <div class="nav-center">
+                <ul class="nav-menu">
+                    <li><a href="#home" class="nav-link active">Home</a></li>
+                    <li><a href="#features" class="nav-link">Features</a></li>
+                    <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+                    <li><a href="#vendor" class="nav-link">For Vendors</a></li>
+                    <li><a href="#contact" class="nav-link">Contact</a></li>
+                </ul>
+            </div>
+
+            <!-- Right Section - Login & Register -->
+            <div class="nav-right">
+                <a href="#" class="btn-login">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Login
+                </a>
+                <a href="#" class="btn-register">
+                    <i class="fas fa-user-plus"></i>
+                    Register
+                </a>
+            </div>
+
+            <!-- Mobile Hamburger -->
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Travel Smart with Route Buddy</h1>
+            <p class="hero-subtitle">Your ultimate bus booking platform connecting passengers with trusted vendors across the country</p>
+            
+            <div class="hero-buttons">
+                <a href="#" class="btn-primary">
+                    <i class="fas fa-ticket-alt"></i>
+                    Book Your Journey
+                </a>
+                <a href="#" class="btn-secondary">
+                    <i class="fas fa-bus"></i>
+                    Register as Vendor
+                </a>
+            </div>
+
+            <!-- Quick Search Box -->
+            <div class="search-container">
+                <div class="search-box">
+                    <div class="search-field">
+                        <label><i class="fas fa-map-marker-alt"></i> From</label>
+                        <input type="text" placeholder="Departure city">
+                    </div>
+                    <div class="search-field">
+                        <label><i class="fas fa-map-marker-alt"></i> To</label>
+                        <input type="text" placeholder="Destination">
+                    </div>
+                    <div class="search-field">
+                        <label><i class="fas fa-calendar-alt"></i> Departure</label>
+                        <input type="date">
+                    </div>
+                    <div class="search-field">
+                        <label><i class="fas fa-calendar-alt"></i> Return</label>
+                        <input type="date">
+                    </div>
+                    <button class="search-btn">
+                        <i class="fas fa-search"></i>
+                        Search Buses
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION -->
+    <section id="features" class="section features">
+        <div class="container">
+            <h2 class="section-title">Why Choose Route Buddy?</h2>
+            <p class="section-subtitle">Experience hassle-free bus booking with our cutting-edge features designed for modern travelers</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mouse-pointer"></i>
+                    </div>
+                    <h3>Easy Booking</h3>
+                    <p>Book your bus tickets in just a few clicks with our intuitive interface. Compare prices, routes, and amenities instantly.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h3>Live Tracking</h3>
+                    <p>Track your bus in real-time and get updates on arrival times. Never miss your bus with accurate location tracking.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3>Secure Payment</h3>
+                    <p>Multiple payment options with bank-level security. Your financial information is always protected with us.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h3>Verified Vendors</h3>
+                    <p>All our bus operators are verified and rated by real customers. Travel with confidence and peace of mind.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS SECTION -->
+    <section id="how-it-works" class="section how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Four simple steps to your perfect journey</p>
+            
+            <div class="steps-grid">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Search</h3>
+                    <p>Enter your departure and destination cities along with your travel dates to find available buses.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Book</h3>
+                    <p>Choose your preferred bus, select seats, and complete the booking with secure payment options.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Travel</h3>
+                    <p>Board your bus with mobile tickets and enjoy real-time tracking throughout your journey.</p>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <h3>Rate</h3>
+                    <p>Share your experience and help other travelers by rating your trip and the bus service.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VENDOR CTA SECTION -->
+    <section id="vendor" class="section vendor-cta">
+        <div class="container">
+            <h2 class="section-title">Partner with Route Buddy</h2>
+            <p class="section-subtitle">Join thousands of bus operators who are growing their business with our platform</p>
+            
+            <div class="vendor-features">
+                <div class="vendor-feature">
+                    <h4><i class="fas fa-chart-line"></i> Dashboard Analytics</h4>
+                    <p>Comprehensive insights into your bookings, revenue, and customer feedback</p>
+                </div>
+                
+                <div class="vendor-feature">
+                    <h4><i class="fas fa-bullhorn"></i> Marketing Tools</h4>
+                    <p>Promote your services to millions of potential customers across the platform</p>
+                </div>
+                
+                <div class="vendor-feature">
+                    <h4><i class="fas fa-money-bill-wave"></i> Instant Payments</h4>
+                    <p>Get paid instantly for every booking with our secure payment processing system</p>
+                </div>
+            </div>
+            
+            <a href="#" class="btn-primary">
+                <i class="fas fa-handshake"></i>
+                Start Selling Today
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <!-- Quick Links -->
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Book Now</a></li>
+                        <li><a href="#">Route Search</a></li>
+                        <li><a href="#">FAQs</a></li>
+                        <li><a href="#">Terms & Conditions</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="footer-section">
+                    <h3>Contact Information</h3>
+                    <p><i class="fas fa-phone"></i> +1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope"></i> support@routebuddy.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> 123 Business Ave, Suite 100<br>Enterprise City, EC 12345</p>
+                    <p><i class="fas fa-clock"></i> 24/7 Customer Support</p>
+                </div>
+
+                <!-- Social Media -->
+                <div class="footer-section">
+                    <h3>Follow Us</h3>
+                    <p>Stay connected for updates and offers</p>
+                    <div class="social-icons">
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+
+                <!-- Newsletter -->
+                <div class="footer-section">
+                    <h3>Newsletter</h3>
+                    <p>Subscribe for travel deals and updates</p>
+                    <form class="newsletter-form">
+                        <input type="email" class="newsletter-input" placeholder="Enter your email">
+                        <button type="submit" class="newsletter-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Footer Bottom -->
+            <div class="footer-bottom">
+                <p>&copy; 2025 Route Buddy. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
