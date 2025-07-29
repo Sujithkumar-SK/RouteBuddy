@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteBuddy - Select Boarding & Dropping Points</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .route-info {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .route-arrow {
+            margin: 0 12px;
+            color: #666;
+        }
+
+        .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+        .close-btn:hover {
+            color: #e53935;
+        }
+
+        /* Progress Navigation */
+        .progress-nav {
+            background: white;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .progress-steps {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: #666;
+            position: relative;
+        }
+
+        .step.active {
+            color: #e53935;
+        }
+
+        .step.completed {
+            color: #4caf50;
+        }
+
+        .step.active::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e53935;
+            border-radius: 2px;
+        }
+
+        .step-number {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .step.active .step-number {
+            background: #e53935;
+        }
+
+        .step.completed .step-number {
+            background: #4caf50;
+        }
+
+        /* Main Content */
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* Point Selection Cards */
+        .point-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            height: fit-content;
+        }
+
+        .point-card h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .point-subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* Point Options */
+        .point-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .point-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            position: relative;
+        }
+
+        .point-option:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .point-option.selected {
+            border-color: #e53935;
+            background: #fff5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(229, 57, 53, 0.15);
+        }
+
+        .point-option.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 24px;
+            height: 24px;
+            background: #e53935;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .point-time {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .point-name {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .point-address {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .point-date {
+            font-size: 12px;
+            color: #e53935;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        /* Special Tags */
+        .point-tag {
+            display: inline-block;
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        /* Footer */
+        .footer {
+            background: white;
+            padding: 20px 24px;
+            border-top: 1px solid #e0e0e0;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            bottom: 0;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .price-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .seat-count {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .total-price {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .continue-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .continue-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .continue-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Info Banner */
+        .info-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-banner i {
+            font-size: 20px;
+            color: #ffd700;
+        }
+
+        .info-banner-text {
+            flex: 1;
+        }
+
+        .info-banner-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .info-banner-desc {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                padding: 16px;
+                gap: 16px;
+            }
+
+            .progress-steps {
+                gap: 20px;
+            }
+
+            .step {
+                font-size: 14px;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .point-card {
+                padding: 20px;
+            }
+
+            .route-info {
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .point-option {
+                padding: 14px;
+            }
+
+            .point-time {
+                font-size: 16px;
+            }
+
+            .point-name {
+                font-size: 15px;
+            }
+
+            .continue-btn {
+                padding: 14px 24px;
+                font-size: 15px;
+            }
+
+            .total-price {
+                font-size: 20px;
+            }
+        }
+
+        /* Animation for page load */
+        .point-card {
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .point-card:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading state for continue button */
+        .continue-btn.loading::after {
+            content: '';
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <button class="close-btn">×</button>
+        <div class="route-info">
+            <span>Perungalathur</span>
+            <span class="route-arrow">→</span>
+            <span>Bangalore</span>
+        </div>
+    </header>
+
+    <nav class="progress-nav">
+        <div class="progress-steps">
+            <div class="step completed">
+                <span class="step-number">1</span>
+                <span>Select seats</span>
+            </div>
+            <div class="step active">
+                <span class="step-number">2</span>
+                <span>Board/Drop point</span>
+            </div>
+            <div class="step">
+                <span class="step-number">3</span>
+                <span>Passenger Info</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="info-banner">
+        <i class="fas fa-info-circle"></i>
+        <div class="info-banner-text">
+            <div class="info-banner-title">Select Your Boarding & Dropping Points</div>
+            <div class="info-banner-desc">Choose convenient locations for pickup and drop-off to complete your booking</div>
+        </div>
+    </div>
+
+    <main class="main-content">
+        <!-- Boarding Points -->
+        <div class="point-card">
+            <h2>Boarding points</h2>
+            <p class="point-subtitle">Perungalathur</p>
+            
+            <div class="point-options">
+                <div class="point-option selected">
+                    <div class="point-time">23:15</div>
+                    <div class="point-name">Perungalathur</div>
+                    <div class="point-address">Infront of Sutherland Global Services (Chennai)</div>
+                    <span class="point-tag">Your selected Boarding Point(s)</span>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-time">21:45</div>
+                    <div class="point-name">Velachery</div>
+                    <div class="point-address">Opp Bloom Hospital (Chennai)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-time">21:50</div>
+                    <div class="point-name">Tharamani</div>
+                    <div class="point-address">Infront of Tharamani Bus Stand, Opp Metro Treats (Chennai)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-time">21:55</div>
+                    <div class="point-name">SRP Tools</div>
+                    <div class="point-address">SRP Tools Junction, Opp Holiday Inn (Chennai)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-time">22:00</div>
+                    <div class="point-name">Perungudi</div>
+                    <div class="point-address">Next to Perungudi IGP Bus Stop, Opp Naturals (Chennai)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-time">22:05</div>
+                    <div class="point-name">Perungudi</div>
+                    <div class="point-address">Next to Perungudi Toll Plaza, Towards Karapakkam, Opp Sri Kumarn Shopping Centre (Chennai)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dropping Points -->
+        <div class="point-card">
+            <h2>Dropping points</h2>
+            <p class="point-subtitle">Hosur</p>
+            
+            <div class="point-options">
+                <div class="point-option selected">
+                    <div class="point-date">29 Jul</div>
+                    <div class="point-time">05:00</div>
+                    <div class="point-name">Hosur</div>
+                    <div class="point-address">Opp Tanishq Jewellery, After Bridge (Bangalore)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-date">29 Jul</div>
+                    <div class="point-time">05:15</div>
+                    <div class="point-name">Attibele</div>
+                    <div class="point-address">After Attibele Toll Gate (Bangalore)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-date">29 Jul</div>
+                    <div class="point-time">05:30</div>
+                    <div class="point-name">Bommasandra</div>
+                    <div class="point-address">Infront of Adyar Ananda Bhavan (Bangalore)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-date">29 Jul</div>
+                    <div class="point-time">05:35</div>
+                    <div class="point-name">Hebbagodi</div>
+                    <div class="point-address">Hebbagodi Bus Stop, Narayana Hrudayalaya (Bangalore)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-date">29 Jul</div>
+                    <div class="point-time">05:40</div>
+                    <div class="point-name">Electronic City</div>
+                    <div class="point-address">Electronic City Toll Gate, Opp Audi Bengaluru Service Center (Bangalore)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-date">29 Jul</div>
+                    <div class="point-time">05:50</div>
+                    <div class="point-name">Central Silk Board</div>
+                    <div class="point-address">Opp Trident Renault Car Showroom (Bangalore)</div>
+                </div>
+                
+                <div class="point-option">
+                    <div class="point-date">29 Jul</div>
+                    <div class="point-time">05:55</div>
+                    <div class="point-name">Madiwala</div>
+                    <div class="point-address">Madiwala Market, Near Forum Mall (Bangalore)</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="price-info">
+                <span class="seat-count">1 seat</span>
+                <span class="total-price">₹729</span>
+            </div>
+            <button class="continue-btn" onclick="proceedToPassengerInfo()">
+                <i class="fas fa-user-plus"></i>
+                Fill passenger details
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        // Handle point selection functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const boardingPoints = document.querySelectorAll('.point-card:first-child .point-option');
+            const droppingPoints = document.querySelectorAll('.point-card:last-child .point-option');
+            const continueBtn = document.querySelector('.continue-btn');
+
+            // Handle boarding point selection
+            boardingPoints.forEach(point => {
+                point.addEventListener('click', function() {
+                    boardingPoints.forEach(p => p.classList.remove('selected'));
+                    this.classList.add('selected');
+                    checkSelections();
+                });
+            });
+
+            // Handle dropping point selection
+            droppingPoints.forEach(point => {
+                point.addEventListener('click', function() {
+                    droppingPoints.forEach(p => p.classList.remove('selected'));
+                    this.classList.add('selected');
+                    checkSelections();
+                });
+            });
+
+            function checkSelections() {
+                const boardingSelected = document.querySelector('.point-card:first-child .point-option.selected');
+                const droppingSelected = document.querySelector('.point-card:last-child .point-option.selected');
+                
+                if (boardingSelected && droppingSelected) {
+                    continueBtn.disabled = false;
+                } else {
+                    continueBtn.disabled = true;
+                }
+            }
+
+            // Initial check
+            checkSelections();
+        });
+
+        function proceedToPassengerInfo() {
+            const continueBtn = document.querySelector('.continue-btn');
+            continueBtn.classList.add('loading');
+            continueBtn.innerHTML = '<i class="fas fa-user-plus"></i>Processing...';
+            
+            // Simulate API call
+            setTimeout(() => {
+                alert('Proceeding to passenger information page...');
+                continueBtn.classList.remove('loading');
+                continueBtn.innerHTML = '<i class="fas fa-user-plus"></i>Fill passenger details';
+            }, 2000);
+        }
+
+        // Handle close button
+        document.querySelector('.close-btn').addEventListener('click', function() {
+            if (confirm('Are you sure you want to exit? Your booking progress will be lost.')) {
+                window.history.back();
+            }
+        });
+
+        // Add smooth scrolling behavior
+        document.querySelectorAll('.point-option').forEach(option => {
+            option.addEventListener('click', function() {
+                this.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        });
+    </script>
+</body>
+</html>
