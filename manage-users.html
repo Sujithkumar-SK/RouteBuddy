@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Users | Route Buddy - Admin</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --secondary-gradient: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      --glass-bg: rgba(255,255,255,0.1);
+      --glass-border: rgba(255,255,255,0.2);
+      --shadow-light: 0 8px 32px rgba(102,126,234,0.09);
+      --shadow-medium: 0 12px 40px rgba(102,126,234,0.1);
+      --shadow-heavy: 0 18px 50px rgba(102,126,234,0.16);
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      --bg-primary: #f7fafc;
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      min-height: 100vh;
+      margin: 0; padding: 0;
+      display: flex; flex-direction: row;
+      overflow-x: hidden;
+    }
+    .sidebar {
+      width: 280px; background: var(--primary-gradient); color: white;
+      min-height: 100vh; padding: 2rem 1.5rem; position: sticky; top: 0;
+      box-shadow: var(--shadow-medium); border-right: 1px solid var(--glass-border);
+      height: 100%; z-index: 1000;
+      transition: left 0.3s;
+    }
+    .sidebar-header { margin-bottom: 3rem; }
+    .sidebar h2 { font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .sidebar h2 i { color: #ffd700; font-size: 2rem; }
+    .nav-menu { list-style: none; padding: 0;}
+    .nav-item { margin: 0.5rem 0; }
+    .nav-link {
+      color: rgba(255,255,255,0.96); text-decoration:none;
+      font-weight: 500; display:flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.25rem; border-radius: 12px; transition: var(--transition); position: relative;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(255,255,255,0.15);
+      font-weight: 600; color: #ffd700;
+      transform: translateX(8px);
+    }
+    .nav-link.active { background: rgba(255,255,255,0.2); color: white; }
+    .nav-link i { font-size: 1.12rem; width: 20px; text-align:center; }
+    /* Main Content */
+    .main {
+      flex: 1; padding: 2.5rem 2.7rem; min-height: 100vh; background: var(--bg-primary);
+      position: relative; overflow-x: auto;
+      box-shadow: none;
+    }
+    .main-header { margin-bottom: 2.7rem; }
+    .main h1 { font-size: 2.1rem; font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.3rem;
+    }
+    .main-subtitle { color: var(--text-secondary); font-size: 1.06rem; }
+    /* Top actions row */
+    .user-actions {
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; margin-bottom: 2rem; gap: 1rem
+    }
+    .user-actions form {
+      display: flex; gap: 0.95rem; flex-wrap: wrap;
+      align-items: center;
+    }
+    .user-actions input, .user-actions select {
+      padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid #e2e8f0;
+      font-size: 1rem; font-family: inherit; outline: none; background: #fff;
+      transition: border-color 0.2s;
+    }
+    .user-actions button, .btn {
+      padding: 0.58rem 1.25rem; border-radius: 16px; border: none;
+      font-family: inherit; font-size: 1rem; font-weight: 600;
+      background: var(--primary-gradient); color: white; cursor: pointer;
+      transition: var(--transition);
+      display: flex; align-items: center; gap: 0.7rem;
+      box-shadow: 0 2px 8px #667eea11;
+    }
+    .user-actions button:active, .btn:active { transform: scale(0.99);}
+    .user-actions .btn-add { background: linear-gradient(135deg, #38bdf8 0%, #6366f1 60%);}
+    .btn-secondary {
+      background: #e2e8f0; color: #444;
+      border: none;
+    }
+    /* Table */
+    .user-table-section {
+      background: #fff; border-radius: var(--border-radius); box-shadow: var(--shadow-light);
+      padding: 2rem; width: 100%; overflow-x: auto; min-width: 0;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-bottom: 0.6rem;
+    }
+    th, td {
+      padding: 0.82rem 1rem; text-align: left;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 1rem;
+      vertical-align: middle;
+    }
+    th { font-size: 0.98rem; color: var(--text-secondary); background: #f8fafc; font-weight: 600;}
+    tr:hover { background: #f7f7fa; }
+    .badge {
+      padding: 0.18rem 0.8rem; border-radius: 12px; font-size: 0.89rem;
+      display:inline-block;
+    }
+    .badge-success { background: #e7fbe7; color: #1da74a; }
+    .badge-danger  { background: #ffe7e7; color: #db3939; }
+    .badge-inactive { background: #e4e8f0; color: #7683a2;}
+    /* Actions icons */
+    .btn-table {
+      padding: 0.33rem 0.75rem; border-radius: 10px; font-size: 0.96rem;
+      margin-right: 0.4rem; border: none; cursor: pointer; background: #e2e8f0; color: #596cd8;
+      transition: background .18s;
+    }
+    .btn-table:hover { background: #667eea; color: #fff; }
+    .btn-table.del { background: #ffe7e7; color: #e74c3c;}
+    .btn-table.del:hover { background: #db3939; color: #fff;}
+    /* Modal */
+    .modal-backdrop {
+      display:none; position:fixed;inset:0;z-index:1002;background:#2228;
+      align-items:center;justify-content:center;
+    }
+    .modal-backdrop.active { display: flex; }
+    .modal {
+      background: #fff; border-radius: 18px; padding: 2rem 2.2rem; min-width: 340px; max-width: 98vw;
+      box-shadow: var(--shadow-medium); position:relative; animation: fadeInUp .4s;
+    }
+    .modal h2 { margin-bottom: 1rem; font-size: 1.35rem; color: #6366f1;}
+    .modal label { display:block; font-weight: 500; margin-top: 1.1rem; margin-bottom: 0.2rem;}
+    .modal input, .modal select {
+      width: 100%; padding: 0.7rem; border-radius: 10px; border: 1px solid #e2e8f0; margin-bottom: 0.4rem;
+      font-size: 1rem; font-family:inherit; outline: none; background: #f7fafc;
+      transition: border-color 0.2s;
+    }
+    .modal button, .modal .btn { margin-top: 1.2rem;}
+    .modal .input-error { color: #e74c3c; font-size: 0.85em; min-height: 1.15em;}
+    .modal-footer {
+      display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.4rem;
+    }
+    @media (max-width:1030px) {.main{padding:2.2rem 1rem;}}
+    @media (max-width:800px) { .sidebar {width: 100%; min-width:170px; padding: 1.2rem 0.7rem;}}
+    @media (max-width: 600px) {
+      .main{ padding: 1.25rem 3vw; }
+      .user-actions form {flex-direction: column; gap:0.62rem;}
+      .user-table-section{padding:1rem 0.3rem;}
+      .modal{padding:1rem 0.5rem;}
+      th, td { font-size: 0.95rem;}
+    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(24px);} to { opacity: 1; transform: none;}}
+    /* Mobile sidebar toggle button */
+    .mobile-menu-toggle {
+      display:none; position:fixed; top:1rem; left:1rem; z-index:1001;
+      background: var(--primary-gradient); color: white; border:none;
+      padding: 0.75rem; border-radius: 12px; font-size: 1.2rem; cursor:pointer;
+      box-shadow: var(--shadow-medium);
+    }
+    @media (max-width:768px){
+      .sidebar {
+        position: fixed; left: -282px; z-index: 1000; top: 0; height: 100vh; width: 240px; transition: left 0.3s;
+      }
+      .sidebar.open { left:0; }
+      .mobile-menu-toggle { display:block; }
+    }
+    .sidebar-backdrop {
+      display:none; position:fixed;inset:0;background:rgba(0,0,0,0.36);z-index:999;
+    }
+    .sidebar.open ~ .sidebar-backdrop { display:block; }
+  </style>
+</head>
+<body>
+  <!-- Mobile Menu Toggle -->
+  <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-route"></i> RouteBuddy</h2>
+    </div>
+     <ul class="nav-menu">
+      <li class="nav-item"><a href="dashboard.html" class="nav-link active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+      <li class="nav-item"><a href="manage-users.html" class="nav-link"><i class="fas fa-users"></i> Manage Users</a></li>
+      <li class="nav-item"><a href="manage-vendors.html" class="nav-link"><i class="fas fa-store"></i> Manage Vendors</a></li>
+      <li class="nav-item"><a href="requests.html" class="nav-link"><i class="fas fa-clipboard-list"></i> Requests</a></li>
+      <li class="nav-item"><a href="feedbacks.html" class="nav-link"><i class="fas fa-comments"></i> Feedbacks</a></li>
+      <li class="nav-item"><a href="records.html" class="nav-link"><i class="fas fa-calendar-check"></i> Booking Records</a></li>
+      <li class="nav-item"><a href="transactions.htmll" class="nav-link"><i class="fas fa-credit-card"></i> Transactions</a></li>
+      <li class="nav-item"><a href="settings.html" class="nav-link"><i class="fas fa-shield-alt"></i> Security Settings</a></li>
+    </ul>
+  </aside>
+  <div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="main-header">
+      <h1>Manage Users</h1>
+      <p class="main-subtitle">View, filter, add and manage your RouteBuddy users.</p>
+    </div>
+    <div class="user-actions">
+      <form id="userFilterForm" autocomplete="off" onsubmit="filterUsers(event)">
+        <input type="text" id="searchUser" placeholder="Search by name/email/phone" />
+        <select id="filterRole">
+          <option value="">All Roles</option>
+          <option value="User">User</option>
+          <option value="Vendor">Vendor</option>
+          <option value="Admin">Admin</option>
+        </select>
+        <select id="filterStatus">
+          <option value="">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+        <button type="submit"><i class="fas fa-search"></i> Filter</button>
+      </form>
+      <button class="btn btn-add" onclick="showAddModal()"><i class="fas fa-plus"></i> Add User</button>
+    </div>
+    <section class="user-table-section" id="userTableSection">
+      <table id="userTable">
+        <thead>
+          <tr>
+            <th>UserID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Registered</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- JS fills rows here -->
+        </tbody>
+      </table>
+      <div id="noRowsFound" style="text-align:center;color:#b1b5bb;margin-top:2.2rem;display:none;font-size:1.08rem;">
+        <i class="fas fa-search-minus" style="opacity:.36;font-size:1.7rem;margin-bottom:0.2rem;"></i><br>
+        No users found.
+      </div>
+    </section>
+  </main>
+  
+  <!-- Add/Edit Modal -->
+  <div class="modal-backdrop" id="userModalBackdrop">
+    <div class="modal" id="userModal" role="dialog" aria-modal="true" aria-labelledby="userModalLabel">
+      <h2 id="userModalLabel">Add User</h2>
+      <form id="addUserForm" onsubmit="return submitUserForm(event)">
+        <label for="fullname">Full Name</label>
+        <input type="text" name="fullname" id="fullname" minlength="3" maxlength="40" required placeholder="Full name">
+        <div class="input-error" id="errFullname"></div>
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" required placeholder="Email">
+        <div class="input-error" id="errEmail"></div>
+        <label for="phone">Phone</label>
+        <input type="tel" name="phone" id="phone" required pattern="\d{10,15}" minlength="10" maxlength="15" placeholder="Phone number">
+        <div class="input-error" id="errPhone"></div>
+        <label for="role">Role</label>
+        <select name="role" id="role" required>
+          <option value="">Select</option>
+          <option value="User">User</option>
+          <option value="Vendor">Vendor</option>
+          <option value="Admin">Admin</option>
+        </select>
+        <div class="input-error" id="errRole"></div>
+        <label for="status">Status</label>
+        <select name="status" id="status" required>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+        <div class="modal-footer">
+          <button class="btn" type="submit"><i class="fas fa-check"></i> Save</button>
+          <button class="btn btn-secondary" type="button" onclick="closeUserModal()"><i class="fas fa-times"></i> Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let users = [
+      {id: "U001", name: "Alice Johnson", email: "alice@mail.com", phone: "9876543210", role: "User", status: "Active", registered: "2024-05-01"},
+      {id: "U002", name: "Robert Singh", email: "robert@mail.com", phone: "9851012378", role: "Vendor", status: "Inactive", registered: "2024-04-25"},
+      {id: "U003", name: "Priya Menon", email: "priya@mail.com", phone: "9930120022", role: "User", status: "Active", registered: "2024-04-24"},
+      {id: "U004", name: "John Abraham", email: "john@mail.com", phone: "9988776655", role: "Admin", status: "Active", registered: "2024-03-29"},
+      {id: "U005", name: "Fatima Noor", email: "fatima@mail.com", phone: "9191123456", role: "Vendor", status: "Active", registered: "2024-03-15"}
+    ];
+    document.addEventListener('DOMContentLoaded', renderTable, false);
+
+    function renderTable() {
+      const tbody = document.querySelector('#userTable tbody');
+      tbody.innerHTML = "";
+      let filtered = filterUsersData();
+      if (filtered.length === 0) {
+        document.getElementById('noRowsFound').style.display = "block";
+      } else {
+        document.getElementById('noRowsFound').style.display = "none";
+        filtered.forEach(u => {
+          tbody.innerHTML += `<tr>
+            <td>${u.id}</td>
+            <td>${u.name}</td>
+            <td>${u.email}</td>
+            <td>${u.phone}</td>
+            <td>${u.role}</td>
+            <td>
+              <span class="badge ${u.status === "Active" ? "badge-success" : "badge-inactive"}">${u.status}</span>
+            </td>
+            <td>${u.registered}</td>
+            <td>
+              <button title="Edit" class="btn-table" onclick='showAddModal("edit","${u.id}")'><i class="fas fa-edit"></i></button>
+              <button title="Delete" class="btn-table del" onclick='deleteUser("${u.id}")'><i class="fas fa-trash-alt"></i></button>
+            </td>
+          </tr>`;
+        });
+      }
+    }
+
+    function filterUsers(event) {
+      if(event) event.preventDefault();
+      renderTable();
+      return false;
+    }
+    function filterUsersData() {
+      const q = document.getElementById('searchUser').value.trim().toLowerCase();
+      const role = document.getElementById('filterRole').value;
+      const status = document.getElementById('filterStatus').value;
+      return users.filter(u =>
+        (!q ||
+          u.name.toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q) ||
+          u.phone.includes(q)
+        ) &&
+        (!role || u.role === role) &&
+        (!status || u.status === status)
+      );
+    }
+
+    // Modal: Add/Edit user
+    let editUserId = null;
+    function showAddModal(type="add", userId="") {
+      document.getElementById('userModalBackdrop').classList.add('active');
+      document.body.style.overflow = "hidden";
+      document.getElementById('addUserForm').reset();
+      clearUserFormErrors();
+      document.getElementById('userModalLabel').textContent = type === "edit" ? "Edit User" : "Add User";
+      editUserId = null;
+      if(type === "edit" && userId){
+        const u = users.find(us=>us.id===userId);
+        if(u){
+          editUserId = userId;
+          document.getElementById('fullname').value = u.name;
+          document.getElementById('email').value = u.email;
+          document.getElementById('phone').value = u.phone;
+          document.getElementById('role').value = u.role;
+          document.getElementById('status').value = u.status;
+        }
+      }
+    }
+    function closeUserModal(){
+      document.getElementById('userModalBackdrop').classList.remove('active');
+      document.body.style.overflow = "";
+      editUserId = null;
+    }
+    // Add/Edit form validation and submit
+    function submitUserForm(evt){
+      evt.preventDefault();
+      clearUserFormErrors();
+      const name = document.getElementById('fullname').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const role = document.getElementById('role').value;
+      const status = document.getElementById('status').value;
+      let valid = true;
+      if(name.length<3 || name.length>40){
+        document.getElementById('errFullname').textContent = "Name (3-40 chars) required";
+        valid = false;
+      }
+      if(!/^\S+@\S+\.\S+$/.test(email)){
+        document.getElementById('errEmail').textContent = "Valid email required";
+        valid = false;
+      }
+      if(!/^\d{10,15}$/.test(phone)){
+        document.getElementById('errPhone').textContent = "Phone (10-15 digits) required";
+        valid = false;
+      }
+      if(!role){ document.getElementById('errRole').textContent = "Please select a role."; valid = false;}
+      if(!valid) return false;
+      if(editUserId){
+        // Edit existing user
+        const idx = users.findIndex(u=>u.id===editUserId);
+        if(idx >= 0){
+          users[idx].name = name;
+          users[idx].email = email;
+          users[idx].phone = phone;
+          users[idx].role = role;
+          users[idx].status = status;
+        }
+      } else {
+        // Add new user
+        let newid = "U" + (Math.max(...users.map(u=>+u.id.replace("U","")||0),0)+1).toString().padStart(3,"0");
+        users.unshift({
+          id: newid, name, email, phone, role, status, registered: (new Date()).toISOString().slice(0,10)
+        });
+      }
+      closeUserModal();
+      renderTable();
+      return false;
+    }
+    function clearUserFormErrors() {
+      document.getElementById('errFullname').textContent = "";
+      document.getElementById('errEmail').textContent = "";
+      document.getElementById('errPhone').textContent = "";
+      document.getElementById('errRole').textContent = "";
+    }
+    function deleteUser(uid){
+      if(confirm("Are you sure you want to delete this user?")){
+        users = users.filter(u=>u.id!==uid);
+        renderTable();
+      }
+    }
+
+    function toggleSidebar() {
+      let sb = document.getElementById('sidebar');
+      sb.classList.toggle('open');
+      document.body.style.overflow = sb.classList.contains("open") ? "hidden" : "";
+      document.querySelector('.sidebar-backdrop').style.display = sb.classList.contains("open") ? "block" : "none";
+    }
+    document.addEventListener('click',function(e){
+      let sidebar=document.getElementById('sidebar');
+      let toggle=document.querySelector('.mobile-menu-toggle');
+      if(window.innerWidth<=768 && sidebar.classList.contains('open') &&
+        !sidebar.contains(e.target) && !toggle.contains(e.target)){
+          sidebar.classList.remove('open');
+          document.body.style.overflow = "";
+      }
+    });
+   
+    document.addEventListener('keydown', function(e){
+      if(e.key==="Escape"){
+        closeUserModal();
+        document.getElementById('sidebar').classList.remove('open');
+        document.body.style.overflow = "";
+      }
+    });
+  </script>
+</body>
+</html>

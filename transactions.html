@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Transactions | Route Buddy - Admin</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --glass-border: rgba(255,255,255,0.2);
+      --shadow-light: 0 8px 32px rgba(102,126,234,0.09);
+      --shadow-medium: 0 12px 40px rgba(102,126,234,0.1);
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      --bg-primary: #f7fafc;
+      --border-radius: 16px;
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0; padding: 0;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      display: flex; flex-direction: row; min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .sidebar {
+      width: 280px;
+      background: var(--primary-gradient);
+      color: white;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+      position: sticky; top: 0;
+      box-shadow: var(--shadow-medium);
+      border-right: 1px solid var(--glass-border);
+      z-index: 1000; transition: left 0.3s;
+    }
+    .sidebar-header { margin-bottom: 3rem; }
+    .sidebar h2 { font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .sidebar h2 i { color: #ffd700; font-size: 2rem; }
+    .nav-menu { list-style: none; padding: 0; }
+    .nav-item { margin: 0.5rem 0; }
+    .nav-link {
+      color: rgba(255,255,255,0.96); text-decoration: none; font-weight: 500;
+      display: flex;align-items: center; gap: 1rem;
+      padding: 1rem 1.25rem; border-radius: 12px;
+      position: relative; transition: var(--transition);
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(255,255,255,0.15);
+      font-weight: 600; color: #ffd700;
+      transform: translateX(8px);
+    }
+    .nav-link.active { background: rgba(255,255,255,0.2); color: white; }
+    .nav-link i { font-size: 1.12rem; width: 20px; text-align: center; }
+
+    /* Main */
+    .main {
+      flex: 1; padding: 2.5rem 2.7rem;
+      background: var(--bg-primary); position: relative; overflow-x: auto; min-height: 100vh;
+    }
+    .main-header { margin-bottom: 2.7rem; }
+    .main h1 {
+      font-size: 2.1rem; font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 0.3rem;
+    }
+    .main-subtitle { color: var(--text-secondary); font-size: 1.06rem; }
+    .filter-form {
+      display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 2rem; align-items: center;
+    }
+    .filter-form input[type="text"], .filter-form select {
+      padding: 0.6rem 1rem; border-radius: 10px; border: 1px solid #e2e8f0;
+      font-size: 1rem; font-family: inherit; outline: none; background: #fff;
+      min-width: 150px; transition: border-color 0.2s;
+    }
+    .filter-form button {
+      padding: 0.58rem 1.25rem; border-radius: 16px; border: none;
+      background: var(--primary-gradient); color: white; font-family: inherit; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 0.7rem; box-shadow: 0 2px 8px #667eea11;
+      transition: var(--transition); font-size: 1rem;
+    }
+    .filter-form button:active { transform: scale(0.98); }
+
+    /* Table */
+    .transactions-table-section {
+      background: #fff; border-radius: var(--border-radius);
+      box-shadow: var(--shadow-light);
+      padding: 2rem; width: 100%; overflow-x: auto; min-width: 0;
+    }
+    table {
+      width: 100%; border-collapse: collapse; margin-bottom: 0.6rem;
+    }
+    th, td {
+      padding: 0.82rem 1rem; border-bottom: 1px solid #edf2f7;
+      vertical-align: middle; font-size: 1rem; text-align: left;
+    }
+    th { font-size: 0.98rem; color: var(--text-secondary); background: #f8fafc; font-weight: 600; }
+    tr:hover { background: #f7f7fa; }
+    .badge {
+      padding: 0.18rem 0.8rem; border-radius: 12px; font-size: 0.89rem; display: inline-block; font-weight: 600; user-select: none;
+    }
+    .badge-success { background: #e7fbe7; color: #1da74a; }
+    .badge-danger { background: #ffe7e7; color: #db3939; }
+    #noTransactionsFound {
+      text-align: center; color: #b1b5bb;
+      margin-top: 2.2rem; display: none; font-size: 1.08rem; user-select: none;
+    }
+    #noTransactionsFound i {
+      opacity: 0.36; font-size: 1.7rem; margin-bottom: 0.2rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .filter-form {
+        flex-direction: column; align-items: stretch;
+      }
+      .filter-form input[type="text"], .filter-form select, .filter-form button {
+        flex: none; width: 100%;
+      }
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed; left: -282px; z-index: 1000; top: 0; height: 100vh; width: 240px;
+        transition: left 0.3s;
+      }
+      .sidebar.open { left: 0; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2><i class="fas fa-route"></i> RouteBuddy</h2>
+    </div>
+    <ul class="nav-menu">
+      <li class="nav-item"><a href="dashboard.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+      <li class="nav-item"><a href="manage-users.html" class="nav-link"><i class="fas fa-users"></i> Manage Users</a></li>
+      <li class="nav-item"><a href="manage-vendors.html" class="nav-link"><i class="fas fa-store"></i> Manage Vendors</a></li>
+      <li class="nav-item"><a href="requests.html" class="nav-link"><i class="fas fa-clipboard-list"></i> Requests</a></li>
+      <li class="nav-item"><a href="feedbacks.html" class="nav-link"><i class="fas fa-comments"></i> Feedbacks</a></li>
+      <li class="nav-item"><a href="records.html" class="nav-link"><i class="fas fa-calendar-check"></i> Booking Records</a></li>
+      <li class="nav-item"><a href="transactions.html" class="nav-link active"><i class="fas fa-credit-card"></i> Transactions</a></li>
+      <li class="nav-item"><a href="settings.html" class="nav-link"><i class="fas fa-shield-alt"></i> Security Settings</a></li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="main-header">
+      <h1>Transactions & Revenue</h1>
+      <p class="main-subtitle">View and filter all payment transactions on the platform.</p>
+    </div>
+    <form class="filter-form" id="transactionFilterForm" onsubmit="filterTransactions(event)" autocomplete="off" novalidate>
+      <input type="text" id="searchPaymentId" placeholder="Payment ID" />
+      <input type="text" id="searchBookingId" placeholder="Booking ID" />
+      <input type="text" id="searchCustomerName" placeholder="Customer Name" />
+      <select id="filterPaymentMethod" aria-label="Filter by Payment Method">
+        <option value="">All Methods</option>
+        <option value="Card">Card</option>
+        <option value="UPI">UPI</option>
+        <option value="Netbanking">Netbanking</option>
+        <option value="Wallet">Wallet</option>
+      </select>
+      <select id="filterStatus" aria-label="Filter by Status">
+        <option value="">All Status</option>
+        <option value="Success">Success</option>
+        <option value="Failed">Failed</option>
+      </select>
+      <button type="submit"><i class="fas fa-search"></i> Filter</button>
+    </form>
+    <section class="transactions-table-section" id="transactionsTableSection">
+      <table id="transactionsTable" role="grid" aria-label="Transactions Table">
+        <thead>
+          <tr>
+            <th>Payment ID</th>
+            <th>Booking ID</th>
+            <th>Customer Name</th>
+            <th>Amount Paid</th>
+            <th>Payment Method</th>
+            <th>Payment Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- JS rows go here -->
+        </tbody>
+      </table>
+      <div id="noTransactionsFound">
+        <i class="fas fa-search-minus"></i><br />
+        No transactions found.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const transactions = [
+      {
+        paymentId: "P12345",
+        bookingId: "B67890",
+        customerName: "Alice Johnson",
+        amount: 700,
+        paymentMethod: "UPI",
+        paymentDate: "2025-07-20",
+        status: "Success"
+      },
+      {
+        paymentId: "P54321",
+        bookingId: "B09876",
+        customerName: "Robert Singh",
+        amount: 1200,
+        paymentMethod: "Card",
+        paymentDate: "2025-07-19",
+        status: "Failed"
+      },
+      {
+        paymentId: "P98765",
+        bookingId: "B11223",
+        customerName: "Priya Menon",
+        amount: 450,
+        paymentMethod: "Netbanking",
+        paymentDate: "2025-07-18",
+        status: "Success"
+      },
+      {
+        paymentId: "P56789",
+        bookingId: "B33445",
+        customerName: "John Abraham",
+        amount: 1500,
+        paymentMethod: "Wallet",
+        paymentDate: "2025-07-18",
+        status: "Success"
+      }
+    ];
+
+    document.addEventListener('DOMContentLoaded', renderTransactions);
+
+    function renderTransactions() {
+      const tbody = document.querySelector('#transactionsTable tbody');
+      tbody.innerHTML = "";
+      const filtered = filterTransactionsData();
+      if (filtered.length === 0) {
+        document.getElementById('noTransactionsFound').style.display = "block";
+      } else {
+        document.getElementById('noTransactionsFound').style.display = "none";
+        filtered.forEach(t => {
+          const statusClass = t.status === "Success" ? "badge-success" : "badge-danger";
+          tbody.innerHTML += `
+            <tr>
+              <td>${t.paymentId}</td>
+              <td>${t.bookingId}</td>
+              <td>${t.customerName}</td>
+              <td>₹${t.amount.toLocaleString()}</td>
+              <td>${t.paymentMethod}</td>
+              <td>${t.paymentDate}</td>
+              <td><span class="badge ${statusClass}">${t.status}</span></td>
+            </tr>`;
+        });
+      }
+    }
+
+    function filterTransactions(event) {
+      if (event) event.preventDefault();
+      renderTransactions();
+      return false;
+    }
+
+    function filterTransactionsData() {
+      const paymentId = document.getElementById('searchPaymentId').value.trim().toLowerCase();
+      const bookingId = document.getElementById('searchBookingId').value.trim().toLowerCase();
+      const customerName = document.getElementById('searchCustomerName').value.trim().toLowerCase();
+      const paymentMethod = document.getElementById('filterPaymentMethod').value;
+      const status = document.getElementById('filterStatus').value;
+
+      return transactions.filter(t =>
+        (!paymentId || t.paymentId.toLowerCase().includes(paymentId)) &&
+        (!bookingId || t.bookingId.toLowerCase().includes(bookingId)) &&
+        (!customerName || t.customerName.toLowerCase().includes(customerName)) &&
+        (!paymentMethod || t.paymentMethod === paymentMethod) &&
+        (!status || t.status === status)
+      );
+    }
+  </script>
+</body>
+</html>
