@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Page Content</title>
-    
+
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- jQuery for dynamic interactions -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    
+
     <style>
         /* ==============================================
            PAYMENT PAGE MAIN CONTENT STYLES
@@ -247,8 +249,13 @@
         }
 
         @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
         }
 
         .card-details.show {
@@ -262,6 +269,7 @@
                 transform: translateY(-20px);
                 max-height: 0;
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -659,8 +667,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* ==============================================
@@ -726,6 +739,7 @@
         }
 
         @media (max-width: 480px) {
+
             .payment-form-section,
             .payment-summary {
                 padding: 1rem;
@@ -755,6 +769,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
@@ -841,12 +856,13 @@
                     <i class="fas fa-lock"></i>
                     Enter Card Details
                 </h3>
-                
+
                 <form id="cardForm">
                     <!-- Card Number -->
                     <div class="form-group">
                         <label for="cardNumber">Card Number</label>
-                        <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                        <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456"
+                            maxlength="19">
                         <div class="validation-message" id="cardNumberMsg"></div>
                     </div>
 
@@ -902,7 +918,7 @@
                     <i class="fas fa-route"></i>
                     Mumbai → Pune
                 </div>
-                
+
                 <div class="journey-details">
                     <div class="detail-item">
                         <div class="detail-label">Departure</div>
@@ -927,7 +943,7 @@
             <div class="passenger-info">
                 <h3>
                     <i class="fas fa-users"></i>
-                    Passenger Details  
+                    Passenger Details
                 </h3>
                 <div class="passenger-item">
                     <span>Adults (2)</span>
@@ -979,18 +995,18 @@
 
     <!-- JavaScript for Interactive Features -->
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             // Payment method selection
-            $('.payment-method').click(function() {
+            $('.payment-method').click(function () {
                 // Remove active class from all methods
                 $('.payment-method').removeClass('selected');
-                
+
                 // Add active class to clicked method
                 $(this).addClass('selected');
-                
+
                 // Check the radio button
                 $(this).find('input[type="radio"]').prop('checked', true);
-                
+
                 // Show/hide card details based on selection
                 const method = $(this).data('method');
                 if (method === 'card') {
@@ -1001,28 +1017,28 @@
             });
 
             // Card number formatting
-            $('#cardNumber').on('input', function() {
+            $('#cardNumber').on('input', function () {
                 let value = $(this).val().replace(/\s/g, '').replace(/[^0-9]/gi, '');
                 let matches = value.match(/\d{4,16}/g);
                 let match = matches && matches[0] || '';
                 let parts = [];
-                
+
                 for (let i = 0, len = match.length; i < len; i += 4) {
                     parts.push(match.substring(i, i + 4));
                 }
-                
+
                 if (parts.length) {
                     $(this).val(parts.join(' '));
                 } else {
                     $(this).val(value);
                 }
-                
+
                 // Validation
                 validateCardNumber(value);
             });
 
             // Expiry date formatting
-            $('#expiryDate').on('input', function() {
+            $('#expiryDate').on('input', function () {
                 let value = $(this).val().replace(/\D/g, '');
                 if (value.length >= 2) {
                     value = value.substring(0, 2) + '/' + value.substring(2, 4);
@@ -1032,23 +1048,23 @@
             });
 
             // CVV validation
-            $('#cvv').on('input', function() {
+            $('#cvv').on('input', function () {
                 let value = $(this).val().replace(/[^0-9]/g, '');
                 $(this).val(value);
                 validateCVV(value);
             });
 
             // Card holder name validation
-            $('#cardHolder').on('input', function() {
+            $('#cardHolder').on('input', function () {
                 let value = $(this).val().replace(/[^a-zA-Z\s]/g, '');
                 $(this).val(value);
                 validateCardHolder(value);
             });
 
             // Pay now button click
-            $('#payNowBtn').click(function() {
+            $('#payNowBtn').click(function () {
                 const selectedMethod = $('input[name="payment_method"]:checked').val();
-                
+
                 if (!selectedMethod) {
                     alert('Please select a payment method');
                     return;
@@ -1063,9 +1079,9 @@
 
                 // Show loading
                 $('#loadingOverlay').css('display', 'flex');
-                
+
                 // Simulate payment processing
-                setTimeout(function() {
+                setTimeout(function () {
                     $('#loadingOverlay').hide();
                     alert('Payment successful! Redirecting to confirmation page...');
                     // Here you would typically redirect to confirmation page
@@ -1101,13 +1117,13 @@
             function updateValidation(inputSelector, msgSelector, isValid, successMsg, errorMsg) {
                 const input = $(inputSelector);
                 const msg = $(msgSelector);
-                
+
                 if (input.val().length === 0) {
                     input.removeClass('valid invalid');
                     msg.removeClass('success error').hide();
                     return;
                 }
-                
+
                 if (isValid) {
                     input.removeClass('invalid').addClass('valid');
                     msg.removeClass('error').addClass('success').text(successMsg).show();
@@ -1122,13 +1138,12 @@
                 const expiryDate = $('#expiryDate').val();
                 const cvv = $('#cvv').val();
                 const cardHolder = $('#cardHolder').val();
-                
-                return validateCardNumber(cardNumber) && 
-                       validateExpiryDate(expiryDate) && 
-                       validateCVV(cvv) && 
-                       validateCardHolder(cardHolder);
+
+                return validateCardNumber(cardNumber) && validateExpiryDate(expiryDate) && validateCVV(cvv) &&
+                    validateCardHolder(cardHolder);
             }
         });
     </script>
 </body>
+
 </html>
