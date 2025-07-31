@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login & Signup - Route Buddy</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo {
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .logo i {
+      color: #ffd700;
+      font-size: 1.7rem;
+    }
+
+    .container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    .card {
+      background: white;
+      color: #333;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .card h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #764ba2;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 1.2rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.8rem 1rem 0.8rem 2.5rem;
+      border-radius: 25px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    .input-group i {
+      position: absolute;
+      top: 50%;
+      left: 1rem;
+      transform: translateY(-50%);
+      color: #888;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 25px;
+      background-color: #ffd700;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #ffed4a;
+    }
+
+    .toggle-link {
+      text-align: center;
+      margin-top: 1rem;
+      color: #764ba2;
+      cursor: pointer;
+    }
+
+    footer {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: #ccc;
+      text-align: center;
+      padding: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="#" class="logo">
+      <i class="fas fa-route"></i>
+      Route Buddy
+    </a>
+  </header>
+
+  <div class="container">
+    <div class="card" id="loginCard">
+      <h2>Login</h2>
+      <div class="input-group">
+        <i class="fas fa-envelope"></i>
+        <input type="email" placeholder="Email" required />
+      </div>
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" placeholder="Password" required />
+      </div>
+      <button class="btn">Login</button>
+      <div class="toggle-link" onclick="toggleForm()">Don't have an account? Sign Up</div>
+    </div>
+
+    <div class="card" id="signupCard" style="display:none;">
+      <h2>Sign Up</h2>
+      <div class="input-group">
+        <i class="fas fa-user"></i>
+        <input type="text" placeholder="Full Name" required />
+      </div>
+      <div class="input-group">
+        <i class="fas fa-envelope"></i>
+        <input type="email" placeholder="Email" required />
+      </div>
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" placeholder="Password" required />
+      </div>
+      <button class="btn">Sign Up</button>
+      <div class="toggle-link" onclick="toggleForm()">Already have an account? Login</div>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2025 Route Buddy. All rights reserved.
+  </footer>
+
+  <script>
+    function toggleForm() {
+      const loginCard = document.getElementById('loginCard');
+      const signupCard = document.getElementById('signupCard');
+      if (loginCard.style.display === 'none') {
+        loginCard.style.display = 'block';
+        signupCard.style.display = 'none';
+      } else {
+        loginCard.style.display = 'none';
+        signupCard.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

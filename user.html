@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard - Route Buddy</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .navbar {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.8rem 2rem;
+    }
+
+    .logo {
+      color: white;
+      font-size: 1.6rem;
+      font-weight: 700;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .logo i {
+      font-size: 1.8rem;
+      color: #ffd700;
+    }
+
+    .nav-menu {
+      display: flex;
+      list-style: none;
+      gap: 1.8rem;
+      padding: 0;
+    }
+
+    .nav-link {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      padding: 0.6rem 1.2rem;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-login {
+      background: transparent;
+      color: white;
+      border: 2px solid rgba(255, 255, 255, 0.8);
+      padding: 0.6rem 1.2rem;
+      border-radius: 25px;
+      font-weight: 600;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .dashboard-title {
+      text-align: center;
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+
+ .dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* Force exactly 2 cards per row */
+  gap: 2rem;
+  align-items: start;
+}
+
+
+
+
+    .dashboard-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 15px;
+      width: 300px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .dashboard-card h3 {
+      font-size: 1.3rem;
+      color: #ffd700;
+    }
+
+    .dashboard-card p {
+      font-size: 0.95rem;
+    }
+
+    .dashboard-card a {
+      display: inline-block;
+      margin-top: 1rem;
+      padding: 0.5rem 1.2rem;
+      background-color: #ffd700;
+      color: #333;
+      font-weight: 600;
+      border-radius: 25px;
+      text-decoration: none;
+    }
+
+    .card-content {
+      display: none;
+      margin-top: 1rem;
+      background: #ffffff11;
+      padding: 1rem;
+      border-radius: 10px;
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-radius: 5px;
+      border: none;
+    }
+
+    .save-btn {
+      background: #ffd700;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-weight: 600;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+
+    footer {
+      background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+      color: white;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-cards {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <nav class="navbar">
+      <a href="#" class="logo">
+        <i class="fas fa-route"></i> Route Buddy
+      </a>
+      <ul class="nav-menu">
+        <li><a href="#" class="nav-link">Home</a></li>
+        <li><a href="#" class="nav-link">My Bookings</a></li>
+        <li><a href="#" class="nav-link">Support</a></li>
+      </ul>
+      <a href="#" class="btn-login"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </nav>
+  </header>
+
+  <!-- Main Dashboard -->
+  <main class="main-content">
+    <h2 class="dashboard-title" id="dashboard-title">Welcome, Abdul Khader!</h2>
+
+    <div class="dashboard-cards">
+
+      <!-- Upcoming Trips -->
+      <div class="dashboard-card">
+        <h3>Upcoming Trips</h3>
+        <p>You have 2 trips scheduled this week.</p>
+        <a href="javascript:void(0)" onclick="toggleCard(this, 'trips')">View Trips</a>
+        <div class="card-content" id="trips">
+          <ul>
+            <li><strong>Trip 1:</strong> Coimbatore → Chennai on 31 July 2025, 7:30 PM</li>
+            <li><strong>Trip 2:</strong> Chennai → Bengaluru on 2 August 2025, 5:00 AM</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Saved Routes -->
+      <div class="dashboard-card">
+        <h3>Saved Routes</h3>
+        <p>Quick access to your most used routes.</p>
+        <a href="javascript:void(0)" onclick="toggleCard(this, 'routes')">View Routes</a>
+        <div class="card-content" id="routes">
+          <ul>
+            <li>✔ Coimbatore ⇌ Chennai</li>
+            <li>✔ Chennai ⇌ Bengaluru</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Profile Settings -->
+      <div class="dashboard-card">
+        <h3>Profile Settings</h3>
+        <p>Update personal info and travel preferences.</p>
+        <a href="javascript:void(0)" onclick="toggleCard(this, 'profile')">Edit Profile</a>
+        <div class="card-content" id="profile">
+          <input type="text" id="name" value="Abdul Khader" placeholder="Enter name" />
+          <input type="email" id="email" value="abdul@example.com" placeholder="Enter email" />
+          <input type="tel" id="phone" value="+91 9876543210" placeholder="Enter phone" />
+          <button class="save-btn" onclick="saveProfile()">Save</button>
+        </div>
+      </div>
+
+      <!-- Help & Support -->
+      <div class="dashboard-card">
+        <h3>Help & Support</h3>
+        <p>24/7 chat and FAQ to assist you anytime.</p>
+        <a href="javascript:void(0)" onclick="toggleCard(this, 'support')">Get Help</a>
+        <div class="card-content" id="support">
+          <p>For help, contact our 24/7 support team or visit our FAQ section.</p>
+          <p><strong>Email:</strong> support@routebuddy.com</p>
+          <p><strong>Phone:</strong> +1 (555) 123-4567</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  
+
+  <!-- JS for Card Toggle & Profile Update -->
+  <script>
+    function toggleCard(btn, id) {
+      const cardContent = document.getElementById(id);
+      const allContents = document.querySelectorAll('.card-content');
+
+      allContents.forEach(content => {
+        if (content !== cardContent) {
+          content.style.display = 'none';
+        }
+      });
+
+      cardContent.style.display = (cardContent.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function saveProfile() {
+      const name = document.getElementById("name").value;
+      document.getElementById("dashboard-title").innerText = "Welcome, " + name + "!";
+      alert("Profile updated successfully!");
+    }
+  </script>
+</body>
+</html>
