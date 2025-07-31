@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RouteBuddy Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    body {
+      display: flex;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #6a85f1, #9b59b6);
+      padding: 20px;
+      color: #fff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 30px;
+    }
+
+    .logo i {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar ul li {
+      margin-bottom: 15px;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar ul li:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: translateX(5px);
+    }
+
+    .sidebar ul li i {
+      margin-right: 10px;
+    }
+
+    .main-content {
+      margin-left: 230px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      width: calc(100% - 230px);
+    }
+
+    .header {
+      height: 60px;
+      background: linear-gradient(90deg, #6a85f1, #9b59b6);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header .right-menu a {
+      color: white;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .dashboard {
+      flex: 1;
+      padding: 30px;
+    }
+
+    .dashboard h3 {
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .cards {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background-color: #eee;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      width: 220px;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+      background-color: #fdfdfd;
+    }
+
+    .card h4 {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #666;
+    }
+
+    .card p {
+      font-size: 20px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .footer {
+      background-color: #eee;
+      padding: 15px 30px;
+      text-align: center;
+      font-size: 14px;
+      margin-top: auto;
+    }
+
+    .footer a {
+      color: #555;
+      margin: 0 8px;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+      .sidebar {
+        width: 180px;
+      }
+
+      .main-content {
+        margin-left: 180px;
+        width: calc(100% - 180px);
+      }
+
+      .card {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <a href="#" class="logo"><i class="fas fa-route" style="color: yellow;"></i> RouteBuddy</a>
+
+    <ul>
+      <li>
+  <a href="mybuses.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-bus"></i> <span style="margin-left: 10px;">My Buses</span>
+  </a>
+</li>
+      <li>
+  <a href="ManageShedule.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-clock"></i> <span style="margin-left: 10px;">Manage Schedule</span>
+  </a>
+</li>
+      <li>
+  <a href="bookingsummary.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-clock"></i> <span style="margin-left: 10px;">Booking summary</span>
+  </a>
+</li>
+     <li>
+  <a href="Transactions.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-credit-card"></i> <span style="margin-left: 10px;">Transactions</span>
+  </a>
+</li>
+      <li>
+  <a href="Busfeatures.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-cogs"></i> <span style="margin-left: 10px;">Bus Features</span>
+  </a>
+</li>
+      <li>
+  <a href="Busstatus.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-satellite-dish"></i> <span style="margin-left: 10px;">Live Bus Status</span>
+  </a>
+</li>
+      <li>
+  <a href="CustomerMessages.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-comment-alt"></i> <span style="margin-left: 10px;">Customer Messages</span>
+  </a>
+</li>
+      <li><i class="fas fa-user"></i> Profile Settings</li>
+      <li><i class="fas fa-lock"></i> Security Settings</li>
+      <li><i class="fas fa-sign-out-alt"></i> Logout</li>
+    </ul>
+  </aside>
+
+  <div class="main-content">
+    <header class="header">
+      <div></div>
+      <div class="right-menu">
+        <a href="#"><i class="fas fa-ticket-alt"></i> Bookings</a>
+        <a href="#"><i class="fas fa-question-circle"></i> Help</a>
+        <a href="#"><i class="fas fa-user-circle"></i> Account</a>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <h3>Dashboard</h3>
+      <div class="cards">
+        <div class="card">
+          <h4>Total Bookings</h4>
+          <p>1234</p>
+        </div>
+        <div class="card">
+          <h4>Total Earnings</h4>
+          <p>$5000</p>
+        </div>
+        <div class="card">
+          <h4>Active Buses</h4>
+          <p>5</p>
+        </div>
+        <div class="card">
+          <h4>Pending Messages</h4>
+          <p>2</p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      © 2025 RouteBuddy. All rights reserved. |
+      <a href="#">Privacy Policy</a> |
+      <a href="#">Terms of Use</a> |
+      <a href="#">Contact</a>
+    </footer>
+  </div>
+</body>
+</html>

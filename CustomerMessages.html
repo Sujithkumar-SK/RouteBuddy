@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Customer Messages - RouteBuddy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    body {
+      display: flex;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #6a85f1, #9b59b6);
+      padding: 20px;
+      color: #fff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 30px;
+    }
+
+    .logo i {
+      font-size: 24px;
+      margin-right: 10px;
+      color: yellow;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar ul li {
+      margin-bottom: 15px;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar ul li:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: translateX(5px);
+    }
+
+    .sidebar ul li a {
+      text-decoration: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .sidebar ul li i {
+      margin-right: 10px;
+    }
+
+    .sidebar ul li.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .main {
+      margin-left: 230px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(90deg, #6a85f1, #9b59b6);
+      height: 60px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header a {
+      color: white;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .content {
+      padding: 30px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+    }
+
+    .filters input,
+    .filters button {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .cards {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      width: 220px;
+      transition: transform 0.3s ease, background-color 0.3s ease;
+    }
+
+    .card:hover {
+      transform: scale(1.05);
+      background-color: #fdfdfd;
+    }
+
+    .card h4 {
+      margin: 0;
+      color: #777;
+      font-size: 14px;
+    }
+
+    .card p {
+      margin-top: 10px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .messages {
+      display: flex;
+      gap: 20px;
+    }
+
+    .message-list {
+      width: 300px;
+    }
+
+    .message-item {
+      background: #ddd;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .message-item span {
+      font-size: 12px;
+      color: #333;
+    }
+
+    .message-status {
+      background: green;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+
+    .message-preview {
+      flex: 1;
+      background: #eaeaea;
+      height: 400px;
+      border-radius: 10px;
+    }
+
+    .footer {
+      background-color: #eee;
+      padding: 15px 30px;
+      text-align: center;
+      font-size: 14px;
+      margin-top: auto;
+    }
+
+    .footer a {
+      color: #555;
+      margin: 0 8px;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media screen and (max-width: 768px) {
+      .sidebar {
+        width: 180px;
+      }
+
+      .main {
+        margin-left: 180px;
+      }
+
+      .card {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <a href="#" class="logo"><i class="fas fa-route"></i> RouteBuddy</a>
+    <ul>
+      <li><a href="mybuses.html"><i class="fas fa-bus"></i> <span>My Buses</span></a></li>
+      <li><a href="ManageShedule.html"><i class="fas fa-clock"></i> <span>Manage Schedule</span></a></li>
+      <li><a href="bookingsummary.html"><i class="fas fa-chart-bar"></i> <span>Booking Summary</span></a></li>
+      <li><a href="Transactions.html"><i class="fas fa-credit-card"></i> <span>Transactions</span></a></li>
+      <li><a href="Busfeatures.html"><i class="fas fa-cogs"></i> <span>Bus Features</span></a></li>
+      <li><a href="Busstatus.html"><i class="fas fa-satellite-dish"></i> <span>Live Bus Status</span></a></li>
+      <li class="active"><a href="#"><i class="fas fa-comment-alt"></i> <span>Customer Messages</span></a></li>
+      <li><a href="#"><i class="fas fa-user"></i> <span>Profile Settings</span></a></li>
+      <li><a href="#"><i class="fas fa-lock"></i> <span>Security Settings</span></a></li>
+      <li><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+    </ul>
+  </aside>
+
+  <div class="main">
+    <header class="header">
+      <div></div>
+      <div>
+        <a href="#"><i class="fas fa-ticket-alt"></i> Bookings</a>
+        <a href="#"><i class="fas fa-question-circle"></i> Help</a>
+        <a href="#"><i class="fas fa-user-circle"></i> Account</a>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="top-bar">
+        <h2><i class="fas fa-comment"></i> Customer Messages</h2>
+        <div class="filters">
+          <button>Filter</button>
+          <input type="text" placeholder="Search..."/>
+          <button>Export Messages</button>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <h4>Total Messages</h4>
+          <p>120</p>
+        </div>
+        <div class="card">
+          <h4>Open Queries</h4>
+          <p>30</p>
+        </div>
+        <div class="card">
+          <h4>Resolved</h4>
+          <p>90</p>
+        </div>
+        <div class="card">
+          <h4>Avg. Response Time</h4>
+          <p>2 hours</p>
+        </div>
+      </div>
+
+      <div class="messages">
+        <div class="message-list">
+          <div class="message-item">
+            <div>
+              <strong>John Doe</strong><br>
+              <span>Bangalore → Chennai</span><br>
+              <span>2h ago</span>
+            </div>
+            <div class="message-status">Open</div>
+          </div>
+          <!-- Dummy placeholders -->
+          <div class="message-item" style="height: 60px;"></div>
+          <div class="message-item" style="height: 60px;"></div>
+          <div class="message-item" style="height: 60px;"></div>
+        </div>
+        <div class="message-preview"></div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      © 2025 RouteBuddy. All rights reserved. |
+      <a href="#">Privacy Policy</a> |
+      <a href="#">Terms of Use</a> |
+      <a href="#">Contact</a>
+    </footer>
+  </div>
+
+</body>
+</html>

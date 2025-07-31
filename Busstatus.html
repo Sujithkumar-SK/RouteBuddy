@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Bus Status - RouteBuddy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    html, body { height: 100%; background-color: #f4f4f4; color: #333; }
+    body { display: flex; }
+
+    .sidebar {
+      position: fixed; top: 0; left: 0;
+      width: 230px; height: 100%;
+      background: linear-gradient(180deg, #6a85f1, #9b59b6);
+      padding: 20px; color: #fff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      display: flex; align-items: center;
+      font-size: 22px; font-weight: bold;
+      color: #fff; text-decoration: none;
+      margin-bottom: 30px;
+    }
+
+    .logo i { font-size: 24px; margin-right: 10px; }
+
+    .sidebar ul { list-style: none; }
+    .sidebar ul li {
+      margin-bottom: 15px;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar ul li:hover, .sidebar ul li.active {
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: translateX(5px);
+    }
+
+    .sidebar ul li i { margin-right: 10px; }
+
+    .main-content {
+      margin-left: 230px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      width: calc(100% - 230px);
+    }
+
+    .header {
+      height: 60px;
+      background: linear-gradient(90deg, #6a85f1, #9b59b6);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header .right-menu a {
+      color: white;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .dashboard {
+      flex: 1;
+      padding: 30px;
+    }
+
+    .dashboard h3 {
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .filters input,
+    .filters select {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      min-width: 180px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+    .status-on-time { color: green; font-weight: bold; }
+    .status-delayed { color: red; font-weight: bold; }
+
+    .footer {
+      background-color: #eee;
+      padding: 15px 30px;
+      text-align: center;
+      font-size: 14px;
+      margin-top: auto;
+    }
+
+    .footer a {
+      color: #555;
+      margin: 0 8px;
+      text-decoration: none;
+    }
+
+    .footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <a href="#" class="logo"><i class="fas fa-route" style="color: yellow;"></i> RouteBuddy</a>
+    <ul>
+      <li><a href="mybuses.html" style="color: white; text-decoration: none;"><i class="fas fa-bus"></i> My Buses</a></li>
+      <li><a href="ManageShedule.html" style="color: white; text-decoration: none;"><i class="fas fa-clock"></i> Manage Schedule</a></li>
+      <li><a href="bookingsummary.html" style="color: white; text-decoration: none;"><i class="fas fa-file-alt"></i> Booking Summary</a></li>
+      <li><a href="transactions.html" style="color: white; text-decoration: none;"><i class="fas fa-credit-card"></i> Transactions</a></li>
+      <li><a href="busfeatures.html" style="color: white; text-decoration: none;"><i class="fas fa-cogs"></i> Bus Features</a></li>
+      <li class="active"><i class="fas fa-satellite-dish"></i> Live Bus Status</li>
+      <li>
+  <a href="CustomerMessages.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-comment-alt"></i> <span style="margin-left: 10px;">Customer Messages</span>
+  </a>
+</li>
+      <li><i class="fas fa-user"></i> Profile Settings</li>
+      <li><i class="fas fa-lock"></i> Security Settings</li>
+      <li><i class="fas fa-sign-out-alt"></i> Logout</li>
+    </ul>
+  </aside>
+
+  <div class="main-content">
+    <header class="header">
+      <div></div>
+      <div class="right-menu">
+        <a href="#">Vendor profile</a>
+        <a href="#"><i class="fas fa-lock"></i> Logout</a>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <h3><i class="fas fa-satellite-dish"></i> Live Bus Status</h3>
+
+      <div class="filters">
+        <input type="text" placeholder="Route (From → To)">
+        <select><option>Bus Type (AC, Non-AC)</option></select>
+        <select><option>Status (All, On Time)</option></select>
+        <input type="text" placeholder="Search (Bus Name)">
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>🆔 Bus ID</th>
+            <th>🚌 Bus Name</th>
+            <th>📍 Current Location</th>
+            <th>⏰ Estimated Arrival</th>
+            <th>⏳ Delay Status</th>
+            <th>📶 Status</th>
+            <th>🎯 Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>RB123</td>
+            <td>RouteBuddy01</td>
+            <td>Nairobi</td>
+            <td>10:00 AM</td>
+            <td class="status-on-time">On Time</td>
+            <td>Online</td>
+            <td><a href="#">View</a> | <a href="#">Track</a></td>
+          </tr>
+          <tr>
+            <td>RB456</td>
+            <td>RouteBuddy02</td>
+            <td>Mombasa</td>
+            <td>12:00 PM</td>
+            <td class="status-delayed">Delayed</td>
+            <td>Online</td>
+            <td><a href="#">View</a> | <a href="#">Track</a></td>
+          </tr>
+          <tr>
+            <td>RB789</td>
+            <td>RouteBuddy03</td>
+            <td>Kisumu</td>
+            <td>--</td>
+            <td>--</td>
+            <td>Offline</td>
+            <td><a href="#">View</a> | <a href="#">Track</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="footer">
+      © 2025 RouteBuddy. All rights reserved. |
+      <a href="#">Privacy Policy</a> |
+      <a href="#">Terms of Use</a> |
+      <a href="#">Contact</a>
+    </footer>
+  </div>
+</body>
+</html>

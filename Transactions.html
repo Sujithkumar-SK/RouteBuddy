@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Transactions - RouteBuddy</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    body {
+      display: flex;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #6a85f1, #9b59b6);
+      padding: 20px;
+      color: #fff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #fff;
+      text-decoration: none;
+      margin-bottom: 30px;
+    }
+
+    .logo i {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+    }
+
+    .sidebar ul li {
+      margin-bottom: 15px;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .sidebar ul li:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar ul li i {
+      margin-right: 10px;
+    }
+
+    .sidebar ul li.active {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar ul li a {
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .main-content {
+      margin-left: 230px;
+      display: flex;
+      flex-direction: column;
+      width: calc(100% - 230px);
+      min-height: 100vh;
+    }
+
+    .header {
+      height: 60px;
+      background: linear-gradient(90deg, #6a85f1, #9b59b6);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .header .right-menu a {
+      color: #fff;
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .dashboard {
+      flex: 1;
+      padding: 30px;
+    }
+
+    .dashboard h3 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .cards {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background-color: #fff;
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      width: 220px;
+    }
+
+    .card h4 {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 5px;
+    }
+
+    .card p {
+      font-size: 18px;
+      font-weight: bold;
+      color: #000;
+    }
+
+    .filters {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filters input {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+      color: #333;
+    }
+
+    .footer {
+      background-color: #eee;
+      padding: 15px 30px;
+      text-align: center;
+      font-size: 14px;
+      margin-top: auto;
+    }
+
+    .footer a {
+      color: #555;
+      margin: 0 8px;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <a href="#" class="logo"><i class="fas fa-route" style="color: yellow;"></i> RouteBuddy</a>
+
+    <ul>
+      <li>
+  <a href="mybuses.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-bus"></i> <span style="margin-left: 10px;">My Buses</span>
+  </a>
+</li>
+      <li>
+  <a href="ManageShedule.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-clock"></i> <span style="margin-left: 10px;">Manage Schedule</span>
+  </a>
+</li>
+      <li>
+  <a href="bookingsummary.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-clock"></i> <span style="margin-left: 10px;">Booking summary</span>
+  </a>
+</li>
+      <li class="active"><i class="fas fa-credit-card"></i> Transactions</li>
+      <li>
+  <a href="Busfeatures.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-cogs"></i> <span style="margin-left: 10px;">Bus Features</span>
+  </a>
+</li>
+      <li>
+  <a href="Busstatus.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-satellite-dish"></i> <span style="margin-left: 10px;">Live Bus Status</span>
+  </a>
+</li>
+      <li>
+  <a href="CustomerMessages.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
+    <i class="fas fa-comment-alt"></i> <span style="margin-left: 10px;">Customer Messages</span>
+  </a>
+</li>
+      <li><i class="fas fa-user"></i> Profile Settings</li>
+      <li><i class="fas fa-lock"></i> Security Settings</li>
+      <li><i class="fas fa-sign-out-alt"></i> Logout</li>
+    </ul>
+  </aside>
+
+  <div class="main-content">
+    <header class="header">
+      <div><strong>Vendor Profile</strong></div>
+      <div class="right-menu">
+        <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+      </div>
+    </header>
+
+    <div class="dashboard">
+      <h3>Transactions</h3>
+
+      <div class="cards">
+        <div class="card">
+          <h4>Total Revenue</h4>
+          <p>₹x,XXX</p>
+        </div>
+        <div class="card">
+          <h4>Refunds Processed</h4>
+          <p>₹XXX</p>
+        </div>
+        <div class="card">
+          <h4>Net Earnings</h4>
+          <p>₹XXX</p>
+        </div>
+        <div class="card">
+          <h4>Total Bookings</h4>
+          <p>XXX</p>
+        </div>
+      </div>
+
+      <div class="filters">
+        <input type="text" placeholder="Transaction Status">
+        <input type="text" placeholder="Payment Mode">
+        <input type="text" placeholder="Search">
+        <input type="text" placeholder="Route">
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th>Bus Name</th>
+            <th>Passenger Name</th>
+            <th>Booking Date</th>
+            <th>Amount Paid</th>
+            <th>Payment Mode</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="8" style="text-align: center; color: #aaa;">No transactions to show</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="footer">
+      © 2025 RouteBuddy. All rights reserved. |
+      <a href="#">Privacy Policy</a> |
+      <a href="#">Terms of Use</a> |
+      <a href="#">Contact</a>
+    </footer>
+  </div>
+</body>
+</html>
