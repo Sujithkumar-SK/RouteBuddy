@@ -4,3 +4,10 @@ remove the User request only adim is needed.
 Log options is needed in that vendor, admin, users filter
 need to add UpdatedAt in user
 and busid, userid id is not needed
+
+Vendor Dashboard
+-----------------
+need to varies the price instead of single fare it should depend and varies
+combine profile setting & security settings
+do something on transcations that how to hadle it
+booking summary has to be displayed after the selection of bus
