@@ -67,6 +67,7 @@
       display: flex;
       align-items: center;
       transition: all 0.3s ease;
+      position: relative;
     }
 
     .sidebar ul li a:hover {
@@ -81,6 +82,7 @@
     .sidebar ul li a.active {
       background-color: rgba(255, 255, 255, 0.2);
       border-left: 5px solid yellow;
+      padding-left: 8px; /* adjust so left border doesn’t shift content */
     }
 
     .main-content {
@@ -92,7 +94,7 @@
     }
 
     .header {
-      height: 60px;
+      height: 70px;
       background: linear-gradient(90deg, #6a85f1, #9b59b6);
       color: white;
       display: flex;
@@ -100,15 +102,8 @@
       justify-content: space-between;
       padding: 0 30px;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-size: 16px;
     }
-
-    .header .right-menu a {
-      color: white;
-      margin-left: 20px;
-      text-decoration: none;
-      font-weight: 500;
-    }
-
 
     .right-menu {
       display: flex;
