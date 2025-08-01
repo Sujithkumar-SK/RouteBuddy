@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Logged Out - RouteBuddy Vendor</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg-primary: #f4f4f4;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg-primary);
+      color: #333;
+    }
+
+    body {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar with only logo */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #6a85f1, #9b59b6);
+      padding: 20px 0 10px;
+      color: #fff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+    }
+
+    .sidebar .logo {
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #fff;
+      text-decoration: none;
+      margin: 0 0 20px 20px;
+      flex: 0 0 auto;
+    }
+
+    .sidebar .logo i {
+      font-size: 24px;
+      margin-right: 10px;
+      color: yellow;
+    }
+
+    .main-content {
+      margin-left: 230px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      width: calc(100% - 230px);
+    }
+
+    .header {
+      background: linear-gradient(to right, #6a85f1, #9b59b6);
+      height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      color: white;
+      font-size: 17px;
+      font-weight: 500;
+    }
+
+    .header a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 15px;
+    }
+
+    .content-wrapper {
+      flex: 1;
+      padding: 40px 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-logout {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+      padding: 60px 40px;
+      max-width: 500px;
+      width: 100%;
+      text-align: center;
+      position: relative;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .card-logout h1 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .card-logout p {
+      margin: 8px 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg,#ffb347 0%,#f7941d 100%);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .small-link {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #0073e6;
+      text-decoration: none;
+    }
+
+    .footer {
+      background-color: #eee;
+      padding: 15px 30px;
+      text-align: center;
+      font-size: 14px;
+      margin-top: auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .footer a {
+      color: #555;
+      margin: 0 8px;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    .footer .links {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    @media screen and (max-width: 768px) {
+      .sidebar {
+        width: 180px;
+      }
+
+      .main-content {
+        margin-left: 180px;
+        width: calc(100% - 180px);
+      }
+
+      .card-logout {
+        padding: 40px 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="logo"><i class="fas fa-route"></i> RouteBuddy</div>
+  </aside>
+
+  <div class="main-content">
+    <header class="header">
+      <span>You've been logged out</span>
+      <a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a>
+    </header>
+
+    <div class="content-wrapper">
+      <div class="card-logout" role="main">
+        <h1>You have successfully logged out</h1>
+        <p>Thank you for using RouteBuddy Vendor Dashboard.</p>
+        <p class="logout-info">You can log back in anytime to manage your buses and schedules.</p>
+        <a href="login.html" class="btn">Login Again</a>
+        <a href="#" class="small-link">Return to Home Page</a>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div>© 2025 RouteBuddy. All rights reserved.</div>
+      <div class="links">
+        <a href="#">Privacy Policy</a> |
+        <a href="#">Terms of Use</a> |
+        <a href="#">Contact</a>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

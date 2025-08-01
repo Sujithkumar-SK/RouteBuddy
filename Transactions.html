@@ -114,21 +114,21 @@
     }
 
     .header {
-      height: 60px;
-      background: linear-gradient(90deg, #6a85f1, #9b59b6);
-      color: #fff;
+      background: linear-gradient(to right, #6a85f1, #9b59b6);
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 30px;
-      border-bottom: 1px solid #ccc;
+      color: white;
+      font-size: 17px;
+      font-weight: 500;
     }
 
-    .header .right-menu a {
+    .header a {
       color: #fff;
-      margin-left: 20px;
       text-decoration: none;
-      font-weight: 500;
+      font-size: 15px;
     }
 
     .dashboard {
@@ -240,7 +240,7 @@
 <body>
 
   <aside class="sidebar">
-    <a href="#" class="logo"><i class="fas fa-route"></i> RouteBuddy</a>
+    <div class="logo"><i class="fas fa-route"></i> RouteBuddy</div>
 
     <ul>
       <li>
@@ -255,7 +255,7 @@
       </li>
       <li>
         <a href="bookingsummary.html">
-          <i class="fas fa-clock"></i> <span style="margin-left: 10px;">Booking summary</span>
+          <i class="fas fa-chart-bar"></i> <span style="margin-left: 10px;">Booking Summary</span>
         </a>
       </li>
       <li class="active">
@@ -282,20 +282,22 @@
         </a>
       </li>
       <li>
-        <i class="fas fa-lock"></i> <span style="margin-left: 10px;">Security Settings</span>
+        <a href="SecuritySettings.html">
+          <i class="fas fa-lock"></i> <span style="margin-left: 10px;">Security Settings</span>
+        </a>
       </li>
       <li>
-        <i class="fas fa-sign-out-alt"></i> <span style="margin-left: 10px;">Logout</span>
+        <a href="Logout.html">
+          <i class="fas fa-sign-out-alt"></i> <span style="margin-left: 10px;">Logout</span>
+        </a>
       </li>
     </ul>
   </aside>
 
   <div class="main-content">
     <header class="header">
-      <div><strong>Vendor Profile</strong></div>
-      <div class="right-menu">
-        <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
-      </div>
+      <span>Welcome, Vendor</span>
+      <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </header>
 
     <div class="dashboard">

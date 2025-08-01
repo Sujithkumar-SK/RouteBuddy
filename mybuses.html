@@ -80,29 +80,33 @@
       min-height: 100vh;
     }
 
+    /* Updated header to match booking summary style */
     .header {
-      height: 60px;
-      background: linear-gradient(90deg, #6a85f1, #9b59b6);
-      color: white;
+      background: linear-gradient(to right, #6a85f1, #9b59b6);
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 30px;
-      border-bottom: 1px solid #ccc;
+      color: white;
+      font-size: 17px;
+      font-weight: 500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
+    .header .left-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+    }
     .header .right-menu {
       display: flex;
       gap: 20px;
-      align-items: center;
     }
     .header .right-menu a {
       color: #fff;
       text-decoration: none;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      font-size: 15px;
     }
 
     .dashboard {
@@ -249,20 +253,25 @@
         </a>
       </li>
       <li>
-        <a href="#"><i class="fas fa-lock"></i> <span style="margin-left: 10px;">Security Settings</span></a>
+        <a href="SecuritySettings.html">
+          <i class="fas fa-lock"></i> <span style="margin-left: 10px;">Security Settings</span>
+        </a>
       </li>
       <li>
-        <a href="#"><i class="fas fa-sign-out-alt"></i> <span style="margin-left: 10px;">Logout</span></a>
+        <a href="Logout.html">
+          <i class="fas fa-sign-out-alt"></i> <span style="margin-left: 10px;">Logout</span>
+        </a>
       </li>
     </ul>
   </aside>
 
   <div class="main-content">
     <header class="header">
-      <div></div>
+      <div class="left-title"><i class="fas fa-bus"></i> My Buses</div>
       <div class="right-menu">
-        <a href="#"><i class="fas fa-user-circle"></i> Vendor profile</a>
-        <a href="#"><i class="fas fa-lock"></i> Logout</a>
+        <a href="#"><i class="fas fa-ticket-alt"></i> Bookings</a>
+        <a href="#"><i class="fas fa-question-circle"></i> Help</a>
+        <a href="#"><i class="fas fa-user-circle"></i> Account</a>
       </div>
     </header>
 

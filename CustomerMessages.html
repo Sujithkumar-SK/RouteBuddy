@@ -111,22 +111,33 @@
       min-height: 100vh;
     }
 
+    /* Updated header to match booking summary style */
     .header {
-      background: linear-gradient(90deg, #6a85f1, #9b59b6);
-      height: 60px;
-      color: white;
+      background: linear-gradient(to right, #6a85f1, #9b59b6);
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 30px;
+      color: white;
+      font-size: 17px;
+      font-weight: 500;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
-    .header a {
-      color: white;
-      margin-left: 20px;
+    .header .left-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+    }
+    .header .right-menu {
+      display: flex;
+      gap: 20px;
+    }
+    .header .right-menu a {
+      color: #fff;
       text-decoration: none;
-      font-weight: 500;
+      font-size: 15px;
     }
 
     .content {
@@ -301,18 +312,22 @@
         <a href="ProfileSettings.html"><i class="fas fa-user"></i> Profile Settings</a>
       </li>
       <li>
-        <a href="#"><i class="fas fa-lock"></i> Security Settings</a>
+        <a href="SecuritySettings.html">
+          <i class="fas fa-lock"></i> <span style="margin-left: 10px;">Security Settings</span>
+        </a>
       </li>
       <li>
-        <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <a href="Logout.html">
+          <i class="fas fa-sign-out-alt"></i> <span style="margin-left: 10px;">Logout</span>
+        </a>
       </li>
     </ul>
   </aside>
 
   <div class="main">
     <header class="header">
-      <div></div>
-      <div>
+      <div class="left-title"><i class="fas fa-comment"></i> Customer Messages</div>
+      <div class="right-menu">
         <a href="#"><i class="fas fa-ticket-alt"></i> Bookings</a>
         <a href="#"><i class="fas fa-question-circle"></i> Help</a>
         <a href="#"><i class="fas fa-user-circle"></i> Account</a>

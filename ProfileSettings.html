@@ -23,7 +23,6 @@
       display: flex;
     }
 
-    /* Sidebar like layout page */
     .sidebar {
       position: fixed;
       top: 0;
@@ -49,6 +48,7 @@
       margin: 0 0 20px 20px;
       flex: 0 0 auto;
     }
+
     .sidebar .logo i {
       font-size: 24px;
       margin-right: 10px;
@@ -99,17 +99,6 @@
       padding-left: 8px;
     }
 
-    .sidebar ul::-webkit-scrollbar {
-      width: 8px;
-    }
-    .sidebar ul::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.2);
-      border-radius: 4px;
-    }
-    .sidebar ul::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
     .main-content {
       margin-left: 230px;
       display: flex;
@@ -119,30 +108,22 @@
     }
 
     .header {
+      background: linear-gradient(to right, #6a85f1, #9b59b6);
       height: 70px;
-      background: linear-gradient(90deg, #6a85f1, #9b59b6);
-      color: white;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 30px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      font-size: 16px;
-    }
-
-    .right-menu {
-      display: flex;
-      align-items: center;
-      gap: 25px;
-    }
-
-    .right-menu a {
       color: white;
-      text-decoration: none;
+      font-size: 17px;
       font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .header a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 15px;
     }
 
     .profile-container {
@@ -247,20 +228,20 @@
       <li><a href="Busstatus.html"><i class="fas fa-satellite-dish"></i> Live Bus Status</a></li>
       <li><a href="CustomerMessages.html"><i class="fas fa-comment-alt"></i> Customer Messages</a></li>
       <li class="active"><a href="#"><i class="fas fa-user"></i> Profile Settings</a></li>
-      <li><a href="#"><i class="fas fa-lock"></i> Security Settings</a></li>
-      <li><a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      <li><a href="SecuritySettings.html"><i class="fas fa-lock"></i> Security Settings</a></li>
+      <li>
+        <a href="Logout.html">
+          <i class="fas fa-sign-out-alt"></i> <span style="margin-left: 10px;">Logout</span>
+        </a>
+      </li>
     </ul>
   </aside>
 
   <div class="main-content">
-    <header class="header">
-      <div></div>
-      <div class="right-menu">
-        <a href="#"><i class="fas fa-ticket-alt"></i> Bookings</a>
-        <a href="#"><i class="fas fa-question-circle"></i> Help</a>
-        <a href="#"><i class="fas fa-user-circle"></i> Account</a>
-      </div>
-    </header>
+    <div class="header">
+      <span><i class="fas fa-user-circle" style="margin-right:8px;"></i> Profile Settings</span>
+      <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
 
     <div class="profile-container">
       <div class="profile-box">

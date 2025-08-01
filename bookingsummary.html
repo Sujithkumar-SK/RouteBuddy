@@ -117,12 +117,23 @@
       color: white;
       font-size: 17px;
       font-weight: 500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
-    .header a {
+    .header .right-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .header .right-menu a {
       color: #fff;
       text-decoration: none;
       font-size: 15px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .dashboard {
@@ -133,6 +144,9 @@
     .dashboard h2 {
       margin-bottom: 30px;
       font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .metrics {
@@ -173,6 +187,9 @@
       font-size: 15px;
       font-weight: 500;
       color: #333;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .filters {
@@ -252,19 +269,27 @@
         <a href="ProfileSettings.html"><i class="fas fa-user"></i> <span>Profile Settings</span></a>
       </li>
       <li>
-        <a href="#"><i class="fas fa-lock"></i> <span>Security Settings</span></a>
+        <a href="SecuritySettings.html">
+          <i class="fas fa-lock"></i> <span style="margin-left: 10px;">Security Settings</span>
+        </a>
       </li>
       <li>
-        <a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+        <a href="Logout.html">
+          <i class="fas fa-sign-out-alt"></i> <span style="margin-left: 10px;">Logout</span>
+        </a>
       </li>
     </ul>
   </aside>
 
   <div class="main-content">
-    <div class="header">
-      <span>Welcome, Vendor</span>
-      <a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a>
-    </div>
+    <header class="header">
+      <div></div>
+      <div class="right-menu">
+        <a href="#"><i class="fas fa-ticket-alt"></i> Bookings</a>
+        <a href="#"><i class="fas fa-question-circle"></i> Help</a>
+        <a href="#"><i class="fas fa-user-circle"></i> Account</a>
+      </div>
+    </header>
 
     <div class="dashboard">
       <h2><i class="fas fa-chart-bar" style="color:#6a85f1;"></i> Booking Summary</h2>
