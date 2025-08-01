@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Security Settings | Route Buddy - Admin</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --text-primary: #2d3748;
+      --text-secondary: #718096;
+      --bg-primary: #f7fafc;
+      --border-radius: 16px;
+      --shadow-light: 0 8px 32px rgba(102,126,234,0.09);
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: var(--text-primary);
+      background: var(--bg-primary);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Sidebar styled like layout page; only its list scrolls */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #6a85f1, #9b59b6);
+      padding: 20px 0 10px; /* reduce bottom padding so list fits better */
+      color: #fff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar .logo {
+      display: flex;
+      align-items: center;
+      font-size: 22px;
+      font-weight: bold;
+      color: #fff;
+      text-decoration: none;
+      margin: 0 0 20px 20px;
+      flex: 0 0 auto;
+    }
+    .sidebar .logo i {
+      font-size: 24px;
+      margin-right: 10px;
+      color: yellow;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+      flex: 1 1 auto;
+    }
+    .sidebar ul li {
+      margin: 0 15px 10px 15px;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+    .sidebar ul li:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+      transform: translateX(5px);
+    }
+    .sidebar ul li i {
+      margin-right: 10px;
+      flex: 0 0 auto;
+    }
+    .sidebar ul li a {
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .sidebar ul li.active {
+      background-color: rgba(255,255,255,0.2);
+      border-left: 5px solid yellow;
+      padding-left: 8px;
+    }
+    /* thin scrollbar for sidebar list */
+    .sidebar ul::-webkit-scrollbar {
+      width: 8px;
+    }
+    .sidebar ul::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+    .sidebar ul::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Main */
+    .main {
+      flex: 1;
+      padding: 2.5rem 2.7rem;
+      margin-left: 230px;
+      background: var(--bg-primary);
+      position: relative;
+      overflow-x: auto;
+      min-height: 100vh;
+    }
+    .main-header { margin-bottom: 2.7rem; }
+    .main h1 {
+      font-size: 2.1rem;
+      font-weight: 700;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.3rem;
+    }
+    .main-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.06rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: var(--shadow-light);
+      margin-bottom: 2.5rem;
+      max-width: 720px;
+      width: 100%;
+    }
+
+    form label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    form input[type="password"] {
+      width: 100%;
+      padding: 0.65rem 1rem;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+      font-size: 1rem;
+      margin-bottom: 1.2rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    form input[type="password"]:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 6px rgba(102,126,234,0.48);
+    }
+    form button {
+      padding: 0.7rem 1.8rem;
+      border-radius: 16px;
+      border: none;
+      background: var(--primary-gradient);
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    form button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+    .input-error {
+      color: #e74c3c;
+      font-size: 0.85rem;
+      margin-top: -1rem;
+      margin-bottom: 1rem;
+      min-height: 1em;
+    }
+
+    .twofa-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.4rem;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0; height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px; width: 20px;
+      left: 3px; bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #667eea;
+    }
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+    .switch-label {
+      font-weight: 600;
+      user-select: none;
+      color: var(--text-primary);
+    }
+
+    .activity-table-section {
+      max-width: 920px;
+      width: 100%;
+      background: #fff;
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      box-shadow: var(--shadow-light);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 1rem;
+      vertical-align: middle;
+    }
+    th {
+      color: var(--text-secondary);
+      font-weight: 600;
+      background: #f8fafc;
+    }
+    tr:hover {
+      background: #f7f7fa;
+    }
+
+    .badge-success {
+      background: #d1fae5;
+      color: #065f46;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .badge-danger {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .main {
+        padding: 1.5rem;
+      }
+      .card, .activity-table-section {
+        padding: 1.2rem 1rem;
+        margin-bottom: 1.8rem;
+      }
+      form button {
+        width: 100%;
+      }
+      table th, table td {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <a href="#" class="logo"><i class="fas fa-route"></i> RouteBuddy</a>
+    <ul>
+      <li>
+        <a href="mybuses.html">
+          <i class="fas fa-bus"></i> <span style="margin-left: 10px; color: white;">My Buses</span>
+        </a>
+      </li>
+      <li>
+        <a href="ManageShedule.html">
+          <i class="fas fa-clock"></i> <span style="margin-left: 10px; color: white;">Manage Schedule</span>
+        </a>
+      </li>
+      <li>
+        <a href="bookingsummary.html">
+          <i class="fas fa-clock"></i> <span style="margin-left: 10px; color: white;">Booking Summary</span>
+        </a>
+      </li>
+      <li>
+        <a href="Transactions.html">
+          <i class="fas fa-credit-card"></i> <span style="margin-left: 10px; color: white;">Transactions</span>
+        </a>
+      </li>
+      <li>
+        <a href="Busfeatures.html">
+          <i class="fas fa-cogs"></i> <span style="margin-left: 10px; color: white;">Bus Features</span>
+        </a>
+      </li>
+      <li>
+        <a href="Busstatus.html">
+          <i class="fas fa-satellite-dish"></i> <span style="margin-left: 10px; color: white;">Live Bus Status</span>
+        </a>
+      </li>
+      <li>
+        <a href="CustomerMessages.html">
+          <i class="fas fa-comment-alt"></i> <span style="margin-left: 10px; color: white;">Customer Messages</span>
+        </a>
+      </li>
+      <li>
+        <a href="ProfileSettings.html">
+          <i class="fas fa-user"></i> <span style="margin-left: 10px; color: white;">Profile Settings</span>
+        </a>
+      </li>
+      <li class="active">
+        <i class="fas fa-lock"></i> <span style="margin-left: 10px;">Security Settings</span>
+      </li>
+      <li>
+        <i class="fas fa-sign-out-alt"></i> <span style="margin-left: 10px;">Logout</span>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+    <div class="main-header">
+      <h1>Security Settings</h1>
+      <p class="main-subtitle">Manage your password, two-factor authentication, and view recent login activity.</p>
+    </div>
+
+    <!-- Password Change Card -->
+    <section class="card" aria-label="Password change form">
+      <h2 style="color: #667eea; margin-bottom: 1.5rem;">Change Password</h2>
+      <form novalidate>
+        <label for="currentPassword">Current Password</label>
+        <input type="password" id="currentPassword" name="currentPassword" required minlength="6" autocomplete="current-password" />
+        <div class="input-error" aria-live="polite"></div>
+
+        <label for="newPassword">New Password</label>
+        <input type="password" id="newPassword" name="newPassword" required minlength="8" autocomplete="new-password" />
+        <div class="input-error" aria-live="polite"></div>
+
+        <label for="confirmPassword">Confirm New Password</label>
+        <input type="password" id="confirmPassword" name="confirmPassword" required minlength="8" autocomplete="new-password" />
+        <div class="input-error" aria-live="polite"></div>
+
+        <button type="submit">Change Password</button>
+      </form>
+    </section>
+
+    <!-- 2FA Toggle Card -->
+    <section class="card" aria-label="Two-factor authentication settings">
+      <h2 style="color: #667eea; margin-bottom: 1.5rem;">Two-Factor Authentication (2FA)</h2>
+      <div class="twofa-container">
+        <label class="switch" for="twofaToggle">
+          <input type="checkbox" id="twofaToggle" />
+          <span class="slider"></span>
+        </label>
+        <span class="switch-label">2FA is currently disabled</span>
+      </div>
+    </section>
+
+    <!-- Login Activity Card -->
+    <section class="activity-table-section" aria-label="Recent login activity">
+      <h2 style="color: #667eea; margin-bottom: 1rem;">Recent Login Activity</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date & Time</th>
+            <th>IP Address</th>
+            <th>Device</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>2025-07-25 09:15</td>
+            <td>192.168.1.20</td>
+            <td>Chrome on Windows</td>
+            <td><span class="badge-success">Success</span></td>
+          </tr>
+          <tr>
+            <td>2025-07-24 18:04</td>
+            <td>192.168.1.15</td>
+            <td>Firefox on MacOS</td>
+            <td><span class="badge-success">Success</span></td>
+          </tr>
+          <tr>
+            <td>2025-07-23 22:10</td>
+            <td>192.168.1.33</td>
+            <td>Mobile Safari on iPhone</td>
+            <td><span class="badge-danger">Failed</span></td>
+          </tr>
+          <tr>
+            <td>2025-07-22 08:50</td>
+            <td>192.168.1.22</td>
+            <td>Edge on Windows</td>
+            <td><span class="badge-success">Success</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+</body>
+</html>

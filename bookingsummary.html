@@ -19,54 +19,84 @@
       color: #333;
     }
 
+    /* Sidebar updated to match layout-style sidebar */
     .sidebar {
-      width: 230px;
-      background: linear-gradient(180deg, #6a85f1, #9b59b6);
-      padding: 20px;
-      color: #fff;
-      height: 100vh;
       position: fixed;
+      top: 0;
+      left: 0;
+      width: 230px;
+      height: 100%;
+      background: linear-gradient(180deg, #6a85f1, #9b59b6);
+      padding: 20px 0 10px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      z-index: 1000;
     }
-
-    .logo {
+    .sidebar .logo {
       display: flex;
       align-items: center;
       font-size: 22px;
       font-weight: bold;
       color: #fff;
-      margin-bottom: 30px;
       text-decoration: none;
+      margin: 0 0 20px 20px;
+      flex: 0 0 auto;
     }
-
-    .logo i, .logo img {
+    .sidebar .logo i {
+      font-size: 24px;
       margin-right: 10px;
+      color: yellow;
     }
-
     .sidebar ul {
       list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+      flex: 1 1 auto;
     }
-
     .sidebar ul li {
-      margin-bottom: 15px;
+      margin: 0 15px 10px 15px;
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: all 0.3s ease;
+      white-space: nowrap;
     }
-
+    .sidebar ul li:hover {
+      background-color: rgba(255,255,255,0.2);
+      transform: translateX(5px);
+    }
+    .sidebar ul li i {
+      margin-right: 10px;
+      flex: 0 0 auto;
+    }
     .sidebar ul li a {
       color: white;
       text-decoration: none;
       display: flex;
       align-items: center;
-      padding: 10px;
-      border-radius: 8px;
-      transition: background 0.3s;
+      width: 100%;
     }
-
-    .sidebar ul li a:hover,
-    .sidebar ul li a.active {
-      background-color: rgba(255, 255, 255, 0.2);
+    .sidebar ul li.active {
+      background-color: rgba(255,255,255,0.2);
+      border-left: 5px solid yellow;
+      padding-left: 8px;
+      font-weight: 600;
     }
-
-    .sidebar ul li i {
-      margin-right: 10px;
+    .sidebar ul::-webkit-scrollbar {
+      width: 8px;
+    }
+    .sidebar ul::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+    }
+    .sidebar ul::-webkit-scrollbar-track {
+      background: transparent;
     }
 
     .main-content {
@@ -175,35 +205,58 @@
     .footer a:hover {
       text-decoration: underline;
     }
+
+    @media (max-width: 768px) {
+      .metrics {
+        flex-direction: column;
+        gap: 20px;
+      }
+      .charts {
+        flex-direction: column;
+        gap: 15px;
+      }
+      .filters {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+    }
   </style>
 </head>
 <body>
   <aside class="sidebar">
-    <a href="#" class="logo"><i class="fas fa-route" style="color: yellow;"></i> RouteBuddy</a>
+    <div class="logo"><i class="fas fa-route"></i> RouteBuddy</div>
 
     <ul>
-      <li><a href="mybuses.html"><i class="fas fa-bus"></i> <span style="margin-left: 10px;">My Buses</span></a></li>
-      <li><a href="ManageShedule.html"><i class="fas fa-clock"></i> <span style="margin-left: 10px;">Manage Schedule</span></a></li>
-      <li><a href="bookingsummary.html" class="active"><i class="fas fa-chart-bar"></i> <span style="margin-left: 10px;">Booking Summary</span></a></li>
-      <li><a href="Transactions.html"><i class="fas fa-credit-card"></i> <span style="margin-left: 10px;">Transactions</span></a></li>
-      <li><a href="Busfeatures.html"><i class="fas fa-cogs"></i> <span style="margin-left: 10px;">Bus Features</span></a></li>
       <li>
-  <a href="Busstatus.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
-    <i class="fas fa-satellite-dish"></i> <span style="margin-left: 10px;">Live Bus Status</span>
-  </a>
-</li>
+        <a href="mybuses.html"><i class="fas fa-bus"></i> <span>My Buses</span></a>
+      </li>
       <li>
-  <a href="CustomerMessages.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
-    <i class="fas fa-comment-alt"></i> <span style="margin-left: 10px;">Customer Messages</span>
-  </a>
-</li>
+        <a href="ManageShedule.html"><i class="fas fa-clock"></i> <span>Manage Schedule</span></a>
+      </li>
+      <li class="active">
+        <a href="bookingsummary.html"><i class="fas fa-chart-bar"></i> <span>Booking Summary</span></a>
+      </li>
       <li>
-  <a href="ProfileSettings.html" style="color: white; text-decoration: none; display: flex; align-items: center;">
-    <i class="fas fa-user"></i> <span style="margin-left: 10px;">Profile Settings</span>
-  </a>
-</li>
-      <li><a href="#"><i class="fas fa-lock"></i> Security Settings</a></li>
-      <li><a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        <a href="Transactions.html"><i class="fas fa-credit-card"></i> <span>Transactions</span></a>
+      </li>
+      <li>
+        <a href="Busfeatures.html"><i class="fas fa-cogs"></i> <span>Bus Features</span></a>
+      </li>
+      <li>
+        <a href="Busstatus.html"><i class="fas fa-satellite-dish"></i> <span>Live Bus Status</span></a>
+      </li>
+      <li>
+        <a href="CustomerMessages.html"><i class="fas fa-comment-alt"></i> <span>Customer Messages</span></a>
+      </li>
+      <li>
+        <a href="ProfileSettings.html"><i class="fas fa-user"></i> <span>Profile Settings</span></a>
+      </li>
+      <li>
+        <a href="#"><i class="fas fa-lock"></i> <span>Security Settings</span></a>
+      </li>
+      <li>
+        <a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a>
+      </li>
     </ul>
   </aside>
 
