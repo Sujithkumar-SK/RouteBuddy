@@ -11,3 +11,7 @@ need to varies the price instead of single fare it should depend and varies
 combine profile setting & security settings
 do something on transcations that how to hadle it
 booking summary has to be displayed after the selection of bus
+
+
+-------
+user delete option
