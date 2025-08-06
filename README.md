@@ -1,76 +1,77 @@
-# 🚌 Route Buddy – Bus Booking Platform  
+🚌 Route Buddy – Bus Booking Platform
 
-Route Buddy is a **monolithic web-based bus booking platform** designed to simplify online bus reservations. The platform provides a seamless experience for users to search, view, and book buses with real-time availability and a clean, responsive UI.
 
----
 
-## 🚀 Features
 
-### 🎯 Core Functionalities:
-- 🔎 **Dynamic Bus Search** – Search buses by source, destination, and travel date.
-- 🖥️ **Responsive UI** – Optimized for desktop, tablet, and mobile users.
-- 🏷️ **Booking Module** – Reserve seats with instant booking confirmation.
-- 👤 **User Authentication** – Sign-up, login, and profile management.
-- 🚌 **Bus Listings Page** – Filter and view buses with timing, price, and available seats.
-- 📜 **Ticket Management** – View booked tickets and travel history.
+📖 Overview
+Route Buddy is a monolithic web-based bus booking platform built to simplify online bus reservations. It delivers a seamless experience for users to search, view, and book buses in real-time, with an intuitive and responsive UI.
 
-### 🛠 Planned Enhancements:
-- 💳 **Payment Gateway Integration** (Razorpay/Stripe for secure payments).
-- 📱 **Progressive Web App (PWA)** for mobile-like experience.
-- 🔔 **Email/SMS Notifications** for booking confirmation & reminders.
-- ⭐ **Ratings & Reviews** for buses/operators.
-- 🔐 **Admin Dashboard** for managing buses, routes, and users.
+The goal is to provide a reliable, scalable, and production-ready platform with modern best practices in both frontend and backend development.
 
----
+🚀 Features
+✅ Core Functionalities
+🔎 Dynamic Bus Search – Search buses by source, destination, and travel date.
 
-## 🏗️ Tech Stack
+🖥️ Responsive UI – Optimized for desktop, tablet, and mobile users.
 
-### Frontend:
-- **HTML5**, **CSS3**, **JavaScript (ES6+)**
-- **Bootstrap 5** (Responsive UI components)
-  
-### Backend:
-- **C# (.NET Core MVC)** – Monolithic architecture (simpler for initial build)
-- **Entity Framework Core** – ORM for database management
+🏷️ Booking Module – Reserve seats with instant booking confirmation.
 
-### Database:
-- **SQL Server** – Relational database for buses, bookings, and users.
+👤 User Authentication – Secure sign-up, login, and profile management.
 
-### Tools & Workflow:
-- **Git & GitHub** – Version control & collaboration.
-- **Docker (Planned)** – Containerized deployment.
-- **CI/CD (Planned)** – Automated build & deployment pipeline.
+🚌 Bus Listings Page – View buses with filters (timing, price, available seats).
 
----
+📜 Ticket Management – View booked tickets and travel history.
 
-## ⚙️ Installation & Setup
+🔮 Planned Enhancements
+💳 Payment Gateway Integration (Razorpay/Stripe for secure transactions).
 
-### 1️⃣ Clone Repository:
-```bash
+📱 Progressive Web App (PWA) for mobile-like experience.
+
+🔔 Email/SMS Notifications for confirmations and reminders.
+
+⭐ Ratings & Reviews for buses/operators.
+
+🔐 Admin Dashboard to manage buses, routes, and users.
+
+🏗️ Tech Stack
+🎨 Frontend
+HTML5, CSS3, JavaScript (ES6+)
+
+Bootstrap 5 – Responsive, mobile-first UI framework
+
+⚙️ Backend
+C# (.NET Core MVC) – Monolithic architecture for faster MVP development
+
+Entity Framework Core – ORM for database interaction
+
+🗄️ Database
+SQL Server – Relational database for buses, bookings, and users
+
+🛠 DevOps & Tools
+Git & GitHub – Version control & collaboration
+
+⚙️ Installation & Setup
+1️⃣ Clone the Repository
+
 git clone https://github.com/<your-username>/route-buddy.git
 cd route-buddy
-2️⃣ Setup Backend:
-Open the project in Visual Studio or VS Code.
 
-Configure appsettings.json with your SQL Server connection string.
+2️⃣ Backend Setup
 
-Run EF Core migrations to create database:
+Open the project in Visual Studio or VS Code
 
-bash
-Copy
-Edit
+Configure the appsettings.json file with your SQL Server connection string
+
+Run EF Core migrations to create the database:
 dotnet ef database update
-3️⃣ Run Application:
-bash
-Copy
-Edit
+
+3️⃣ Run the Application
+
 dotnet run
-Access the app at: http://localhost:5000 (or configured port).
+The application will be available at http://localhost:5000 (or configured port).
 
 🗂 Project Structure
-bash
-Copy
-Edit
+
 RouteBuddy/
 ├── Controllers/         # MVC Controllers (Bus, User, Booking, etc.)
 ├── Models/              # Entity Framework Core Models
@@ -79,25 +80,37 @@ RouteBuddy/
 ├── wwwroot/             # Static files (CSS, JS, Images)
 ├── layout.html          # Common layout (Header/Footer)
 └── README.md            # Project Documentation
-🔮 Future Roadmap
- Real-time seat availability sync.
 
- Bus operator portal for route & schedule management.
 
- AI-based fare prediction (dynamic pricing engine).
+🔮 Roadmap
+ Real-time seat availability sync
 
- Deployment on Azure/AWS for scalability.
+ Bus operator portal for route & schedule management
 
- Unit Testing with xUnit & NUnit for reliability.
+ AI-based fare prediction (dynamic pricing engine)
 
-👨‍💻 Contributing
-Contributions are welcome! Fork the repo, make changes in a new branch, and submit a PR.
+ Deployment on Azure/AWS for scalability
+
+ Unit Testing with xUnit & NUnit
+
+🤝 Contributing
+Contributions are welcome!
+
+Fork the repository
+
+Create a new branch (feature/your-feature)
+
+Commit changes & open a Pull Request
 
 📜 License
 This project is licensed under the MIT License.
 
-✨ Author
-Developed by Team RouteBuddy
-✨ Author
-Developed by Sujith Kumar S
+👨‍💻 Author
+Team RouteBuddy
 Aspiring Backend Developer | Python, C#, .NET Core, SQL Server
+
+📷 Screenshots (Coming Soon)
+Visual previews of UI and booking flow will be added here after initial deployment.
+Docker (Planned) – Containerized deployment
+
+CI/CD Pipeline (Planned) – Automated build and deployment
