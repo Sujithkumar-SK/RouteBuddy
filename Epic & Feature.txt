@@ -1,0 +1,65 @@
+Epic 1: User Management
+Features: Registration, Login, Profile Management
+
+Epic 2: Bus Management
+Features: Bus details, Photos, Documents, Seat Layout
+
+Epic 3: Search & Booking
+Features: Search, Seat Selection, Booking Confirmation
+
+Epic 4: Payments & Notifications
+Features: Payments, Confirmation, Alerts
+
+Epic 5: Admin & Reporting
+Features: Dashboard, Reports, Role Management
+
+------------------------------------------------------
+Epic 1: User Management
+
+Features:
+
+Registration (email/phone signup, password management)
+
+Login (secure authentication, forgot password)
+
+Profile Management (personal info, profile photo, update password)
+
+Epic 2: Bus Management
+
+Features:
+
+Bus Details (add/edit/delete bus, timings, routes, pricing, type – AC/Non-AC, sleeper/seater)
+
+Photos & Documents (upload bus images, RC, Insurance, Permit, approval workflow)
+
+Seat Layout (configure seats, mark reserved/unavailable seats)
+
+Epic 3: Search & Booking
+
+Features:
+
+Smart Search Engine (filter by source, destination, date, bus type, price range, seat availability, rating)
+
+Seat Selection (interactive seat map, multiple seats, real-time availability)
+
+Booking Confirmation (ticket generation, booking history, cancellation option)
+
+Epic 4: Payments & Notifications
+
+Features:
+
+Payments (integrate gateway, multiple modes – UPI, card, wallet, net banking)
+
+Payment Confirmation (success/failure flow, receipt generation)
+
+Notifications (email/SMS/app alerts for booking confirmation, payment receipt, reminders, cancellation alerts)
+
+Epic 5: Admin & Reporting
+
+Features:
+
+Admin Dashboard (overview of buses, bookings, users, revenue, documents pending approval)
+
+Reports (daily/weekly/monthly bookings, occupancy rate, top routes, revenue trends)
+
+Monitoring & Control (approve buses/documents, manage cancellations, handle disputes)
