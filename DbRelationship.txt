@@ -1,0 +1,45 @@
+One to Many
+-------------
+1. User ↔ Booking
+	User (1) ---- (M) Booking
+
+2. User ↔ Review
+	User (1) ---- (M) Review
+
+3. Vendor ↔ Bus
+	Vendor (1) ---- (M) Bus
+
+4. Bus ↔ Schedule
+	Bus (1) ---- (M) BusSchedule
+
+5. Route ↔ Schedule
+	Why: A Route (e.g., Chennai → Bangalore) can be assigned to multiple Schedules (different buses running the same route), 
+	but each Schedule maps to one Route.
+	Route (1) ---- (M) BusSchedule
+
+6. Booking ↔ BookedSeat
+	Why: A Booking can include multiple seats (e.g., PNR X123 booking seats 12A, 12B), 
+	but each BookedSeat belongs to one Booking.
+	Booking (1) ---- (M) BookedSeat
+
+7. Bus ↔ BookedSeat
+	Bus (1) ---- (M) BookedSeat
+
+One to One
+-----------
+8. Booking ↔ Payment
+	Booking (1) ---- (1) Payment
+
+9. Bus ↔ Review
+	Bus (1) ---- (M) Review
+
+Many to Many
+--------------
+
+Bus ↔ Route
+	Currently, Schedule is the bridge between Bus and Route.
+
+	If you ever want a direct many-to-many (one bus serving multiple routes, and one route served by multiple buses)
+
+	BusRoutes (BusId, RouteId)
+	So here the busSchedule is a junction table has busid & routeId
