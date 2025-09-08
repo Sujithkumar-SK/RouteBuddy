@@ -1,20 +1,4 @@
 Epic 1: User Management
-Features: Registration, Login, Profile Management
-
-Epic 2: Bus Management
-Features: Bus details, Photos, Documents, Seat Layout
-
-Epic 3: Search & Booking
-Features: Search, Seat Selection, Booking Confirmation
-
-Epic 4: Payments & Notifications
-Features: Payments, Confirmation, Alerts
-
-Epic 5: Admin & Reporting
-Features: Dashboard, Reports, Role Management
-
-------------------------------------------------------
-Epic 1: User Management
 
 Features:
 
