@@ -16,6 +16,7 @@ public class Driver : BaseEntity
   public string Phone { get; set; } = string.Empty;
 
   public bool IsActive { get; set; } = true;
+  public bool IsDeleted { get; set; } = false;
 
   public ICollection<DriverAssignment> Assignments { get; set; } = new List<DriverAssignment>();
 }

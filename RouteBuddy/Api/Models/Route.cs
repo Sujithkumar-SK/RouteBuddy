@@ -13,6 +13,8 @@ public class Route : BaseEntity
   [Range(0, double.MaxValue)]
   public double Distance { get; set; }
 
+  public bool IsDeleted { get; set; } = false;
+
   public TimeSpan Duration { get; set; }
 
   public ICollection<BusSchedule> Schedules { get; set; } = new List<BusSchedule>();

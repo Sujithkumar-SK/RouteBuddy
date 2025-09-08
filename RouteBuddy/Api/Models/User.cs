@@ -28,6 +28,7 @@ public class User : BaseEntity
   public byte[]? ProfilePicture { get; set; }
   [Required]
   public bool IsActive { get; set; } = true;
+  public bool IsDeleted { get; set; } = false;
 
   public ICollection<Booking> Bookings
   { get; set; } = new List<Booking>();

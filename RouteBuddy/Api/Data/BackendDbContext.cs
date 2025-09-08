@@ -23,6 +23,12 @@ public class BackendDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        // ✅ Global Query Filters for Soft Delete
+        modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
+        modelBuilder.Entity<Vendor>().HasQueryFilter(v => !v.IsDeleted);
+        modelBuilder.Entity<Route>().HasQueryFilter(r => !r.IsDeleted);
+        modelBuilder.Entity<Stop>().HasQueryFilter(s => !s.IsDeleted);
+        modelBuilder.Entity<Driver>().HasQueryFilter(d => !d.IsDeleted);
         // 🔒 Unique Constraints
         modelBuilder.Entity<User>().HasIndex(u => u.Email).IsUnique();
         modelBuilder.Entity<Bus>().HasIndex(b => b.RegistrationNo).IsUnique();
@@ -129,7 +135,7 @@ public class BackendDbContext : DbContext
 
         modelBuilder.Entity<Booking>()
             .HasOne(b => b.Schedule)
-            .WithMany(s=>s.Bookings)
+            .WithMany(s => s.Bookings)
             .HasForeignKey(b => b.ScheduleId)
             .OnDelete(DeleteBehavior.Restrict);
     }

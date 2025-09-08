@@ -14,5 +14,7 @@ public class Vendor : BaseEntity
   [RegularExpression("^(Active|Inactive)$", ErrorMessage = "Status must be Active or Inactive")]
   public string Status { get; set; } = "Active";
 
+  public bool IsDeleted { get; set; } = false;
+
   public ICollection<Bus> Buses { get; set; } = new List<Bus>();
 }

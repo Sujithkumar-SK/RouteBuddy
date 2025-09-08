@@ -9,6 +9,8 @@ public class Stop : BaseEntity
     [MaxLength(250)]
     public string? Landmark { get; set; }
 
+    public bool IsDeleted { get; set; } = false;
+
     public int RouteId { get; set; }
     public Route Route { get; set; } = null!;
 }
