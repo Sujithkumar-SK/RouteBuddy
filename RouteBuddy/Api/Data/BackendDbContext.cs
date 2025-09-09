@@ -15,6 +15,7 @@ public class BackendDbContext : DbContext
     public DbSet<BusPhoto> BusPhotos { get; set; }
     public DbSet<BookedSeat> BookedSeats { get; set; }
     public DbSet<Payment> Payments { get; set; }
+    public DbSet<BookingSegment> BookingSegments { get; set; }
     public DbSet<Refund> Refunds { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Cancellation> Cancellations { get; set; }
@@ -46,6 +47,22 @@ public class BackendDbContext : DbContext
             .WithMany(u => u.Bookings)
             .HasForeignKey(b => b.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+        // 📑 Booking ↔ BookingSegment (1:M)
+        modelBuilder.Entity<BookingSegment>()
+            .HasOne(bs => bs.Booking)
+            .WithMany(b => b.Segments)
+            .HasForeignKey(bs => bs.BookingId);
+        // 🚌 BusSchedule ↔ BookingSegment (1:M)
+        modelBuilder.Entity<BookingSegment>()
+            .HasOne(bs => bs.Schedule)
+            .WithMany(s => s.Segments)
+            .HasForeignKey(bs => bs.ScheduleId)
+            .OnDelete(DeleteBehavior.Restrict);
+        // 🎟️ BookingSegment ↔ BookedSeats (1:M)
+        modelBuilder.Entity<BookedSeat>()
+            .HasOne(bs => bs.BookingSegment)
+            .WithMany(seg => seg.BookedSeats)
+            .HasForeignKey(bs => bs.BookingSegmentId);
 
         // 👤 User ↔ Reviews (1:M)
         modelBuilder.Entity<Review>()
@@ -57,7 +74,8 @@ public class BackendDbContext : DbContext
         modelBuilder.Entity<Booking>()
             .HasOne(b => b.Bus)
             .WithMany(bu => bu.Bookings)
-            .HasForeignKey(b => b.BusId);
+            .HasForeignKey(b => b.BusId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // 🚌 Bus ↔ BookedSeats (1:M)
         modelBuilder.Entity<BookedSeat>()
@@ -101,7 +119,8 @@ public class BackendDbContext : DbContext
         modelBuilder.Entity<BookedSeat>()
             .HasOne(bs => bs.Booking)
             .WithMany(b => b.BookedSeats)
-            .HasForeignKey(bs => bs.BookingId);
+            .HasForeignKey(bs => bs.BookingId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // 💳 Booking ↔ Payment (1:1)
         modelBuilder.Entity<Booking>()
@@ -133,10 +152,12 @@ public class BackendDbContext : DbContext
             .WithMany(s => s.DriverAssignments)
             .HasForeignKey(da => da.ScheduleId);
 
+        // Booking ↔ BusSchedule (M:1)
         modelBuilder.Entity<Booking>()
             .HasOne(b => b.Schedule)
             .WithMany(s => s.Bookings)
             .HasForeignKey(b => b.ScheduleId)
             .OnDelete(DeleteBehavior.Restrict);
+
     }
 }

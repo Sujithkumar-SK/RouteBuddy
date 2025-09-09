@@ -29,4 +29,6 @@ public class Booking : BaseEntity
     public Payment Payment { get; set; } = null!;
     public ICollection<BookedSeat> BookedSeats { get; set; } = new List<BookedSeat>();
     public Cancellation? Cancellation { get; set; }
+
+    public ICollection<BookingSegment> Segments { get; set; } = new List<BookingSegment>();
 }

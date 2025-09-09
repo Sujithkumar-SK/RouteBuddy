@@ -14,4 +14,7 @@ public class BookedSeat : BaseEntity
 
   public int BusId { get; set; }
   public Bus Bus { get; set; } = null!;
+
+  public int BookingSegmentId { get; set; }
+  public BookingSegment BookingSegment { get; set; } = null!;
 }
