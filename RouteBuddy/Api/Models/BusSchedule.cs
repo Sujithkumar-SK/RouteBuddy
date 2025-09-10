@@ -26,5 +26,6 @@ public class BusSchedule : BaseEntity
   public ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
   public ICollection<BookingSegment> Segments { get; set; } = new List<BookingSegment>();
-
+  
+  public ICollection<Fare> Fares { get; set; } = new List<Fare>();
 }

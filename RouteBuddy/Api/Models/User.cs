@@ -24,6 +24,8 @@ public class User : BaseEntity
   [Required, MaxLength(10)]
   [RegularExpression("^(Male|Female|Other)$", ErrorMessage = "Gender must be Male, Female or Other")]
   public string Gender { get; set; } = "Other";
+  [Required]
+  public DateTime DateOfBirth { get; set; }
   [Column(TypeName = "VARBINARY(MAX)")]
   public byte[]? ProfilePicture { get; set; }
   [Required]

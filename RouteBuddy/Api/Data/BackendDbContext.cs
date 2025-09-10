@@ -19,6 +19,8 @@ public class BackendDbContext : DbContext
     public DbSet<Refund> Refunds { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Cancellation> Cancellations { get; set; }
+    public DbSet<Fare> Fares { get; set; }
+
     public DbSet<Driver> Drivers { get; set; }
     public DbSet<DriverAssignment> DriverAssignments { get; set; }
 
@@ -158,6 +160,13 @@ public class BackendDbContext : DbContext
             .WithMany(s => s.Bookings)
             .HasForeignKey(b => b.ScheduleId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // 🚌 Schedule ↔ Fare (1:M)
+        modelBuilder.Entity<Fare>()
+            .HasOne(f => f.Schedule)
+            .WithMany(s => s.Fares)
+            .HasForeignKey(f => f.ScheduleId)
+            .OnDelete(DeleteBehavior.Cascade);
 
     }
 }
