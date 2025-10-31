@@ -9,7 +9,12 @@
     <ProjectReference Include="..\Kanini.RouteBuddy.Data\Kanini.RouteBuddy.Data.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="BookingConfirmationEmail.html" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="AutoMapper" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="QuestPDF" />
   </ItemGroup>
 </Project>

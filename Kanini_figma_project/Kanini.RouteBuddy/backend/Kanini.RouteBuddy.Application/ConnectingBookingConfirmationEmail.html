@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>RouteBuddy - Multi-City Journey Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
+        .content { padding: 30px; }
+        .journey-overview { background-color: #f8f9ff; padding: 20px; border-radius: 8px; margin-bottom: 25px; border-left: 4px solid #667eea; }
+        .segment { border: 1px solid #e0e0e0; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+        .segment-header { background-color: #667eea; color: white; padding: 15px; font-weight: bold; }
+        .segment-content { padding: 20px; }
+        .route-info { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .route-info div { text-align: center; }
+        .time { font-size: 18px; font-weight: bold; color: #333; }
+        .location { font-size: 14px; color: #666; margin-top: 5px; }
+        .arrow { font-size: 24px; color: #667eea; align-self: center; }
+        .passengers-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .passengers-table th, .passengers-table td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        .passengers-table th { background-color: #f8f9ff; font-weight: bold; }
+        .footer { background-color: #f8f9ff; padding: 20px; text-align: center; color: #666; }
+        .pnr { font-size: 24px; font-weight: bold; color: #667eea; }
+        .total-amount { font-size: 20px; font-weight: bold; color: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚌 RouteBuddy</h1>
+            <h2>Multi-City Journey Confirmation</h2>
+            <div class="pnr">PNR: {PNR}</div>
+        </div>
+        
+        <div class="content">
+            <div class="journey-overview">
+                <h3>Journey Overview</h3>
+                <p><strong>Passenger:</strong> {CustomerName}</p>
+                <p><strong>Travel Date:</strong> {TravelDate}</p>
+                <p><strong>Total Segments:</strong> {TotalSegments}</p>
+                <p><strong>Total Amount:</strong> <span class="total-amount">₹{TotalAmount}</span></p>
+            </div>
+
+            {Segments}
+            
+            <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin-top: 25px;">
+                <h4>Important Instructions:</h4>
+                <ul>
+                    <li>Carry a valid ID proof during travel</li>
+                    <li>Report at boarding point 15 minutes before departure</li>
+                    <li>Keep this confirmation for your records</li>
+                    <li>For connecting segments, ensure you have sufficient time between buses</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Thank you for choosing RouteBuddy!</p>
+            <p>For support, contact us at support@routebuddy.com</p>
+        </div>
+    </div>
+</body>
+</html>

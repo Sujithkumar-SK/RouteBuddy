@@ -1,6 +1,7 @@
 using AutoMapper;
 using Kanini.RouteBuddy.Application.Dto;
 using Kanini.RouteBuddy.Application.Services.Buses;
+using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Common;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,12 +15,19 @@ public class BusController : ControllerBase
     private readonly IBusService _busService;
     private readonly IMapper _mapper;
     private readonly ILogger<BusController> _logger;
+    private readonly IEmailService _emailService;
 
-    public BusController(IBusService busService, IMapper mapper, ILogger<BusController> logger)
+    public BusController(
+        IBusService busService,
+        IMapper mapper,
+        ILogger<BusController> logger,
+        IEmailService emailService
+    )
     {
         _busService = busService;
         _mapper = mapper;
         _logger = logger;
+        _emailService = emailService;
     }
 
     [HttpPost("search")]
@@ -218,6 +226,24 @@ public class BusController : ControllerBase
                 MagicStrings.LogMessages.BookingConfirmationCompleted,
                 bookingId
             );
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _emailService.SendBookingConfirmationAsync(bookingId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        MagicStrings.LogMessages.EmailSendingFailed,
+                        bookingId,
+                        ex.Message
+                    );
+                }
+            });
+
             return Ok(new { Message = result.Value });
         }
         catch (Exception ex)

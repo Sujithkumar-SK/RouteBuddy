@@ -1,5 +1,6 @@
 ﻿using Kanini.RouteBuddy.Data.DatabaseContext;
 using Kanini.RouteBuddy.Data.Repositories.Buses;
+using Kanini.RouteBuddy.Data.Repositories.Email;
 using Kanini.RouteBuddy.Data.Repositories.SmartEngine;
 using Kanini.RouteBuddy.Data.Repositories.User;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,7 @@ namespace Kanini.RouteBuddy.Data
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IBusRepository, BusRepository>();
             services.AddScoped<ISmartEngineRepository, SmartEngineRepository>();
+            services.AddScoped<IEmailRepository, EmailRepository>();
             return services;
         }
     }

@@ -1,6 +1,8 @@
 ﻿using Kanini.RouteBuddy.Application.AutoMapper;
 using Kanini.RouteBuddy.Application.Services;
 using Kanini.RouteBuddy.Application.Services.Buses;
+using Kanini.RouteBuddy.Application.Services.Email;
+using Kanini.RouteBuddy.Application.Services.Pdf;
 using Kanini.RouteBuddy.Application.Services.SmartEnigne;
 using Kanini.RouteBuddy.Application.Services.User;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +17,8 @@ namespace Kanini.RouteBuddy.Application
             //services.AddScoped<IUserService, UserService>();
             services.AddScoped<IBusService, BusService>();
             services.AddScoped<ISmartEngineService, SmartEngineService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IPdfService, PdfService>();
             services.AddHostedService<BookingExpiryService>();
             return services;
         }

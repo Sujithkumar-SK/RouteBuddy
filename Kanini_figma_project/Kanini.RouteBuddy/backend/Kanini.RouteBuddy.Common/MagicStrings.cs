@@ -15,6 +15,7 @@ public static class MagicStrings
         public const string GetRouteStops = "sp_GetRouteStops";
         public const string ConfirmBooking = "sp_ConfirmBooking";
         public const string ExpirePendingBookings = "sp_ExpirePendingBookings";
+        public const string GetBookingDetailsForEmail = "sp_GetBookingDetailsForEmail";
     }
 
     public static class LogMessages
@@ -73,6 +74,31 @@ public static class MagicStrings
             "Connecting booking confirmed successfully for BookingId: {BookingId}";
         public const string ConnectingBookingConfirmationFailed =
             "Connecting booking confirmation failed: {Error}";
+        public const string EmailSendingStarted =
+            "Email sending started for BookingId: {BookingId}";
+        public const string EmailSendingCompleted =
+            "Email sent successfully for BookingId: {BookingId}";
+        public const string EmailSendingFailed =
+            "Email sending failed for BookingId: {BookingId}: {Error}";
+        public const string ConnectingEmailSendingStarted =
+            "Connecting email sending started for BookingId: {BookingId}";
+        public const string ConnectingEmailSendingCompleted =
+            "Connecting email sent successfully for BookingId: {BookingId}";
+        public const string ConnectingEmailSendingFailed =
+            "Connecting email sending failed for BookingId: {BookingId}: {Error}";
+        public const string SmtpConnectionFailed = "SMTP connection failed: {Error}";
+        public const string PdfGenerationStarted =
+            "PDF generation started for BookingId: {BookingId}";
+        public const string PdfGenerationCompleted =
+            "PDF generated successfully for BookingId: {BookingId}";
+        public const string PdfGenerationFailed =
+            "PDF generation failed for BookingId: {BookingId}: {Error}";
+        public const string BookingEmailDataRetrievalStarted =
+            "Booking email data retrieval started for BookingId: {BookingId}";
+        public const string BookingEmailDataRetrievalCompleted =
+            "Booking email data retrieved successfully for BookingId: {BookingId}, Passengers: {PassengerCount}";
+        public const string BookingEmailDataRetrievalFailed =
+            "Booking email data retrieval failed for BookingId: {BookingId}: {Error}";
     }
 
     public static class ErrorMessages
@@ -121,5 +147,56 @@ public static class MagicStrings
             "Passenger count must be same across all segments";
         public const string ConnectingBookingNotFound = "Connecting booking not found";
         public const string PartialBookingFailure = "Some segments could not be booked";
+        public const string EmailSendingFailed = "Email could not be sent";
+        public const string SmtpConnectionFailed = "SMTP server connection failed";
+        public const string PdfGenerationFailed = "PDF ticket generation failed";
+        public const string BookingDataNotFound = "Booking data not found for email";
+        public const string InvalidEmailAddress = "Invalid email address provided";
+        public const string EmailTemplateNotFound = "Email template not found";
+        public const string BookingEmailDataRetrievalFailed =
+            "Failed to retrieve booking data for email";
+    }
+
+    public static class ConfigKeys
+    {
+        public const string SmtpServer = "EmailSettings:SmtpServer";
+        public const string SmtpPort = "EmailSettings:SmtpPort";
+        public const string EmailSenderName = "EmailSettings:SenderName";
+        public const string EmailSenderEmail = "EmailSettings:SenderEmail";
+        public const string EmailUsername = "EmailSettings:Username";
+        public const string EmailPassword = "EmailSettings:Password";
+        public const string EnableSsl = "EmailSettings:EnableSsl";
+        public const string DatabaseConnectionString = "DatabaseConnectionString";
+    }
+
+    public static class ErrorCodes
+    {
+        public const string EmailSendingFailed = "EMAIL_SENDING_FAILED";
+        public const string SmtpConnectionFailed = "SMTP_CONNECTION_FAILED";
+        public const string PdfGenerationFailed = "PDF_GENERATION_FAILED";
+        public const string BookingDataNotFound = "BOOKING_DATA_NOT_FOUND";
+        public const string InvalidEmailAddress = "INVALID_EMAIL_ADDRESS";
+        public const string BookingEmailDataRetrievalFailed = "BOOKING_EMAIL_DATA_RETRIEVAL_FAILED";
+    }
+
+    public static class SuccessMessages
+    {
+        public const string EmailSentSuccessfully = "Email sent successfully";
+        public const string PdfGeneratedSuccessfully = "PDF generated successfully";
+        public const string BookingEmailDataRetrieved = "Booking email data retrieved successfully";
+    }
+
+    public static class EmailAttachments
+    {
+        public const string TicketFileName = "RouteBuddy-Ticket.pdf";
+        public const string PdfContentType = "application/pdf";
+    }
+
+    public static class EmailTemplates
+    {
+        public const string BookingConfirmationSubject =
+            "RouteBuddy - Booking Confirmation (PNR: {0})";
+        public const string ConnectingBookingConfirmationSubject =
+            "RouteBuddy - Connecting Route Booking Confirmation (PNR: {0})";
     }
 }

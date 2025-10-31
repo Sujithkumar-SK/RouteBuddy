@@ -1,4 +1,5 @@
 using Kanini.RouteBuddy.Application.Dto;
+using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Application.Services.SmartEnigne;
 using Kanini.RouteBuddy.Common;
 using Microsoft.AspNetCore.Mvc;
@@ -11,14 +12,17 @@ public class SmartEngineController : ControllerBase
 {
     private readonly ISmartEngineService _smartEngineService;
     private readonly ILogger<SmartEngineController> _logger;
+    private readonly IEmailService _emailService;
 
     public SmartEngineController(
         ISmartEngineService smartEngineService,
-        ILogger<SmartEngineController> logger
+        ILogger<SmartEngineController> logger,
+        IEmailService emailService
     )
     {
         _smartEngineService = smartEngineService;
         _logger = logger;
+        _emailService = emailService;
     }
 
     [HttpPost("connecting-routes")]
@@ -150,6 +154,25 @@ public class SmartEngineController : ControllerBase
                 MagicStrings.LogMessages.ConnectingBookingConfirmationCompleted,
                 bookingId
             );
+
+            // Fire & Forget: Send connecting booking confirmation email
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _emailService.SendConnectingBookingConfirmationAsync(bookingId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        MagicStrings.LogMessages.ConnectingEmailSendingFailed,
+                        bookingId,
+                        ex.Message
+                    );
+                }
+            });
+
             return Ok(new { Message = result.Value });
         }
         catch (Exception ex)
