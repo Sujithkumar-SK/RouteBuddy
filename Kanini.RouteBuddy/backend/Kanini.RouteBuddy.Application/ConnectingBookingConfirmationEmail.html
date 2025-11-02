@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteBuddy - Connecting Route Booking Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .header { text-align: center; border-bottom: 3px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }
+        .header h1 { color: #007bff; margin: 0; font-size: 28px; }
+        .header p { color: #666; margin: 5px 0 0 0; font-size: 16px; }
+        .booking-info { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+        .booking-info h2 { color: #007bff; margin-top: 0; font-size: 20px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .info-item { margin-bottom: 10px; }
+        .info-item strong { color: #333; }
+        .journey-overview { background: linear-gradient(135deg, #007bff, #0056b3); color: white; padding: 20px; border-radius: 8px; margin-bottom: 25px; text-align: center; }
+        .journey-overview h2 { margin-top: 0; font-size: 20px; }
+        .journey-path { font-size: 24px; font-weight: bold; margin: 15px 0; }
+        .segments-section { margin-bottom: 25px; }
+        .segments-section h2 { color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .segments-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .segments-table th, .segments-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .segments-table th { background-color: #007bff; color: white; font-weight: bold; }
+        .segments-table tr:nth-child(even) { background-color: #f8f9fa; }
+        .total-section { background: #28a745; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 25px; }
+        .total-section h3 { margin: 0; font-size: 22px; }
+        .important-notes { background: #fff3cd; border: 1px solid #ffeaa7; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+        .important-notes h3 { color: #856404; margin-top: 0; }
+        .important-notes ul { margin: 10px 0; padding-left: 20px; }
+        .important-notes li { margin-bottom: 8px; color: #856404; }
+        .footer { text-align: center; padding-top: 20px; border-top: 1px solid #ddd; color: #666; }
+        .footer p { margin: 5px 0; }
+        .contact-info { background: #e9ecef; padding: 15px; border-radius: 8px; text-align: center; }
+        @media (max-width: 600px) {
+            .container { padding: 15px; }
+            .info-grid { grid-template-columns: 1fr; }
+            .journey-path { font-size: 18px; }
+            .segments-table { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Connecting Route Booking Confirmed!</h1>
+            <p>Your multi-segment journey is all set</p>
+        </div>
+
+        <div class="booking-info">
+            <h2>📋 Booking Information</h2>
+            <div class="info-grid">
+                <div>
+                    <div class="info-item"><strong>PNR Number:</strong> {{PNR}}</div>
+                    <div class="info-item"><strong>Customer Name:</strong> {{CustomerName}}</div>
+                    <div class="info-item"><strong>Travel Date:</strong> {{TravelDate}}</div>
+                </div>
+                <div>
+                    <div class="info-item"><strong>Total Segments:</strong> {{TotalSegments}}</div>
+                    <div class="info-item"><strong>Total Amount:</strong> ₹{{TotalAmount}}</div>
+                    <div class="info-item"><strong>Booking Status:</strong> <span style="color: #28a745; font-weight: bold;">CONFIRMED</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="journey-overview">
+            <h2>🗺️ Journey Overview</h2>
+            <div class="journey-path">{{OverallSource}} ➜ {{OverallDestination}}</div>
+            <p>Multi-segment connecting route journey</p>
+        </div>
+
+        <div class="segments-section">
+            <h2>🚌 Segment Details</h2>
+            <table class="segments-table">
+                <thead>
+                    <tr>
+                        <th>Segment</th>
+                        <th>Bus Name</th>
+                        <th>Route</th>
+                        <th>Timing</th>
+                        <th>Seats</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{SegmentRows}}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="total-section">
+            <h3>💰 Total Amount Paid: ₹{{TotalAmount}}</h3>
+        </div>
+
+        <div class="important-notes">
+            <h3>⚠️ Important Instructions for Connecting Routes</h3>
+            <ul>
+                <li><strong>Multiple Tickets:</strong> This is a connecting route booking with {{TotalSegments}} separate bus segments</li>
+                <li><strong>Separate Check-ins:</strong> You need to board each bus separately at the designated stops</li>
+                <li><strong>Transfer Time:</strong> Ensure you have sufficient time between segments for transfers</li>
+                <li><strong>ID Proof:</strong> Carry a valid government-issued ID proof for all segments</li>
+                <li><strong>Punctuality:</strong> Report to each boarding point 15 minutes before departure time</li>
+                <li><strong>Seat Confirmation:</strong> Your seats are confirmed for all segments as per the details above</li>
+                <li><strong>Contact Support:</strong> For any assistance during your journey, contact our 24/7 support</li>
+            </ul>
+        </div>
+
+        <div class="contact-info">
+            <h3>📞 Need Help?</h3>
+            <p><strong>Customer Support:</strong> support@routebuddy.com | 1800-123-4567</p>
+            <p><strong>Emergency Helpline:</strong> Available 24/7 for travel assistance</p>
+        </div>
+
+        <div class="footer">
+            <p><strong>Thank you for choosing RouteBuddy Smart Engine!</strong></p>
+            <p>Safe travels and enjoy your journey! 🚌✨</p>
+            <p style="font-size: 12px; color: #999;">This is an automated email. Please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>
