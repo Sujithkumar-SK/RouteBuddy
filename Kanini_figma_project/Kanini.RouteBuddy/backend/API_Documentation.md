@@ -6,6 +6,8 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 **Base URL:** `https://localhost:7xxx/api`  
 **API Version:** v1  
 **Content-Type:** `application/json`
+**Database:** SQL Server with Entity Framework Core
+**Authentication:** Currently not implemented (planned for future releases)
 
 ---
 
@@ -14,15 +16,21 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 ### 1. Search Buses
 **Endpoint:** `POST /api/bus/search`  
 **Purpose:** Search for direct buses between source and destination on a specific date
+**Implementation:** Uses stored procedure `sp_SearchBuses` for optimized database queries
 
 #### Request Body
 ```json
 {
   "source": "Chennai",
   "destination": "Bangalore", 
-  "travelDate": "2025-12-25"
+  "travelDate": "2025-12-25T00:00:00.000Z"
 }
 ```
+
+#### Validation Rules
+- Source: Required, 2-100 characters
+- Destination: Required, 2-100 characters  
+- TravelDate: Required, must be valid DateTime
 
 #### Response (200 OK)
 ```json
@@ -36,7 +44,7 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
     "availableSeats": 38,
     "source": "Chennai",
     "destination": "Bangalore",
-    "travelDate": "2025-12-25",
+    "travelDate": "2025-12-25T00:00:00",
     "departureTime": "06:00:00",
     "arrivalTime": "12:00:00",
     "basePrice": 500.00,
@@ -45,6 +53,12 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
   }
 ]
 ```
+
+#### BusType Enum Values
+- 1=AC, 2=NonAC, 3=Sleeper, 4=SemiSleeper, 5=Volvo, 6=Luxury
+
+#### Amenities Enum (Flags)
+- 1=AC, 2=WiFi, 4=Charging, 8=Blanket, 16=Pillow, 32=Entertainment, 64=Snacks, 128=WashRoom
 
 #### Error Responses
 - **400 Bad Request:** Invalid request data or validation errors
@@ -55,10 +69,16 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 ### 2. Get Seat Layout
 **Endpoint:** `GET /api/bus/{scheduleId}/seats?travelDate={date}`  
 **Purpose:** Retrieve seat layout and availability for a specific bus schedule
+**Implementation:** Uses stored procedure `sp_GetBusSeatLayout` with real-time availability
 
 #### Parameters
-- `scheduleId` (path): Bus schedule ID
-- `travelDate` (query): Travel date in YYYY-MM-DD format
+- `scheduleId` (path): Bus schedule ID (required, > 0)
+- `travelDate` (query): Travel date in ISO format (required)
+
+#### Example Request
+```
+GET /api/bus/1/seats?travelDate=2025-12-25T00:00:00.000Z
+```
 
 #### Response (200 OK)
 ```json
@@ -129,6 +149,7 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 ### 4. Book Seats
 **Endpoint:** `POST /api/bus/book`  
 **Purpose:** Book seats on a bus (creates pending booking for 10 minutes)
+**Implementation:** Uses stored procedures `sp_ValidateSeatsAndStops` and creates booking with auto-expiry
 
 #### Request Body
 ```json
@@ -137,7 +158,7 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
   "customerId": 1,
   "boardingStopId": 1,
   "droppingStopId": 3,
-  "travelDate": "2025-12-25",
+  "travelDate": "2025-12-25T00:00:00.000Z",
   "seatNumbers": ["A1", "A2"],
   "passengers": [
     {
@@ -153,6 +174,18 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
   ]
 }
 ```
+
+#### Validation Rules
+- ScheduleId: Required, > 0
+- CustomerId: Required, > 0
+- BoardingStopId: Required, > 0
+- DroppingStopId: Required, > 0
+- SeatNumbers: Required, minimum 1 seat
+- Passengers: Required, must match seat count
+- TravelDate: Required, valid DateTime
+
+#### Gender Enum
+- 1=Male, 2=Female, 3=Other
 
 #### Response (200 OK)
 ```json
@@ -175,6 +208,7 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 ### 5. Confirm Booking
 **Endpoint:** `POST /api/bus/book/{bookingId}/confirm`  
 **Purpose:** Confirm a pending booking with payment details
+**Implementation:** Uses stored procedure `sp_ConfirmBooking` and triggers email notification
 
 #### Request Body
 ```json
@@ -185,6 +219,11 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 }
 ```
 
+#### Validation Rules
+- BookingId: Must match URL parameter
+- PaymentReferenceId: Required string
+- PaymentMethod: Required enum value
+
 #### Response (200 OK)
 ```json
 {
@@ -192,21 +231,28 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 }
 ```
 
-#### Payment Methods
+#### Payment Methods Enum
 - 1=Mock, 2=UPI, 3=Card, 4=NetBanking
+
+#### Post-Confirmation Actions
+- Booking status updated to Confirmed
+- Payment record created
+- Email confirmation sent asynchronously
+- PDF ticket generated
 
 ---
 
 ### 6. Search Buses with Filters
 **Endpoint:** `POST /api/bus/search/filtered`  
 **Purpose:** Advanced bus search with filters and sorting options
+**Implementation:** Uses stored procedure `sp_SearchBusesFiltered` with comprehensive filtering
 
 #### Request Body
 ```json
 {
   "source": "Chennai",
   "destination": "Bangalore",
-  "travelDate": "2025-12-25",
+  "travelDate": "2025-12-25T00:00:00.000Z",
   "departureTimeFrom": "06:00:00",
   "departureTimeTo": "18:00:00", 
   "minPrice": 300.00,
@@ -216,6 +262,13 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
   "sortBy": "price"
 }
 ```
+
+#### Filter Options (All Optional)
+- **DepartureTimeFrom/To:** Time range filtering
+- **MinPrice/MaxPrice:** Price range filtering
+- **BusTypes:** Array of bus type enums
+- **Amenities:** Array of amenity flags
+- **SortBy:** "price", "departure", "duration", "rating"
 
 #### Filter Options
 - **BusTypes:** 1=AC, 2=NonAC, 3=Sleeper, 4=SemiSleeper, 5=Volvo, 6=Luxury
@@ -229,16 +282,23 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 ### 1. Find Connecting Routes
 **Endpoint:** `POST /api/smartengine/connecting-routes`  
 **Purpose:** Find connecting bus routes when no direct buses available
+**Implementation:** Uses stored procedure `sp_FindConnectingRoutes` with intelligent route optimization
 
 #### Request Body
 ```json
 {
   "source": "Chennai",
   "destination": "Mumbai", 
-  "travelDate": "2025-12-25",
+  "travelDate": "2025-12-25T00:00:00.000Z",
   "toggle": "cheapest"
 }
 ```
+
+#### Validation Rules
+- Source: Required, 2-100 characters
+- Destination: Required, 2-100 characters
+- TravelDate: Required, valid DateTime
+- Toggle: Optional, defaults to "cheapest"
 
 #### Response (200 OK)
 ```json
@@ -287,12 +347,13 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 ### 2. Book Connecting Route
 **Endpoint:** `POST /api/smartengine/book-connecting-route`  
 **Purpose:** Book seats across multiple connecting bus segments
+**Implementation:** Uses stored procedure `sp_BookConnectingRoute` with atomic transaction handling
 
 #### Request Body
 ```json
 {
   "customerId": 1,
-  "travelDate": "2025-12-25",
+  "travelDate": "2025-12-25T00:00:00.000Z",
   "segments": [
     {
       "scheduleId": 1,
@@ -322,6 +383,13 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 }
 ```
 
+#### Validation Rules
+- CustomerId: Required, > 0
+- TravelDate: Required, valid DateTime
+- Segments: Required, minimum 1 segment
+- Passengers: Required, must match total seat count across all segments
+- Each segment must have valid scheduleId, stop IDs, and seat numbers
+
 #### Response (200 OK)
 ```json
 {
@@ -339,6 +407,7 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
 ### 3. Confirm Connecting Booking
 **Endpoint:** `POST /api/smartengine/book-connecting-route/{bookingId}/confirm`  
 **Purpose:** Confirm a pending connecting route booking
+**Implementation:** Confirms all segments atomically and triggers smart email notifications
 
 #### Request Body
 ```json
@@ -355,6 +424,12 @@ RouteBuddy is a comprehensive bus booking system API that provides endpoints for
   "message": "Connecting route booking confirmed successfully"
 }
 ```
+
+#### Post-Confirmation Actions
+- All booking segments confirmed atomically
+- Payment record created for total amount
+- Smart connecting booking email sent
+- PDF tickets generated for each segment
 
 ---
 
@@ -380,56 +455,109 @@ All successful responses follow consistent patterns with appropriate HTTP status
 - **SEATS_NOT_AVAILABLE:** Selected seats are not available
 - **BOOKING_EXPIRED:** Booking reservation has expired
 - **DATABASE_ERROR:** Database operation failed
+- **INVALID_ROUTE_STOPS:** Boarding/dropping stop validation failed
+- **INSUFFICIENT_SEATS:** Not enough available seats
+- **PAYMENT_FAILED:** Payment processing error
+
+### HTTP Status Codes Used
+- **200 OK:** Successful operation
+- **400 Bad Request:** Validation errors or business rule violations
+- **404 Not Found:** Resource not found
+- **500 Internal Server Error:** Unexpected server errors
 
 ---
 
 ## 🔄 Business Workflows
 
 ### Standard Booking Flow
-1. **Search Buses** → Get available buses
-2. **Get Seat Layout** → Show seat map to user  
-3. **Book Seats** → Create pending booking (10 min timer)
-4. **Confirm Booking** → Complete payment and confirm
+1. **Search Buses** → Get available buses using `sp_SearchBuses`
+2. **Get Seat Layout** → Show seat map using `sp_GetBusSeatLayout`  
+3. **Book Seats** → Create pending booking with `sp_ValidateSeatsAndStops`
+4. **Confirm Booking** → Complete payment using `sp_ConfirmBooking`
+5. **Email Notification** → Automatic booking confirmation email
 
 ### Connecting Route Flow  
-1. **Find Connecting Routes** → Get multi-segment options
-2. **Book Connecting Route** → Reserve seats across segments
-3. **Confirm Connecting Booking** → Complete payment
+1. **Find Connecting Routes** → Get multi-segment options using `sp_FindConnectingRoutes`
+2. **Book Connecting Route** → Reserve seats across segments using `sp_BookConnectingRoute`
+3. **Confirm Connecting Booking** → Complete payment and confirm all segments
+4. **Smart Email** → Specialized connecting route confirmation email
 
 ### Auto-Expiry System
 - Pending bookings automatically expire after 10 minutes
-- Background service runs every 2 minutes to clean up expired bookings
+- Background service `BookingExpiryService` runs every 2 minutes
+- Uses stored procedure `sp_ExpirePendingBookings` for cleanup
 - Expired bookings release reserved seats back to inventory
+
+### Email & PDF Services
+- **EmailService:** Standard booking confirmations
+- **SmartEmailService:** Connecting route confirmations
+- **PdfService:** Individual ticket generation
+- **SmartPdfService:** Multi-segment ticket generation
+- All email services use HTML templates with booking details
 
 ---
 
 ## 🎯 Frontend Integration Tips
 
 ### State Management
-- Track booking expiry timers for pending bookings
+- Track booking expiry timers for pending bookings (10-minute countdown)
 - Cache seat layouts to avoid repeated API calls
 - Implement optimistic UI updates for better UX
+- Store search filters for better user experience
 
 ### Error Handling
 - Display user-friendly messages for common errors
 - Implement retry logic for network failures
 - Show loading states during API calls
+- Handle validation errors from ModelState
 
 ### Performance Optimization
 - Debounce search inputs to reduce API calls
 - Implement pagination for large result sets
 - Use skeleton loaders for better perceived performance
+- Cache route stops data for repeated bookings
 
 ### Real-time Features
-- Consider WebSocket integration for seat availability updates
-- Implement booking countdown timers
+- Implement booking countdown timers (10 minutes)
 - Show real-time seat selection conflicts
+- Consider polling for seat availability updates
+- Display connecting route buffer times clearly
+
+### Data Formatting
+- All DateTime fields use ISO format with timezone
+- Enum values are integers (refer to documentation for mappings)
+- Price fields are decimal with 2 decimal places
+- Time fields use HH:mm:ss format
 
 ---
+
+## 🛠️ Development Information
+
+### Database Setup
+1. Run `Execute_This_SQL_First.sql` for initial setup
+2. Apply Entity Framework migrations
+3. Seed data is automatically applied via `RouteBuddyDatabaseContext`
+
+### Testing
+- Use `SwaggerTestGuide.md` for API testing instructions
+- Follow `SwaggerTestSequence.md` for end-to-end testing
+- Unit tests available in `Kanini.RouteBuddy.UnitTests` project
+
+### Logging
+- File-based logging using Serilog
+- Log files stored in `Logs/` directory
+- Structured logging with magic strings for consistency
+
+### Email Configuration
+- SMTP settings in `appsettings.json`
+- HTML templates: `BookingConfirmationEmail.html`, `ConnectingBookingConfirmationEmail.html`
+- Asynchronous email sending to avoid blocking API responses
 
 ## 📞 Support Information
 
 For technical support or API questions, contact the development team.
 
 **Last Updated:** December 2024  
-**API Version:** 1.0
+**API Version:** 1.0  
+**Framework:** .NET 8  
+**Database:** SQL Server with Entity Framework Core 9.0.8

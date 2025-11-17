@@ -10,6 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="BookingConfirmationEmail.html" />
+    <EmbeddedResource Include="ConnectingBookingConfirmationEmail.html" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" />

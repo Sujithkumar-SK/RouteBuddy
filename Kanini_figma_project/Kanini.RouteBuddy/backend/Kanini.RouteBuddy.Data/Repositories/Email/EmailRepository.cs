@@ -13,7 +13,9 @@ public class EmailRepository : IEmailRepository
 
     public EmailRepository(IConfiguration configuration, ILogger<EmailRepository> logger)
     {
-        _connectionString = configuration.GetConnectionString(MagicStrings.ConfigKeys.DatabaseConnectionString) ?? string.Empty;
+        _connectionString =
+            configuration.GetConnectionString(MagicStrings.ConfigKeys.DatabaseConnectionString)
+            ?? string.Empty;
         if (string.IsNullOrEmpty(_connectionString))
         {
             _logger.LogError("Database connection string not found");

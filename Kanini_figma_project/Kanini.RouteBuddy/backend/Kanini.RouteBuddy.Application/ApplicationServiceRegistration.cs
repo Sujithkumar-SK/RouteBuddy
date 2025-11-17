@@ -1,5 +1,6 @@
 ﻿using Kanini.RouteBuddy.Application.AutoMapper;
 using Kanini.RouteBuddy.Application.Services;
+using Kanini.RouteBuddy.Application.Services.Admin;
 using Kanini.RouteBuddy.Application.Services.Buses;
 using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Application.Services.Pdf;
@@ -19,6 +20,9 @@ namespace Kanini.RouteBuddy.Application
             services.AddScoped<ISmartEngineService, SmartEngineService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPdfService, PdfService>();
+            services.AddScoped<ISmartEmailService, SmartEmailService>();
+            services.AddScoped<ISmartPdfService, SmartPdfService>();
+            services.AddScoped<IAdminSeatLayoutService, AdminSeatLayoutService>();
             services.AddHostedService<BookingExpiryService>();
             return services;
         }

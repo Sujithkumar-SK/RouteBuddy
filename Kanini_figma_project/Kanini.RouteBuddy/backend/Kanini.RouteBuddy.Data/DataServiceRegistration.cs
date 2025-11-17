@@ -1,4 +1,5 @@
 ﻿using Kanini.RouteBuddy.Data.DatabaseContext;
+using Kanini.RouteBuddy.Data.Repositories.Admin;
 using Kanini.RouteBuddy.Data.Repositories.Buses;
 using Kanini.RouteBuddy.Data.Repositories.Email;
 using Kanini.RouteBuddy.Data.Repositories.SmartEngine;
@@ -24,6 +25,8 @@ namespace Kanini.RouteBuddy.Data
             services.AddScoped<IBusRepository, BusRepository>();
             services.AddScoped<ISmartEngineRepository, SmartEngineRepository>();
             services.AddScoped<IEmailRepository, EmailRepository>();
+            services.AddScoped<ISmartEmailRepository, SmartEmailRepository>();
+            services.AddScoped<ISeatLayoutRepository, SeatLayoutRepository>();
             return services;
         }
     }

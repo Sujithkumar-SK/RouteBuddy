@@ -12,17 +12,17 @@ public class SmartEngineController : ControllerBase
 {
     private readonly ISmartEngineService _smartEngineService;
     private readonly ILogger<SmartEngineController> _logger;
-    private readonly IEmailService _emailService;
+    private readonly ISmartEmailService _smartEmailService;
 
     public SmartEngineController(
         ISmartEngineService smartEngineService,
         ILogger<SmartEngineController> logger,
-        IEmailService emailService
+        ISmartEmailService smartEmailService
     )
     {
         _smartEngineService = smartEngineService;
         _logger = logger;
-        _emailService = emailService;
+        _smartEmailService = smartEmailService;
     }
 
     [HttpPost("connecting-routes")]
@@ -155,18 +155,18 @@ public class SmartEngineController : ControllerBase
                 bookingId
             );
 
-            // Fire & Forget: Send connecting booking confirmation email
+            // Fire & Forget: Send smart connecting booking confirmation email
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await _emailService.SendConnectingBookingConfirmationAsync(bookingId);
+                    await _smartEmailService.SendConnectingBookingConfirmationAsync(bookingId);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(
                         ex,
-                        MagicStrings.LogMessages.ConnectingEmailSendingFailed,
+                        MagicStrings.LogMessages.SmartEmailSendingFailed,
                         bookingId,
                         ex.Message
                     );

@@ -16,6 +16,10 @@ public static class MagicStrings
         public const string ConfirmBooking = "sp_ConfirmBooking";
         public const string ExpirePendingBookings = "sp_ExpirePendingBookings";
         public const string GetBookingDetailsForEmail = "sp_GetBookingDetailsForEmail";
+        public const string GetConnectingBookingDetailsForEmail =
+            "sp_GetConnectingBookingDetailsForEmail";
+        public const string GetAllSeatLayoutTemplates = "sp_GetAllSeatLayoutTemplates";
+        public const string GetSeatLayoutTemplateById = "sp_GetSeatLayoutTemplateById";
     }
 
     public static class LogMessages
@@ -99,6 +103,57 @@ public static class MagicStrings
             "Booking email data retrieved successfully for BookingId: {BookingId}, Passengers: {PassengerCount}";
         public const string BookingEmailDataRetrievalFailed =
             "Booking email data retrieval failed for BookingId: {BookingId}: {Error}";
+        public const string SmartEmailSendingStarted =
+            "Smart email sending started for BookingId: {BookingId}";
+        public const string SmartEmailSendingCompleted =
+            "Smart email sent successfully for BookingId: {BookingId}";
+        public const string SmartEmailSendingFailed =
+            "Smart email sending failed for BookingId: {BookingId}: {Error}";
+        public const string SmartSmtpConnectionFailed = "Smart SMTP connection failed: {Error}";
+        public const string SmartPdfGenerationStarted =
+            "Smart PDF generation started for BookingId: {BookingId}";
+        public const string SmartPdfGenerationCompleted =
+            "Smart PDF generated successfully for BookingId: {BookingId}";
+        public const string SmartPdfGenerationFailed =
+            "Smart PDF generation failed for BookingId: {BookingId}: {Error}";
+        public const string SmartBookingEmailDataRetrievalStarted =
+            "Smart booking email data retrieval started for BookingId: {BookingId}";
+        public const string SmartBookingEmailDataRetrievalCompleted =
+            "Smart booking email data retrieved successfully for BookingId: {BookingId}, Passengers: {PassengerCount}";
+        public const string SmartBookingEmailDataRetrievalFailed =
+            "Smart booking email data retrieval failed for BookingId: {BookingId}: {Error}";
+        public const string SmartEmailTemplateLoadFailed =
+            "Smart email template load failed: {Error}";
+        public const string SeatLayoutTemplateGetAllStarted =
+            "Getting all seat layout templates started";
+        public const string SeatLayoutTemplateGetAllCompleted =
+            "Getting all seat layout templates completed. Found {Count} templates";
+        public const string SeatLayoutTemplateGetAllFailed =
+            "Getting all seat layout templates failed: {Error}";
+        public const string SeatLayoutTemplateGetByIdStarted =
+            "Getting seat layout template by ID started for TemplateId: {TemplateId}";
+        public const string SeatLayoutTemplateGetByIdCompleted =
+            "Getting seat layout template by ID completed for TemplateId: {TemplateId}";
+        public const string SeatLayoutTemplateGetByIdFailed =
+            "Getting seat layout template by ID failed: {Error}";
+        public const string SeatLayoutTemplateCreationStarted =
+            "Seat layout template creation started for Template: {TemplateName}";
+        public const string SeatLayoutTemplateCreationCompleted =
+            "Seat layout template created successfully with ID: {TemplateId}";
+        public const string SeatLayoutTemplateCreationFailed =
+            "Seat layout template creation failed: {Error}";
+        public const string SeatLayoutTemplateUpdateStarted =
+            "Seat layout template update started for TemplateId: {TemplateId}";
+        public const string SeatLayoutTemplateUpdateCompleted =
+            "Seat layout template updated successfully for TemplateId: {TemplateId}";
+        public const string SeatLayoutTemplateUpdateFailed =
+            "Seat layout template update failed: {Error}";
+        public const string SeatLayoutTemplateDeactivationStarted =
+            "Seat layout template deactivation started for TemplateId: {TemplateId}";
+        public const string SeatLayoutTemplateDeactivationCompleted =
+            "Seat layout template deactivated successfully for TemplateId: {TemplateId}";
+        public const string SeatLayoutTemplateDeactivationFailed =
+            "Seat layout template deactivation failed: {Error}";
     }
 
     public static class ErrorMessages
@@ -155,6 +210,24 @@ public static class MagicStrings
         public const string EmailTemplateNotFound = "Email template not found";
         public const string BookingEmailDataRetrievalFailed =
             "Failed to retrieve booking data for email";
+        public const string ConnectingBookingDataNotFound =
+            "Connecting booking data not found for email";
+        public const string SmartEmailSendingFailed = "Smart email could not be sent";
+        public const string SmartSmtpConnectionFailed = "Smart SMTP server connection failed";
+        public const string SmartPdfGenerationFailed = "Smart PDF ticket generation failed";
+        public const string SeatLayoutTemplateNotFound = "Seat layout template not found";
+        public const string SeatLayoutTemplateNameRequired = "Template name is required";
+        public const string SeatLayoutTemplateNameTooShort = "Template name must be at least 3 characters";
+        public const string SeatLayoutTemplateNameTooLong = "Template name cannot exceed 100 characters";
+        public const string SeatLayoutTemplateNameExists = "Template name already exists";
+        public const string SeatLayoutTemplateTotalSeatsRequired = "Total seats is required";
+        public const string SeatLayoutTemplateTotalSeatsInvalid = "Total seats must be between 1 and 100";
+        public const string SeatLayoutTemplateBusTypeRequired = "Bus type is required";
+        public const string SeatLayoutTemplateSeatDetailsRequired = "Seat details are required";
+        public const string SeatLayoutTemplateSeatDetailsMismatch = "Number of seat details must match total seats";
+        public const string SeatLayoutTemplateDuplicateSeatNumber = "Duplicate seat numbers are not allowed";
+        public const string SeatLayoutTemplateInvalidSeatNumber = "Invalid seat number format";
+        public const string SeatLayoutTemplateInvalidRowColumn = "Invalid row or column number";
     }
 
     public static class ConfigKeys
@@ -177,6 +250,10 @@ public static class MagicStrings
         public const string BookingDataNotFound = "BOOKING_DATA_NOT_FOUND";
         public const string InvalidEmailAddress = "INVALID_EMAIL_ADDRESS";
         public const string BookingEmailDataRetrievalFailed = "BOOKING_EMAIL_DATA_RETRIEVAL_FAILED";
+        public const string ConnectingBookingDataNotFound = "CONNECTING_BOOKING_DATA_NOT_FOUND";
+        public const string SmartEmailSendingFailed = "SMART_EMAIL_SENDING_FAILED";
+        public const string SmartSmtpConnectionFailed = "SMART_SMTP_CONNECTION_FAILED";
+        public const string SmartPdfGenerationFailed = "SMART_PDF_GENERATION_FAILED";
     }
 
     public static class SuccessMessages
@@ -184,12 +261,17 @@ public static class MagicStrings
         public const string EmailSentSuccessfully = "Email sent successfully";
         public const string PdfGeneratedSuccessfully = "PDF generated successfully";
         public const string BookingEmailDataRetrieved = "Booking email data retrieved successfully";
+        public const string SmartEmailSentSuccessfully = "Smart email sent successfully";
+        public const string SmartPdfGeneratedSuccessfully = "Smart PDF generated successfully";
+        public const string SmartBookingEmailDataRetrieved =
+            "Smart booking email data retrieved successfully";
     }
 
     public static class EmailAttachments
     {
         public const string TicketFileName = "RouteBuddy-Ticket.pdf";
         public const string PdfContentType = "application/pdf";
+        public const string SmartTicketFileName = "RouteBuddy-ConnectingRoute-Ticket.pdf";
     }
 
     public static class EmailTemplates
@@ -198,5 +280,7 @@ public static class MagicStrings
             "RouteBuddy - Booking Confirmation (PNR: {0})";
         public const string ConnectingBookingConfirmationSubject =
             "RouteBuddy - Connecting Route Booking Confirmation (PNR: {0})";
+        public const string SmartBookingConfirmationSubject =
+            "RouteBuddy Smart Engine - Multi-Segment Journey Confirmed (PNR: {0})";
     }
 }
