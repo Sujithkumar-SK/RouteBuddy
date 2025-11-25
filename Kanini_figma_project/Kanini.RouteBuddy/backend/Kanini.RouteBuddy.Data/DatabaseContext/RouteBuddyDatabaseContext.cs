@@ -26,6 +26,7 @@ public class RouteBuddyDatabaseContext(DbContextOptions<RouteBuddyDatabaseContex
     public DbSet<Refund> Refunds { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<Cancellation> Cancellations { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

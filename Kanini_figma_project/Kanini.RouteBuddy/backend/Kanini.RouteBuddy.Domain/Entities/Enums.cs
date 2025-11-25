@@ -29,6 +29,7 @@ public enum BusStatus
     Active = 1,
     Inactive = 2,
     Maintenance = 3,
+    Rejected = 4,
 }
 
 public enum BookingStatus

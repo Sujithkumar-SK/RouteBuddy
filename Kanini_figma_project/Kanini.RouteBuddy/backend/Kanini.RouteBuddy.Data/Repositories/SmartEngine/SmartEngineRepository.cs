@@ -8,6 +8,10 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using VendorEntity = Kanini.RouteBuddy.Domain.Entities.Vendor;
+using RouteEntity = Kanini.RouteBuddy.Domain.Entities.Route;
+using BookingEntity = Kanini.RouteBuddy.Domain.Entities.Booking;
+using CustomerEntity = Kanini.RouteBuddy.Domain.Entities.Customer;
 
 namespace Kanini.RouteBuddy.Data.Repositories.SmartEngine;
 
@@ -72,9 +76,9 @@ public class SmartEngineRepository : ISmartEngineRepository
                     Bus = new Bus
                     {
                         BusName = reader.GetString("FirstBusName"),
-                        Vendor = new Vendor { AgencyName = reader.GetString("FirstVendorName") },
+                        Vendor = new VendorEntity { AgencyName = reader.GetString("FirstVendorName") },
                     },
-                    Route = new Route
+                    Route = new RouteEntity
                     {
                         Source = reader.GetString("FirstSource"),
                         Destination = reader.GetString("FirstDestination"),
@@ -93,9 +97,9 @@ public class SmartEngineRepository : ISmartEngineRepository
                     Bus = new Bus
                     {
                         BusName = reader.GetString("SecondBusName"),
-                        Vendor = new Vendor { AgencyName = reader.GetString("SecondVendorName") },
+                        Vendor = new VendorEntity { AgencyName = reader.GetString("SecondVendorName") },
                     },
-                    Route = new Route
+                    Route = new RouteEntity
                     {
                         Source = reader.GetString("SecondSource"),
                         Destination = reader.GetString("SecondDestination"),
@@ -122,7 +126,7 @@ public class SmartEngineRepository : ISmartEngineRepository
         }
     }
 
-    public async Task<Result<Booking>> BookConnectingRouteAsync(
+    public async Task<Result<BookingEntity>> BookConnectingRouteAsync(
         int customerId,
         DateTime travelDate,
         decimal totalAmount,
@@ -161,14 +165,14 @@ public class SmartEngineRepository : ISmartEngineRepository
 
                 if (result == "SUCCESS")
                 {
-                    var booking = new Booking
+                    var booking = new BookingEntity
                     {
                         BookingId = reader.GetInt32("BookingId"),
                         PNRNo = reader.GetString("PNR"),
                         TotalAmount = reader.GetDecimal("TotalAmount"),
                         TravelDate = travelDate,
                         CreatedOn = DateTime.UtcNow,
-                        Customer = new Customer { CustomerId = customerId },
+                        Customer = new CustomerEntity { CustomerId = customerId },
                     };
 
                     _logger.LogInformation(
@@ -187,7 +191,7 @@ public class SmartEngineRepository : ISmartEngineRepository
                         MagicStrings.LogMessages.ConnectingBookingFailed,
                         errorMessage
                     );
-                    return Result.Failure<Booking>(
+                    return Result.Failure<BookingEntity>(
                         Error.Failure("ConnectingBooking.Failed", errorMessage)
                     );
                 }
@@ -197,7 +201,7 @@ public class SmartEngineRepository : ISmartEngineRepository
                 MagicStrings.LogMessages.ConnectingBookingFailed,
                 "No result returned"
             );
-            return Result.Failure<Booking>(
+            return Result.Failure<BookingEntity>(
                 Error.Failure(
                     "ConnectingBooking.NoResult",
                     MagicStrings.ErrorMessages.DatabaseError
@@ -207,7 +211,7 @@ public class SmartEngineRepository : ISmartEngineRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, MagicStrings.LogMessages.ConnectingBookingFailed, ex.Message);
-            return Result.Failure<Booking>(
+            return Result.Failure<BookingEntity>(
                 Error.Failure("ConnectingBooking.Failed", MagicStrings.ErrorMessages.DatabaseError)
             );
         }

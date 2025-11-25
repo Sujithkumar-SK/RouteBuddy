@@ -1,5 +1,6 @@
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Domain.Entities;
+using BookingEntity = Kanini.RouteBuddy.Domain.Entities.Booking;
 
 namespace Kanini.RouteBuddy.Data.Repositories.SmartEngine;
 
@@ -11,7 +12,7 @@ public interface ISmartEngineRepository
         DateTime travelDate,
         string toggle
     );
-    Task<Result<Booking>> BookConnectingRouteAsync(
+    Task<Result<BookingEntity>> BookConnectingRouteAsync(
         int customerId,
         DateTime travelDate,
         decimal totalAmount,

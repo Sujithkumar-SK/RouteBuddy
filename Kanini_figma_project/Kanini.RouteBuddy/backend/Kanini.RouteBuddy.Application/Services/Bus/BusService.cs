@@ -1,559 +1,435 @@
 using AutoMapper;
-using Kanini.RouteBuddy.Application.Dto;
-using Kanini.RouteBuddy.Common;
+using Kanini.RouteBuddy.Application.Dto.Bus;
+using Kanini.RouteBuddy.Application.Dto.Common;
+using Kanini.RouteBuddy.Common.Errors;
+using Kanini.RouteBuddy.Common.Services;
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Data.Repositories.Buses;
-using Kanini.RouteBuddy.Domain.Entities;
+using Kanini.RouteBuddy.Data.Repositories.Vendor;
 using Kanini.RouteBuddy.Domain.Enums;
 using Microsoft.Extensions.Logging;
+using BusEntity = Kanini.RouteBuddy.Domain.Entities.Bus;
 
 namespace Kanini.RouteBuddy.Application.Services.Buses;
 
 public class BusService : IBusService
 {
     private readonly IBusRepository _busRepository;
+    private readonly IVendorRepository _vendorRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<BusService> _logger;
 
-    public BusService(IBusRepository busRepository, IMapper mapper, ILogger<BusService> logger)
+    public BusService(IBusRepository busRepository, IVendorRepository vendorRepository, IMapper mapper, ILogger<BusService> logger)
     {
         _busRepository = busRepository;
+        _vendorRepository = vendorRepository;
         _mapper = mapper;
         _logger = logger;
     }
 
-    public async Task<Result<List<BusSearchResponseDto>>> SearchBusesAsync(
-        BusSearchRequestDto request
-    )
+    public async Task<Result<BusResponseDto>> CreateBusAsync(CreateBusDto dto, int vendorId)
     {
         try
         {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.BusSearchStarted,
-                request.Source,
-                request.Destination,
-                request.TravelDate
-            );
+            _logger.LogInformation(BusMessages.LogMessages.BusCreationStarted, vendorId);
 
-            if (request.TravelDate.Date < DateTime.Today)
+            // Clear random character strings
+            if (!string.IsNullOrEmpty(dto.BusName) && dto.BusName.Length > 20 && !dto.BusName.Contains(" "))
+                dto.BusName = string.Empty;
+            
+            if (!string.IsNullOrEmpty(dto.RegistrationNo) && dto.RegistrationNo.Length > 15)
+                dto.RegistrationNo = string.Empty;
+
+            // Business validation
+            if (string.IsNullOrWhiteSpace(dto.BusName?.Trim()))
+                return Result.Failure<BusResponseDto>(Error.Failure("Bus.InvalidName", "Bus name cannot be empty or whitespace"));
+
+            if (dto.TotalSeats < 10 || dto.TotalSeats > 200)
+                return Result.Failure<BusResponseDto>(Error.Failure("Bus.InvalidSeats", "Total seats must be between 10 and 200"));
+
+            // Validate registration number format
+            if (!System.Text.RegularExpressions.Regex.IsMatch(dto.RegistrationNo, @"^[A-Z]{2}[0-9]{2}[A-Z]{1,2}[0-9]{4}$"))
+                return Result.Failure<BusResponseDto>(Error.Failure("Bus.InvalidRegistration", "Invalid registration number format"));
+
+            // Check if registration number already exists
+            var existsResult = await _busRepository.ExistsByRegistrationNoAsync(dto.RegistrationNo);
+            if (existsResult.IsFailure)
+                return Result.Failure<BusResponseDto>(existsResult.Error);
+
+            if (existsResult.Value)
             {
-                _logger.LogWarning(MagicStrings.LogMessages.ValidationFailed);
-                return Result.Failure<List<BusSearchResponseDto>>(
-                    Error.Failure(
-                        "BusSearch.InvalidDate",
-                        MagicStrings.ErrorMessages.TravelDateInvalid
-                    )
-                );
+                _logger.LogWarning(BusMessages.LogMessages.RegistrationExistsWarning, dto.RegistrationNo);
+                return Result.Failure<BusResponseDto>(Error.Conflict(BusMessages.ErrorCodes.RegistrationExists, BusMessages.ErrorMessages.RegistrationNumberExists));
             }
 
-            var result = await _busRepository.SearchBusesAsync(
-                request.Source.Trim(),
-                request.Destination.Trim(),
-                request.TravelDate
-            );
+            // Optional: Check if bus name already exists for this vendor (uncomment to enable)
+            // var nameExistsResult = await _busRepository.ExistsByNameAndVendorAsync(dto.BusName.Trim(), vendorId);
+            // if (nameExistsResult.IsFailure)
+            //     return Result.Failure<BusResponseDto>(nameExistsResult.Error);
+            // if (nameExistsResult.Value)
+            //     return Result.Failure<BusResponseDto>(Error.Conflict("Bus.NameExists", "Bus name already exists for this vendor"));
 
+            // Validate driver contact if provided
+            if (!string.IsNullOrEmpty(dto.DriverContact) && !System.Text.RegularExpressions.Regex.IsMatch(dto.DriverContact, @"^[6-9]\d{9}$"))
+                return Result.Failure<BusResponseDto>(Error.Failure("Bus.InvalidContact", "Driver contact must be a valid 10-digit mobile number"));
+
+            // Validate registration certificate
+            if (!FileValidationService.IsValidFile(dto.RegistrationCertificate, out string rcError))
+                return Result.Failure<BusResponseDto>(Error.Failure("RC.Invalid", $"Registration Certificate: {rcError}"));
+
+            // Validate document content (file header)
+            if (!await FileValidationService.IsValidDocumentContentAsync(dto.RegistrationCertificate))
+                return Result.Failure<BusResponseDto>(Error.Failure("RC.InvalidContent", "Registration certificate file appears to be corrupted or invalid"));
+
+            // Save registration certificate
+            var rcPath = await FileValidationService.SaveFileAsync(dto.RegistrationCertificate, "buses", $"rc_{vendorId}_{dto.RegistrationNo}");
+
+            var vendor = await _vendorRepository.GetByIdAsync(vendorId);
+            
+            var bus = _mapper.Map<BusEntity>(dto);
+            bus.VendorId = vendorId;
+            bus.IsActive = false;  // Bus should be inactive until approved
+            bus.Status = BusStatus.PendingApproval;
+            bus.RegistrationPath = rcPath;
+            bus.CreatedBy = vendor?.AgencyName ?? "System";
+            bus.CreatedOn = DateTime.UtcNow;
+
+            var createResult = await _busRepository.CreateAsync(bus);
+            if (createResult.IsFailure)
+            {
+                _logger.LogError(BusMessages.LogMessages.BusCreationFailed, createResult.Error.Description);
+                return Result.Failure<BusResponseDto>(createResult.Error);
+            }
+
+            var response = _mapper.Map<BusResponseDto>(createResult.Value);
+            response.VendorName = vendor?.AgencyName ?? "Unknown";
+
+            _logger.LogInformation(BusMessages.LogMessages.BusCreatedSuccessfully, createResult.Value.BusId);
+            return Result.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Bus creation failed: {Message}", ex.Message);
+            return Result.Failure<BusResponseDto>(
+                Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
+            );
+        }
+    }
+
+    public async Task<Result<BusResponseDto>> GetBusByIdAsync(int busId, int vendorId)
+    {
+        try
+        {
+            _logger.LogInformation(BusMessages.LogMessages.BusRetrievalStarted, busId);
+
+            var result = await _busRepository.GetByIdAsync(busId);
             if (result.IsFailure)
             {
-                _logger.LogError(
-                    MagicStrings.LogMessages.BusSearchFailed,
-                    result.Error.Description
-                );
-                return Result.Failure<List<BusSearchResponseDto>>(result.Error);
+                _logger.LogError(BusMessages.LogMessages.BusRetrievalFailed, result.Error.Description);
+                return Result.Failure<BusResponseDto>(result.Error);
             }
 
-            var dtos = _mapper.Map<List<BusSearchResponseDto>>(result.Value);
-            _logger.LogInformation(MagicStrings.LogMessages.BusSearchCompleted, dtos.Count);
-            return Result.Success(dtos);
+            // Vendor authorization check
+            if (result.Value.VendorId != vendorId)
+            {
+                _logger.LogWarning(BusMessages.LogMessages.UnauthorizedAccessWarning, busId);
+                return Result.Failure<BusResponseDto>(Error.NotFound(BusMessages.ErrorCodes.BusNotFound, BusMessages.ErrorMessages.UnauthorizedBusAccess));
+            }
+
+            var vendor = await _vendorRepository.GetByIdAsync(result.Value.VendorId);
+            var response = _mapper.Map<BusResponseDto>(result.Value);
+            response.VendorName = vendor?.AgencyName ?? "Unknown";
+            
+            _logger.LogInformation(BusMessages.LogMessages.BusRetrievedSuccessfully, busId);
+            return Result.Success(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, MagicStrings.LogMessages.BusSearchFailed, ex.Message);
-            return Result.Failure<List<BusSearchResponseDto>>(
-                Error.Failure(
-                    "BusSearch.UnexpectedError",
-                    MagicStrings.ErrorMessages.UnexpectedError
-                )
+            _logger.LogError(ex, "Bus retrieval failed: {Message}", ex.Message);
+            return Result.Failure<BusResponseDto>(
+                Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
             );
         }
     }
 
-    public async Task<Result<SeatLayoutResponseDto>> GetSeatLayoutAsync(
-        SeatLayoutRequestDto request
-    )
+    public async Task<Result<PagedResultDto<BusResponseDto>>> GetBusesByVendorAsync(int vendorId, int pageNumber, int pageSize, BusStatus? status = null, BusType? busType = null, string? search = null)
     {
         try
         {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.SeatLayoutStarted,
-                request.ScheduleId,
-                request.TravelDate
-            );
+            _logger.LogInformation(BusMessages.LogMessages.BusListRetrievalStarted, vendorId);
 
-            if (request.TravelDate.Date < DateTime.Today)
+            var busesResult = await _busRepository.GetByVendorIdAsync(vendorId, pageNumber, pageSize, status, busType, search);
+            if (busesResult.IsFailure)
             {
-                _logger.LogWarning(MagicStrings.LogMessages.ValidationFailed);
-                return Result.Failure<SeatLayoutResponseDto>(
-                    Error.Failure(
-                        "SeatLayout.InvalidDate",
-                        MagicStrings.ErrorMessages.TravelDateInvalid
-                    )
-                );
+                _logger.LogError(BusMessages.LogMessages.BusListFailed, vendorId);
+                return Result.Failure<PagedResultDto<BusResponseDto>>(busesResult.Error);
             }
 
-            var result = await _busRepository.GetSeatLayoutAsync(
-                request.ScheduleId,
-                request.TravelDate
-            );
+            var countResult = await _busRepository.GetCountByVendorIdAsync(vendorId, status, busType, search);
+            if (countResult.IsFailure)
+            {
+                _logger.LogError(BusMessages.LogMessages.BusCountFailed, vendorId);
+                return Result.Failure<PagedResultDto<BusResponseDto>>(countResult.Error);
+            }
 
+            var vendor = await _vendorRepository.GetByIdAsync(vendorId);
+            var busDtos = _mapper.Map<List<BusResponseDto>>(busesResult.Value);
+            foreach (var dto in busDtos)
+            {
+                dto.VendorName = vendor?.AgencyName ?? "Unknown";
+            }
+
+            var pagedResult = new PagedResultDto<BusResponseDto>
+            {
+                Data = busDtos,
+                TotalCount = countResult.Value,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            _logger.LogInformation(BusMessages.LogMessages.BusesByVendorRetrievedSuccessfully, busDtos.Count, vendorId);
+            return Result.Success(pagedResult);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Bus list failed: {Message}", ex.Message);
+            return Result.Failure<PagedResultDto<BusResponseDto>>(
+                Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
+            );
+        }
+    }
+
+    public async Task<Result<BusResponseDto>> UpdateBusAsync(int busId, UpdateBusDto dto)
+    {
+        try
+        {
+            _logger.LogInformation(BusMessages.LogMessages.BusUpdateStarted, busId);
+
+            var result = await _busRepository.GetByIdAsync(busId);
             if (result.IsFailure)
             {
-                _logger.LogError(
-                    MagicStrings.LogMessages.SeatLayoutFailed,
-                    result.Error.Description
-                );
-                return Result.Failure<SeatLayoutResponseDto>(result.Error);
+                _logger.LogError(BusMessages.LogMessages.BusUpdateFailed, busId);
+                return Result.Failure<BusResponseDto>(result.Error);
             }
-            var seatLayoutResponseDto = _mapper.Map<SeatLayoutResponseDto>(result.Value);
-            seatLayoutResponseDto.ScheduleId = request.ScheduleId;
-            seatLayoutResponseDto.TravelDate = request.TravelDate;
 
-            if (result.Value.Any() && !string.IsNullOrEmpty(result.Value[0].CreatedBy))
+            var vendor = await _vendorRepository.GetByIdAsync(result.Value.VendorId);
+            _mapper.Map(dto, result.Value);
+            result.Value.UpdatedBy = vendor?.AgencyName ?? "System";
+            result.Value.UpdatedOn = DateTime.UtcNow;
+            
+            var updateResult = await _busRepository.UpdateAsync(result.Value);
+            if (updateResult.IsFailure)
             {
-                var busInfo = result.Value[0].CreatedBy.Split('|');
-                if (busInfo.Length == 6)
-                {
-                    seatLayoutResponseDto.Bus.BusName = busInfo[0];
-                    seatLayoutResponseDto.Bus.BusType = (BusType)int.Parse(busInfo[1]);
-                    seatLayoutResponseDto.Bus.BusAmenities = (BusAmenities)int.Parse(busInfo[2]);
-                    seatLayoutResponseDto.Bus.BasePrice = decimal.Parse(busInfo[3]);
-                    seatLayoutResponseDto.Bus.AvailableSeats = int.Parse(busInfo[4]);
-                    seatLayoutResponseDto.Bus.BookedSeats = int.Parse(busInfo[5]);
-                    seatLayoutResponseDto.Bus.TotalSeats =
-                        seatLayoutResponseDto.Bus.AvailableSeats
-                        + seatLayoutResponseDto.Bus.BookedSeats;
-
-                    foreach (var seat in seatLayoutResponseDto.Seats)
-                    {
-                        seat.Price = CalculateSeatPrice(
-                            seatLayoutResponseDto.Bus.BasePrice,
-                            seatLayoutResponseDto.Bus.BusType,
-                            seatLayoutResponseDto.Bus.BusAmenities,
-                            seat.SeatType,
-                            seat.PriceTier
-                        );
-                    }
-                }
+                _logger.LogError(BusMessages.LogMessages.BusUpdateFailed, busId);
+                return Result.Failure<BusResponseDto>(updateResult.Error);
             }
 
-            _logger.LogInformation(
-                MagicStrings.LogMessages.SeatLayoutCompleted,
-                seatLayoutResponseDto.Seats.Count
-            );
-            return Result.Success(seatLayoutResponseDto);
+            var response = _mapper.Map<BusResponseDto>(updateResult.Value);
+            response.VendorName = vendor?.AgencyName ?? "Unknown";
+
+            _logger.LogInformation(BusMessages.LogMessages.BusUpdatedSuccessfully, busId);
+            return Result.Success(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, MagicStrings.LogMessages.SeatLayoutFailed, ex.Message);
-            return Result.Failure<SeatLayoutResponseDto>(
-                Error.Failure(
-                    "SeatLayout.UnexpectedError",
-                    MagicStrings.ErrorMessages.UnexpectedError
-                )
+            _logger.LogError(ex, "Bus update failed: {Message}", ex.Message);
+            return Result.Failure<BusResponseDto>(
+                Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
             );
         }
     }
 
-    private decimal CalculateSeatPrice(
-        decimal basePrice,
-        BusType busType,
-        BusAmenities amenities,
-        SeatType seatType,
-        PriceTier priceTier
-    )
-    {
-        var price = basePrice;
-
-        price *= busType switch
-        {
-            BusType.AC => 1.2m,
-            BusType.Sleeper => 1.5m,
-            BusType.Volvo => 1.8m,
-            BusType.Luxury => 2.0m,
-            _ => 1.0m,
-        };
-
-        var amenityMultiplier = 1.0m;
-        if (amenities.HasFlag(BusAmenities.WiFi))
-            amenityMultiplier += 0.05m;
-        if (amenities.HasFlag(BusAmenities.Charging))
-            amenityMultiplier += 0.05m;
-        if (amenities.HasFlag(BusAmenities.Meals))
-            amenityMultiplier += 0.1m;
-        if (amenities.HasFlag(BusAmenities.Entertainment))
-            amenityMultiplier += 0.1m;
-        price *= amenityMultiplier;
-
-        price *= seatType switch
-        {
-            SeatType.SleeperLower => 1.3m,
-            SeatType.SleeperUpper => 1.1m,
-            SeatType.SemiSleeper => 1.2m,
-            _ => 1.0m,
-        };
-
-        price *= priceTier switch
-        {
-            PriceTier.Premium => 1.2m,
-            PriceTier.Luxury => 1.5m,
-            _ => 1.0m,
-        };
-
-        return Math.Round(price, 2);
-    }
-
-    public async Task<Result<BookingResponseDto>> BookSeatsAsync(BookingRequestDto request)
+    public async Task<Result<bool>> DeleteBusAsync(int busId)
     {
         try
         {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.BookingStarted,
-                request.ScheduleId,
-                request.SeatNumbers.Count,
-                request.CustomerId
-            );
+            _logger.LogInformation(BusMessages.LogMessages.BusDeleteStarted, busId);
 
-            if (request.SeatNumbers.Count != request.Passengers.Count)
-            {
-                _logger.LogWarning(MagicStrings.LogMessages.ValidationFailed);
-                return Result.Failure<BookingResponseDto>(
-                    Error.Failure(
-                        "Booking.ValidationFailed",
-                        MagicStrings.ErrorMessages.SeatPassengerMismatch
-                    )
-                );
-            }
-
-            if (request.TravelDate.Date < DateTime.Today)
-            {
-                _logger.LogWarning(MagicStrings.LogMessages.ValidationFailed);
-                return Result.Failure<BookingResponseDto>(
-                    Error.Failure(
-                        "Booking.InvalidDate",
-                        MagicStrings.ErrorMessages.TravelDateInvalid
-                    )
-                );
-            }
-
-            if (request.BoardingStopId == request.DroppingStopId)
-            {
-                _logger.LogWarning(MagicStrings.LogMessages.ValidationFailed);
-                return Result.Failure<BookingResponseDto>(
-                    Error.Failure(
-                        "Booking.ValidationFailed",
-                        MagicStrings.ErrorMessages.SameStopError
-                    )
-                );
-            }
-
-            var seatValidationResult = await _busRepository.ValidateSeatsAndStopsAsync(
-                request.ScheduleId,
-                request.TravelDate,
-                request.SeatNumbers,
-                request.BoardingStopId,
-                request.DroppingStopId
-            );
-
-            if (seatValidationResult.IsFailure)
-            {
-                _logger.LogError(
-                    MagicStrings.LogMessages.SeatValidationFailed,
-                    seatValidationResult.Error.Description
-                );
-                return Result.Failure<BookingResponseDto>(seatValidationResult.Error);
-            }
-
-            var totalAmount = CalculateTotalBookingAmount(seatValidationResult.Value);
-
-            // Book seats
-            var passengers = request.Passengers.Select(p => (p.Name, p.Age, p.Gender)).ToList();
-
-            var bookingResult = await _busRepository.BookSeatsAsync(
-                request.ScheduleId,
-                request.CustomerId,
-                request.TravelDate,
-                request.SeatNumbers,
-                passengers,
-                totalAmount,
-                request.BoardingStopId,
-                request.DroppingStopId
-            );
-
-            if (bookingResult.IsFailure)
-            {
-                _logger.LogError(
-                    MagicStrings.LogMessages.BookingFailed,
-                    bookingResult.Error.Description
-                );
-                return Result.Failure<BookingResponseDto>(bookingResult.Error);
-            }
-
-            _logger.LogInformation(
-                MagicStrings.LogMessages.BookingCompleted,
-                bookingResult.Value.PNRNo,
-                bookingResult.Value.BookingId
-            );
-            var bookingResponse = _mapper.Map<BookingResponseDto>(bookingResult.Value);
-            bookingResponse.ScheduleId = request.ScheduleId;
-            bookingResponse.TravelDate = request.TravelDate;
-            bookingResponse.TotalAmount = totalAmount;
-            bookingResponse.SeatNumbers = request.SeatNumbers;
-            bookingResponse.ReservationExpiryTime = bookingResult.Value.CreatedOn.AddMinutes(10);
-
-            var busInfoResult = await _busRepository.GetBusInfoAsync(request.ScheduleId);
-            if (busInfoResult.IsSuccess)
-            {
-                bookingResponse.BusName = busInfoResult.Value.BusName;
-                bookingResponse.Route = busInfoResult.Value.Route;
-            }
-
-            var routeStopsResult = await _busRepository.GetRouteStopsAsync(request.ScheduleId);
-            if (routeStopsResult.IsSuccess)
-            {
-                var boardingStop = routeStopsResult.Value.FirstOrDefault(rs =>
-                    rs.RouteStopId == request.BoardingStopId
-                );
-                var droppingStop = routeStopsResult.Value.FirstOrDefault(rs =>
-                    rs.RouteStopId == request.DroppingStopId
-                );
-
-                if (boardingStop != null)
-                {
-                    bookingResponse.BoardingPoint = boardingStop.Stop?.Name ?? "Unknown";
-                    bookingResponse.BoardingTime = boardingStop.DepartureTime;
-                }
-
-                if (droppingStop != null)
-                {
-                    bookingResponse.DroppingPoint = droppingStop.Stop?.Name ?? "Unknown";
-                    bookingResponse.DroppingTime = droppingStop.ArrivalTime;
-                }
-            }
-
-            return Result.Success(bookingResponse);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, MagicStrings.LogMessages.BookingFailed, ex.Message);
-            return Result.Failure<BookingResponseDto>(
-                Error.Failure("Booking.UnexpectedError", MagicStrings.ErrorMessages.UnexpectedError)
-            );
-        }
-    }
-
-    private decimal CalculateTotalBookingAmount(List<SeatLayoutDetail> selectedSeats)
-    {
-        decimal totalAmount = 0;
-
-        foreach (var seat in selectedSeats)
-        {
-            var seatPrice = CalculateSeatPrice(
-                seat.BasePrice,
-                seat.BusTypeForPricing,
-                seat.AmenitiesForPricing,
-                seat.SeatType,
-                seat.PriceTier
-            );
-            totalAmount += seatPrice;
-        }
-
-        return totalAmount;
-    }
-
-    public async Task<Result<List<RouteStopDto>>> GetRouteStopsAsync(int scheduleId)
-    {
-        try
-        {
-            _logger.LogInformation(MagicStrings.LogMessages.RouteStopsStarted, scheduleId);
-
-            var result = await _busRepository.GetRouteStopsAsync(scheduleId);
-
+            var result = await _busRepository.DeleteAsync(busId);
             if (result.IsFailure)
             {
-                _logger.LogError(
-                    MagicStrings.LogMessages.RouteStopsFailed,
-                    result.Error.Description
-                );
-                return Result.Failure<List<RouteStopDto>>(result.Error);
+                _logger.LogError(BusMessages.LogMessages.BusDeleteFailed, busId);
+                return Result.Failure<bool>(result.Error);
             }
 
-            var routeStopDtos = _mapper.Map<List<RouteStopDto>>(result.Value);
-            _logger.LogInformation(
-                MagicStrings.LogMessages.RouteStopsCompleted,
-                routeStopDtos.Count
-            );
-            return Result.Success(routeStopDtos);
+            _logger.LogInformation(BusMessages.LogMessages.BusDeletedSuccessfully, busId);
+            return Result.Success(true);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, MagicStrings.LogMessages.RouteStopsFailed, ex.Message);
-            return Result.Failure<List<RouteStopDto>>(
-                Error.Failure(
-                    "RouteStops.UnexpectedError",
-                    MagicStrings.ErrorMessages.UnexpectedError
-                )
+            _logger.LogError(ex, "Bus delete failed: {Message}", ex.Message);
+            return Result.Failure<bool>(
+                Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
             );
         }
     }
 
-    public async Task<Result<string>> ConfirmBookingAsync(BookingConfirmationDto request)
+    public async Task<Result<BusResponseDto>> ActivateBusAsync(int busId, int vendorId)
     {
         try
         {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.BookingConfirmationStarted,
-                request.BookingId
-            );
+            _logger.LogInformation(BusMessages.LogMessages.BusActivationStarted, busId);
 
-            var result = await _busRepository.ConfirmBookingAsync(
-                request.BookingId,
-                request.PaymentReferenceId,
-                request.IsPaymentSuccessful
-            );
+            var result = await _busRepository.GetByIdAsync(busId);
+            if (result.IsFailure)
+                return Result.Failure<BusResponseDto>(result.Error);
 
+            if (result.Value.VendorId != vendorId)
+            {
+                _logger.LogWarning(BusMessages.LogMessages.UnauthorizedAccessWarning, busId);
+                return Result.Failure<BusResponseDto>(Error.NotFound(BusMessages.ErrorCodes.BusNotFound, BusMessages.ErrorMessages.UnauthorizedBusAccess));
+            }
+
+            if (result.Value.Status != BusStatus.PendingApproval)
+            {
+                _logger.LogWarning(BusMessages.LogMessages.InvalidStatusWarning, busId);
+                return Result.Failure<BusResponseDto>(Error.Failure(BusMessages.ErrorCodes.InvalidStatus, BusMessages.ErrorMessages.InvalidBusStatus));
+            }
+
+            var vendor = await _vendorRepository.GetByIdAsync(vendorId);
+            result.Value.Status = BusStatus.Active;
+            result.Value.IsActive = true;
+            result.Value.UpdatedBy = vendor?.AgencyName ?? "System";
+            result.Value.UpdatedOn = DateTime.UtcNow;
+
+            var updateResult = await _busRepository.UpdateAsync(result.Value);
+            if (updateResult.IsFailure)
+            {
+                _logger.LogError(BusMessages.LogMessages.BusActivationFailed, busId);
+                return Result.Failure<BusResponseDto>(updateResult.Error);
+            }
+
+            var response = _mapper.Map<BusResponseDto>(updateResult.Value);
+            response.VendorName = vendor?.AgencyName ?? "Unknown";
+
+            _logger.LogInformation(BusMessages.LogMessages.BusActivatedSuccessfully, busId);
+            return Result.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Bus activation failed: {Message}", ex.Message);
+            return Result.Failure<BusResponseDto>(
+                Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
+            );
+        }
+    }
+
+    public async Task<Result<BusResponseDto>> DeactivateBusAsync(int busId, int vendorId)
+    {
+        try
+        {
+            _logger.LogInformation(BusMessages.LogMessages.BusDeactivationStarted, busId);
+
+            var result = await _busRepository.GetByIdAsync(busId);
+            if (result.IsFailure)
+                return Result.Failure<BusResponseDto>(result.Error);
+
+            if (result.Value.VendorId != vendorId)
+            {
+                _logger.LogWarning(BusMessages.LogMessages.UnauthorizedAccessWarning, busId);
+                return Result.Failure<BusResponseDto>(Error.NotFound(BusMessages.ErrorCodes.BusNotFound, BusMessages.ErrorMessages.UnauthorizedBusAccess));
+            }
+
+            if (!result.Value.IsActive)
+            {
+                _logger.LogWarning(BusMessages.LogMessages.BusAlreadyInactiveWarning, busId);
+                return Result.Failure<BusResponseDto>(Error.Failure(BusMessages.ErrorCodes.AlreadyInactive, BusMessages.ErrorMessages.BusAlreadyInactive));
+            }
+
+            var vendor = await _vendorRepository.GetByIdAsync(vendorId);
+            result.Value.IsActive = false;
+            result.Value.UpdatedBy = vendor?.AgencyName ?? "System";
+            result.Value.UpdatedOn = DateTime.UtcNow;
+
+            var updateResult = await _busRepository.UpdateAsync(result.Value);
+            if (updateResult.IsFailure)
+            {
+                _logger.LogError(BusMessages.LogMessages.BusDeactivationFailed, busId);
+                return Result.Failure<BusResponseDto>(updateResult.Error);
+            }
+
+            var response = _mapper.Map<BusResponseDto>(updateResult.Value);
+            response.VendorName = vendor?.AgencyName ?? "Unknown";
+
+            _logger.LogInformation(BusMessages.LogMessages.BusDeactivatedSuccessfully, busId);
+            return Result.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Bus deactivation failed: {Message}", ex.Message);
+            return Result.Failure<BusResponseDto>(
+                Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
+            );
+        }
+    }
+
+
+
+    public async Task<Result<BusResponseDto>> SetMaintenanceAsync(int busId, int vendorId)
+    {
+        try
+        {
+            _logger.LogInformation(BusMessages.LogMessages.BusMaintenanceStarted, busId);
+
+            var result = await _busRepository.GetByIdAsync(busId);
+            if (result.IsFailure)
+                return Result.Failure<BusResponseDto>(result.Error);
+
+            if (result.Value.VendorId != vendorId)
+            {
+                _logger.LogWarning(BusMessages.LogMessages.UnauthorizedAccessWarning, busId);
+                return Result.Failure<BusResponseDto>(Error.NotFound(BusMessages.ErrorCodes.BusNotFound, BusMessages.ErrorMessages.UnauthorizedBusAccess));
+            }
+
+            var vendor = await _vendorRepository.GetByIdAsync(vendorId);
+            result.Value.Status = BusStatus.Maintenance;
+            result.Value.UpdatedBy = vendor?.AgencyName ?? "System";
+            result.Value.UpdatedOn = DateTime.UtcNow;
+
+            var updateResult = await _busRepository.UpdateAsync(result.Value);
+            if (updateResult.IsFailure)
+            {
+                _logger.LogError(BusMessages.LogMessages.BusMaintenanceFailed, busId);
+                return Result.Failure<BusResponseDto>(updateResult.Error);
+            }
+
+            var response = _mapper.Map<BusResponseDto>(updateResult.Value);
+            response.VendorName = vendor?.AgencyName ?? "Unknown";
+
+            _logger.LogInformation(BusMessages.LogMessages.BusSetToMaintenanceSuccessfully, busId);
+            return Result.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Set maintenance failed: {Message}", ex.Message);
+            return Result.Failure<BusResponseDto>(
+                Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
+            );
+        }
+    }
+
+    public async Task<Result<List<BusResponseDto>>> GetAwaitingConfirmationAsync(int vendorId)
+    {
+        try
+        {
+            _logger.LogInformation(BusMessages.LogMessages.AwaitingConfirmationStarted, vendorId);
+
+            var result = await _busRepository.GetAwaitingConfirmationByVendorAsync(vendorId);
             if (result.IsFailure)
             {
-                _logger.LogError(
-                    MagicStrings.LogMessages.BookingConfirmationFailed,
-                    result.Error.Description
-                );
-                return Result.Failure<string>(result.Error);
+                _logger.LogError(BusMessages.LogMessages.AwaitingConfirmationFailed, vendorId);
+                return Result.Failure<List<BusResponseDto>>(result.Error);
             }
 
-            _logger.LogInformation(
-                MagicStrings.LogMessages.BookingConfirmationCompleted,
-                request.BookingId
-            );
-            return Result.Success(result.Value);
+            var busDtos = _mapper.Map<List<BusResponseDto>>(result.Value);
+            _logger.LogInformation(BusMessages.LogMessages.AwaitingConfirmationRetrievedSuccessfully, vendorId);
+            return Result.Success(busDtos);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, MagicStrings.LogMessages.BookingConfirmationFailed, ex.Message);
-            return Result.Failure<string>(
-                Error.Failure(
-                    "BookingConfirmation.UnexpectedError",
-                    MagicStrings.ErrorMessages.UnexpectedError
-                )
-            );
-        }
-    }
-
-    public async Task<Result<int>> ExpirePendingBookingsAsync()
-    {
-        try
-        {
-            var result = await _busRepository.ExpirePendingBookingsAsync();
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, MagicStrings.LogMessages.BookingExpiryFailed, ex.Message);
-            return Result.Failure<int>(
-                Error.Failure(
-                    "BookingExpiry.UnexpectedError",
-                    MagicStrings.ErrorMessages.UnexpectedError
-                )
-            );
-        }
-    }
-
-    public async Task<Result<List<BusSearchResponseDto>>> SearchBusesFilteredAsync(
-        BusSearchFilterDto request
-    )
-    {
-        try
-        {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.FilteredBusSearchStarted,
-                request.Source,
-                request.Destination,
-                request.TravelDate
-            );
-
-            if (request.TravelDate.Date < DateTime.Today)
-            {
-                _logger.LogWarning(MagicStrings.LogMessages.ValidationFailed);
-                return Result.Failure<List<BusSearchResponseDto>>(
-                    Error.Failure(
-                        "FilteredBusSearch.InvalidDate",
-                        MagicStrings.ErrorMessages.TravelDateInvalid
-                    )
-                );
-            }
-
-            if (
-                request.DepartureTimeFrom.HasValue
-                && request.DepartureTimeTo.HasValue
-                && request.DepartureTimeFrom > request.DepartureTimeTo
-            )
-            {
-                _logger.LogWarning(MagicStrings.LogMessages.ValidationFailed);
-                return Result.Failure<List<BusSearchResponseDto>>(
-                    Error.Failure(
-                        "FilteredBusSearch.InvalidTimeRange",
-                        MagicStrings.ErrorMessages.InvalidTimeRange
-                    )
-                );
-            }
-
-            if (
-                request.MinPrice.HasValue
-                && request.MaxPrice.HasValue
-                && request.MinPrice > request.MaxPrice
-            )
-            {
-                _logger.LogWarning(MagicStrings.LogMessages.ValidationFailed);
-                return Result.Failure<List<BusSearchResponseDto>>(
-                    Error.Failure(
-                        "FilteredBusSearch.InvalidPriceRange",
-                        MagicStrings.ErrorMessages.InvalidPriceRange
-                    )
-                );
-            }
-
-            var result = await _busRepository.SearchBusesFilteredAsync(
-                request.Source.Trim(),
-                request.Destination.Trim(),
-                request.TravelDate,
-                request.BusTypes,
-                request.Amenities,
-                request.DepartureTimeFrom,
-                request.DepartureTimeTo,
-                request.MinPrice,
-                request.MaxPrice,
-                request.SortBy
-            );
-
-            if (result.IsFailure)
-            {
-                _logger.LogError(
-                    MagicStrings.LogMessages.FilteredBusSearchFailed,
-                    result.Error.Description
-                );
-                return Result.Failure<List<BusSearchResponseDto>>(result.Error);
-            }
-
-            var dtos = _mapper.Map<List<BusSearchResponseDto>>(result.Value);
-            _logger.LogInformation(MagicStrings.LogMessages.FilteredBusSearchCompleted, dtos.Count);
-            return Result.Success(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, MagicStrings.LogMessages.FilteredBusSearchFailed, ex.Message);
-            return Result.Failure<List<BusSearchResponseDto>>(
-                Error.Failure(
-                    "FilteredBusSearch.UnexpectedError",
-                    MagicStrings.ErrorMessages.UnexpectedError
-                )
+            _logger.LogError(ex, "Awaiting confirmation buses failed: {Message}", ex.Message);
+            return Result.Failure<List<BusResponseDto>>(
+                Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
             );
         }
     }

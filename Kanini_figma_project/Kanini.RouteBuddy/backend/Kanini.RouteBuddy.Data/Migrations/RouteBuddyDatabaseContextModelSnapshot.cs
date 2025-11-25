@@ -746,6 +746,68 @@ namespace Kanini.RouteBuddy.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Kanini.RouteBuddy.Domain.Entities.RefreshToken", b =>
+                {
+                    b.Property<int>("RefreshTokenId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RefreshTokenId"));
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("DATETIME2");
+
+                    b.Property<bool>("IsRevoked")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("BIT")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("ReplacedByToken")
+                        .HasMaxLength(50)
+                        .HasColumnType("NVARCHAR(50)");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("DATETIME2");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("NVARCHAR(500)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime?>("UpdatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RefreshTokenId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex(new[] { "Token" }, "IX_RefreshTokens_Token")
+                        .IsUnique();
+
+                    b.ToTable("RefreshTokens", t =>
+                        {
+                            t.HasComment("Stores refresh tokens for JWT authentication");
+                        });
+                });
+
             modelBuilder.Entity("Kanini.RouteBuddy.Domain.Entities.Refund", b =>
                 {
                     b.Property<int>("RefundId")
@@ -2241,6 +2303,17 @@ namespace Kanini.RouteBuddy.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Booking");
+                });
+
+            modelBuilder.Entity("Kanini.RouteBuddy.Domain.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("Kanini.RouteBuddy.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Kanini.RouteBuddy.Domain.Entities.Refund", b =>

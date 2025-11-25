@@ -1,9 +1,13 @@
 ﻿using Kanini.RouteBuddy.Data.DatabaseContext;
+using Kanini.RouteBuddy.Data.Infrastructure;
+using Kanini.RouteBuddy.Data.Repositories;
 using Kanini.RouteBuddy.Data.Repositories.Admin;
 using Kanini.RouteBuddy.Data.Repositories.Buses;
 using Kanini.RouteBuddy.Data.Repositories.Email;
 using Kanini.RouteBuddy.Data.Repositories.SmartEngine;
+using Kanini.RouteBuddy.Data.Repositories.Token;
 using Kanini.RouteBuddy.Data.Repositories.User;
+using Kanini.RouteBuddy.Data.Repositories.Vendor;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,12 +25,23 @@ namespace Kanini.RouteBuddy.Data
             {
                 options.UseSqlServer(configuration.GetConnectionString("DatabaseConnectionString"));
             });
+            
+            // Infrastructure
+            services.AddScoped<IDbReader, AdoDbReader>();
+            
+            // Repositories
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IBusRepository, BusRepository>();
+            services.AddScoped<IBus_Search_Book_Repository, Bus_Search_Book_Repository>();
             services.AddScoped<ISmartEngineRepository, SmartEngineRepository>();
             services.AddScoped<IEmailRepository, EmailRepository>();
             services.AddScoped<ISmartEmailRepository, SmartEmailRepository>();
             services.AddScoped<ISeatLayoutRepository, SeatLayoutRepository>();
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IVendorRepository, VendorRepository>();
+            services.AddScoped<Repositories.Customer.ICustomerRepository, Repositories.Customer.CustomerRepository>();
+            services.AddScoped<Repositories.VendorDocuments.IVendorDocumentRepository, Repositories.VendorDocuments.VendorDocumentRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
             return services;
         }
     }

@@ -1,829 +1,540 @@
 using System.Data;
-using Kanini.RouteBuddy.Common;
+using Kanini.RouteBuddy.Common.Errors;
+using Kanini.RouteBuddy.Common.Services;
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Data.DatabaseContext;
-using Kanini.RouteBuddy.Domain.Entities;
 using Kanini.RouteBuddy.Domain.Enums;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using BusEntity = Kanini.RouteBuddy.Domain.Entities.Bus;
 
 namespace Kanini.RouteBuddy.Data.Repositories.Buses;
 
 public class BusRepository : IBusRepository
 {
-    private readonly string _connectionString;
     private readonly RouteBuddyDatabaseContext _context;
+    private readonly string _connectionString;
     private readonly ILogger<BusRepository> _logger;
 
     public BusRepository(
-        IConfiguration configuration,
         RouteBuddyDatabaseContext context,
+        IConfiguration configuration,
         ILogger<BusRepository> logger
     )
     {
-        _connectionString = configuration.GetConnectionString("DatabaseConnectionString")!;
         _context = context;
+        _connectionString = configuration.GetConnectionString("DatabaseConnectionString")!;
         _logger = logger;
     }
 
-    public async Task<Result<List<BusSchedule>>> SearchBusesAsync(
-        string source,
-        string destination,
-        DateTime travelDate
-    )
+    public async Task<Result<BusEntity>> CreateAsync(BusEntity bus)
     {
         try
         {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.BusSearchStarted,
-                source,
-                destination,
-                travelDate
+            BusFileLogger.LogInfo("Creating bus: {0}", bus.BusName);
+
+            _context.Buses.Add(bus);
+            await _context.SaveChangesAsync();
+
+            BusFileLogger.LogInfo("Bus created successfully with ID: {0}", bus.BusId);
+            return Result.Success(bus);
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error creating bus", ex);
+            return Result.Failure<BusEntity>(
+                Error.Failure("Bus.CreationFailed", BusMessages.ErrorMessages.DatabaseError)
             );
+        }
+    }
+
+    public async Task<Result<BusEntity>> GetByIdAsync(int busId)
+    {
+        try
+        {
+            BusFileLogger.LogInfo("Getting bus by ID: {0}", busId);
 
             using var connection = new SqlConnection(_connectionString);
             using var command = new SqlCommand(
-                MagicStrings.StoredProcedures.SearchBuses,
+                "SELECT BusId, VendorId, BusName, RegistrationNo, BusType, TotalSeats, Amenities, Status, IsActive, DriverName, DriverContact, RegistrationPath, SeatLayoutTemplateId, CreatedBy, UpdatedBy, CreatedOn FROM Buses WHERE BusId = @BusId",
                 connection
-            )
-            {
-                CommandType = CommandType.StoredProcedure,
-            };
-
-            command.Parameters.AddWithValue("@Source", source);
-            command.Parameters.AddWithValue("@Destination", destination);
-            command.Parameters.AddWithValue("@TravelDate", travelDate.Date);
+            );
+            command.Parameters.AddWithValue("@BusId", busId);
 
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
 
-            var schedules = new List<BusSchedule>();
+            if (await reader.ReadAsync())
+            {
+                var bus = new BusEntity
+                {
+                    BusId = reader.GetInt32("BusId"),
+                    VendorId = reader.GetInt32("VendorId"),
+                    BusName = reader.GetString("BusName"),
+                    RegistrationNo = reader.GetString("RegistrationNo"),
+                    BusType = (BusType)reader.GetInt32("BusType"),
+                    TotalSeats = reader.GetInt32("TotalSeats"),
+                    Amenities = (BusAmenities)reader.GetInt32("Amenities"),
+                    Status = (BusStatus)reader.GetInt32("Status"),
+                    IsActive = reader.GetBoolean("IsActive"),
+                    DriverName = reader.IsDBNull("DriverName")
+                        ? null!
+                        : reader.GetString("DriverName"),
+                    DriverContact = reader.IsDBNull("DriverContact")
+                        ? null!
+                        : reader.GetString("DriverContact"),
+                    RegistrationPath = reader.IsDBNull("RegistrationPath")
+                        ? string.Empty
+                        : reader.GetString("RegistrationPath"),
+                    SeatLayoutTemplateId = reader.IsDBNull("SeatLayoutTemplateId")
+                        ? null
+                        : reader.GetInt32("SeatLayoutTemplateId"),
+                    CreatedBy = reader.GetString("CreatedBy"),
+                    UpdatedBy = reader.IsDBNull("UpdatedBy") ? null : reader.GetString("UpdatedBy"),
+                    CreatedOn = reader.GetDateTime("CreatedOn"),
+                };
+
+                BusFileLogger.LogInfo("Bus retrieved successfully: {0}", busId);
+                return Result.Success(bus);
+            }
+
+            BusFileLogger.LogWarning("Bus not found: {0}", busId);
+            return Result.Failure<BusEntity>(
+                Error.NotFound("Bus.NotFound", BusMessages.ErrorMessages.BusNotFound)
+            );
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error retrieving bus", ex);
+            return Result.Failure<BusEntity>(
+                Error.Failure("Bus.RetrievalFailed", BusMessages.ErrorMessages.DatabaseError)
+            );
+        }
+    }
+
+    public async Task<Result<List<BusEntity>>> GetByVendorIdAsync(
+        int vendorId,
+        int pageNumber,
+        int pageSize,
+        BusStatus? status = null,
+        BusType? busType = null,
+        string? search = null
+    )
+    {
+        try
+        {
+            BusFileLogger.LogInfo(
+                "Getting buses by vendor: {0}, page: {1}, size: {2}, search: {3}",
+                vendorId,
+                pageNumber,
+                pageSize,
+                search ?? "none"
+            );
+
+            var whereClause = "WHERE VendorId = @VendorId";
+
+            if (status.HasValue)
+                whereClause += " AND Status = @Status";
+            if (busType.HasValue)
+                whereClause += " AND BusType = @BusType";
+            if (!string.IsNullOrWhiteSpace(search))
+                whereClause +=
+                    " AND (BusName LIKE @Search OR RegistrationNo LIKE @Search OR DriverName LIKE @Search)";
+
+            var sql =
+                $"SELECT BusId, VendorId, BusName, RegistrationNo, BusType, TotalSeats, Amenities, Status, IsActive, DriverName, DriverContact, SeatLayoutTemplateId, CreatedBy, UpdatedBy, CreatedOn FROM Buses {whereClause} ORDER BY CreatedOn DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@VendorId", vendorId);
+            command.Parameters.AddWithValue("@Offset", (pageNumber - 1) * pageSize);
+            command.Parameters.AddWithValue("@PageSize", pageSize);
+
+            if (status.HasValue)
+                command.Parameters.AddWithValue("@Status", (int)status.Value);
+            if (busType.HasValue)
+                command.Parameters.AddWithValue("@BusType", (int)busType.Value);
+            if (!string.IsNullOrWhiteSpace(search))
+                command.Parameters.AddWithValue("@Search", $"%{search}%");
+
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+
+            var buses = new List<BusEntity>();
             while (await reader.ReadAsync())
             {
-                var schedule = new BusSchedule
-                {
-                    ScheduleId = reader.GetInt32("ScheduleId"),
-                    TravelDate = reader.GetDateTime("TravelDate"),
-                    DepartureTime = reader.GetTimeSpan(reader.GetOrdinal("DepartureTime")),
-                    ArrivalTime = reader.GetTimeSpan(reader.GetOrdinal("ArrivalTime")),
-                    AvailableSeats = reader.GetInt32("AvailableSeats"),
-                    Bus = new Bus
+                buses.Add(
+                    new BusEntity
                     {
                         BusId = reader.GetInt32("BusId"),
+                        VendorId = reader.GetInt32("VendorId"),
                         BusName = reader.GetString("BusName"),
+                        RegistrationNo = reader.GetString("RegistrationNo"),
                         BusType = (BusType)reader.GetInt32("BusType"),
                         TotalSeats = reader.GetInt32("TotalSeats"),
                         Amenities = (BusAmenities)reader.GetInt32("Amenities"),
-                        Vendor = new Vendor { AgencyName = reader.GetString("VendorName") },
-                    },
-                    Route = new Route
-                    {
-                        Source = reader.GetString("Source"),
-                        Destination = reader.GetString("Destination"),
-                        BasePrice = reader.GetDecimal("BasePrice"),
-                    },
-                };
-                schedules.Add(schedule);
-            }
-
-            _logger.LogInformation(MagicStrings.LogMessages.BusSearchCompleted, schedules.Count);
-            return Result.Success(schedules);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, MagicStrings.LogMessages.BusSearchFailed, ex.Message);
-            return Result.Failure<List<BusSchedule>>(
-                Error.Failure("BusSearch.Failed", MagicStrings.ErrorMessages.DatabaseError)
-            );
-        }
-    }
-
-    public async Task<Result<List<SeatLayoutDetail>>> GetSeatLayoutAsync(
-        int scheduleId,
-        DateTime travelDate
-    )
-    {
-        try
-        {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.SeatLayoutStarted,
-                scheduleId,
-                travelDate
-            );
-
-            using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand(
-                MagicStrings.StoredProcedures.GetBusSeatLayout,
-                connection
-            )
-            {
-                CommandType = CommandType.StoredProcedure,
-            };
-
-            command.Parameters.AddWithValue("@ScheduleId", scheduleId);
-            command.Parameters.AddWithValue("@TravelDate", travelDate.Date);
-
-            await connection.OpenAsync();
-            using var reader = await command.ExecuteReaderAsync();
-
-            var seatDetails = new List<SeatLayoutDetail>();
-            BusSchedule? busSchedule = null;
-
-            while (await reader.ReadAsync())
-            {
-                if (busSchedule == null)
-                {
-                    busSchedule = new BusSchedule
-                    {
-                        ScheduleId = reader.GetInt32("ScheduleId"),
-                        Bus = new Bus
-                        {
-                            BusName = reader.GetString("BusName"),
-                            BusType = (BusType)reader.GetInt32("BusType"),
-                            Amenities = (BusAmenities)reader.GetInt32("Amenities"),
-                            TotalSeats = reader.GetInt32("TotalSeats"),
-                        },
-                        Route = new Route { BasePrice = reader.GetDecimal("BasePrice") },
-                        AvailableSeats = reader.GetInt32("AvailableSeats"),
-                    };
-                }
-
-                var isBooked = !reader.IsDBNull("BookedSeatId");
-                var seatDetail = new SeatLayoutDetail
-                {
-                    SeatLayoutDetailId = reader.GetInt32("ScheduleId"),
-                    SeatNumber = reader.GetString("SeatNumber"),
-                    SeatType = (SeatType)reader.GetInt32("SeatType"),
-                    SeatPosition = (SeatPosition)reader.GetInt32("SeatPosition"),
-                    RowNumber = reader.GetInt32("RowNumber"),
-                    ColumnNumber = reader.GetInt32("ColumnNumber"),
-                    PriceTier = (PriceTier)reader.GetInt32("PriceTier"),
-                    IsBooked = isBooked,
-                };
-
-                seatDetail.SeatLayoutTemplate = new SeatLayoutTemplate
-                {
-                    BusType = busSchedule.Bus.BusType,
-                };
-
-                seatDetails.Add(seatDetail);
-            }
-
-            if (seatDetails.Any() && busSchedule != null)
-            {
-                seatDetails[0].CreatedBy =
-                    $"{busSchedule.Bus.BusName}|{(int)busSchedule.Bus.BusType}|{(int)busSchedule.Bus.Amenities}|{busSchedule.Route.BasePrice}|{busSchedule.AvailableSeats}|{busSchedule.Bus.TotalSeats - busSchedule.AvailableSeats}";
-            }
-
-            if (!seatDetails.Any())
-            {
-                _logger.LogWarning(
-                    MagicStrings.LogMessages.SeatLayoutFailed,
-                    MagicStrings.ErrorMessages.ScheduleNotFound
-                );
-                return Result.Failure<List<SeatLayoutDetail>>(
-                    Error.NotFound(
-                        "SeatLayout.NotFound",
-                        MagicStrings.ErrorMessages.ScheduleNotFound
-                    )
-                );
-            }
-
-            _logger.LogInformation(MagicStrings.LogMessages.SeatLayoutCompleted, seatDetails.Count);
-            return Result.Success(seatDetails);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, MagicStrings.LogMessages.SeatLayoutFailed, ex.Message);
-            return Result.Failure<List<SeatLayoutDetail>>(
-                Error.Failure("SeatLayout.Failed", MagicStrings.ErrorMessages.DatabaseError)
-            );
-        }
-    }
-
-    public async Task<Result<List<SeatLayoutDetail>>> ValidateSeatsAvailabilityAsync(
-        int scheduleId,
-        DateTime travelDate,
-        List<string> seatNumbers
-    )
-    {
-        try
-        {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.SeatValidationStarted,
-                seatNumbers.Count
-            );
-
-            using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand(
-                MagicStrings.StoredProcedures.ValidateSeatsAvailability,
-                connection
-            )
-            {
-                CommandType = CommandType.StoredProcedure,
-            };
-
-            command.Parameters.AddWithValue("@ScheduleId", scheduleId);
-            command.Parameters.AddWithValue("@TravelDate", travelDate.Date);
-            command.Parameters.AddWithValue("@SeatNumbers", string.Join(",", seatNumbers));
-
-            await connection.OpenAsync();
-            using var reader = await command.ExecuteReaderAsync();
-
-            var seatDetails = new List<SeatLayoutDetail>();
-            while (await reader.ReadAsync())
-            {
-                var seatDetail = new SeatLayoutDetail
-                {
-                    SeatNumber = reader.GetString("SeatNumber"),
-                    SeatType = (SeatType)reader.GetInt32("SeatType"),
-                    SeatPosition = (SeatPosition)reader.GetInt32("SeatPosition"),
-                    PriceTier = (PriceTier)reader.GetInt32("PriceTier"),
-                    BasePrice = reader.GetDecimal("BasePrice"),
-                    BusTypeForPricing = (BusType)reader.GetInt32("BusType"),
-                    AmenitiesForPricing = (BusAmenities)reader.GetInt32("Amenities"),
-                    IsBooked = reader.GetInt32("IsBooked") == 1,
-                };
-                seatDetails.Add(seatDetail);
-            }
-
-            var bookedSeats = seatDetails.Where(s => s.IsBooked).ToList();
-            if (bookedSeats.Any())
-            {
-                _logger.LogWarning(
-                    MagicStrings.LogMessages.SeatValidationFailed,
-                    MagicStrings.ErrorMessages.SeatsNotAvailable
-                );
-                return Result.Failure<List<SeatLayoutDetail>>(
-                    Error.Failure(
-                        "SeatValidation.Failed",
-                        MagicStrings.ErrorMessages.SeatsNotAvailable
-                    )
-                );
-            }
-
-            _logger.LogInformation(MagicStrings.LogMessages.SeatValidationCompleted);
-            return Result.Success(seatDetails);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, MagicStrings.LogMessages.SeatValidationFailed, ex.Message);
-            return Result.Failure<List<SeatLayoutDetail>>(
-                Error.Failure("SeatValidation.Failed", MagicStrings.ErrorMessages.DatabaseError)
-            );
-        }
-    }
-
-    public async Task<Result<Booking>> BookSeatsAsync(
-        int scheduleId,
-        int customerId,
-        DateTime travelDate,
-        List<string> seatNumbers,
-        List<(string Name, int Age, Gender Gender)> passengers,
-        decimal totalAmount,
-        int boardingStopId,
-        int droppingStopId
-    )
-    {
-        using var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            var pnr = Guid.NewGuid().ToString()[..8].ToUpper();
-
-            var booking = new Booking
-            {
-                PNRNo = pnr,
-                CustomerId = customerId,
-                TotalSeats = seatNumbers.Count,
-                TotalAmount = totalAmount,
-                TravelDate = travelDate,
-                Status = BookingStatus.Pending,
-                BookedAt = DateTime.UtcNow,
-                IsActive = true,
-                CreatedBy = "System",
-                CreatedOn = DateTime.UtcNow,
-            };
-
-            _context.Bookings.Add(booking);
-            await _context.SaveChangesAsync();
-
-            var bookingSegment = new BookingSegment
-            {
-                BookingId = booking.BookingId,
-                ScheduleId = scheduleId,
-                SeatsBooked = seatNumbers.Count,
-                SegmentAmount = totalAmount,
-                SegmentOrder = 1,
-                BoardingStopId = boardingStopId,
-                DroppingStopId = droppingStopId,
-                CreatedBy = "System",
-                CreatedOn = DateTime.UtcNow,
-            };
-
-            _context.BookingSegments.Add(bookingSegment);
-            await _context.SaveChangesAsync();
-
-            var seatValidationResult = await ValidateSeatsAndStopsAsync(
-                scheduleId,
-                travelDate,
-                seatNumbers,
-                boardingStopId,
-                droppingStopId
-            );
-            if (seatValidationResult.IsFailure)
-            {
-                await transaction.RollbackAsync();
-                return Result.Failure<Booking>(seatValidationResult.Error);
-            }
-
-            for (int i = 0; i < seatNumbers.Count; i++)
-            {
-                var seat = seatValidationResult.Value.First(s => s.SeatNumber == seatNumbers[i]);
-                var passenger = passengers[i];
-
-                var bookedSeat = new BookedSeat
-                {
-                    TravelDate = travelDate,
-                    SeatNumber = seat.SeatNumber,
-                    SeatType = seat.SeatType,
-                    SeatPosition = seat.SeatPosition,
-                    PassengerName = passenger.Name,
-                    PassengerAge = passenger.Age,
-                    PassengerGender = passenger.Gender,
-                    BookingId = booking.BookingId,
-                    BookingSegmentId = bookingSegment.BookingSegmentId,
-                    CreatedBy = "System",
-                    CreatedOn = DateTime.UtcNow,
-                };
-
-                _context.BookedSeats.Add(bookedSeat);
-            }
-
-            var schedule = await _context.BusSchedules.FindAsync(scheduleId);
-            if (schedule != null)
-            {
-                schedule.AvailableSeats -= seatNumbers.Count;
-                schedule.UpdatedBy = "System";
-                schedule.UpdatedOn = DateTime.UtcNow;
-            }
-
-            await _context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return Result.Success(booking);
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            _logger.LogError(ex, MagicStrings.LogMessages.BookingFailed, ex.Message);
-            return Result.Failure<Booking>(
-                Error.Failure("Booking.Failed", MagicStrings.ErrorMessages.BookingFailed)
-            );
-        }
-    }
-
-    public async Task<Result<(string BusName, string Route)>> GetBusInfoAsync(int scheduleId)
-    {
-        try
-        {
-            var busSchedule = await _context
-                .BusSchedules.Include(bs => bs.Bus)
-                .Include(bs => bs.Route)
-                .FirstOrDefaultAsync(bs => bs.ScheduleId == scheduleId);
-
-            if (busSchedule == null)
-                return Result.Failure<(string, string)>(
-                    Error.NotFound("Schedule.NotFound", "Schedule not found")
-                );
-
-            return Result.Success(
-                (
-                    busSchedule.Bus.BusName,
-                    $"{busSchedule.Route.Source} to {busSchedule.Route.Destination}"
-                )
-            );
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get bus info: {Message}", ex.Message);
-            return Result.Failure<(string, string)>(
-                Error.Failure("BusInfo.Failed", "Failed to get bus info")
-            );
-        }
-    }
-
-    public async Task<Result<List<RouteStop>>> GetRouteStopsAsync(int scheduleId)
-    {
-        try
-        {
-            _logger.LogInformation(MagicStrings.LogMessages.RouteStopsStarted, scheduleId);
-
-            using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand(
-                MagicStrings.StoredProcedures.GetRouteStops,
-                connection
-            )
-            {
-                CommandType = CommandType.StoredProcedure,
-            };
-
-            command.Parameters.AddWithValue("@ScheduleId", scheduleId);
-
-            await connection.OpenAsync();
-            using var reader = await command.ExecuteReaderAsync();
-
-            var routeStops = new List<RouteStop>();
-            while (await reader.ReadAsync())
-            {
-                var routeStop = new RouteStop
-                {
-                    RouteStopId = reader.GetInt32("RouteStopId"),
-                    StopId = reader.GetInt32("StopId"),
-                    OrderNumber = reader.GetInt32("OrderNumber"),
-                    ArrivalTime = reader.IsDBNull(reader.GetOrdinal("ArrivalTime"))
-                        ? null
-                        : reader.GetTimeSpan(reader.GetOrdinal("ArrivalTime")),
-                    DepartureTime = reader.IsDBNull(reader.GetOrdinal("DepartureTime"))
-                        ? null
-                        : reader.GetTimeSpan(reader.GetOrdinal("DepartureTime")),
-                    Stop = new Stop
-                    {
-                        StopId = reader.GetInt32("StopId"),
-                        Name = reader.GetString("StopName"),
-                        Landmark = reader.IsDBNull("Landmark")
+                        Status = (BusStatus)reader.GetInt32("Status"),
+                        IsActive = reader.GetBoolean("IsActive"),
+                        DriverName = reader.IsDBNull("DriverName")
+                            ? null!
+                            : reader.GetString("DriverName"),
+                        DriverContact = reader.IsDBNull("DriverContact")
+                            ? null!
+                            : reader.GetString("DriverContact"),
+                        SeatLayoutTemplateId = reader.IsDBNull("SeatLayoutTemplateId")
                             ? null
-                            : reader.GetString("Landmark"),
-                    },
-                };
-                routeStops.Add(routeStop);
+                            : reader.GetInt32("SeatLayoutTemplateId"),
+                        CreatedBy = reader.GetString("CreatedBy"),
+                        UpdatedBy = reader.IsDBNull("UpdatedBy")
+                            ? null
+                            : reader.GetString("UpdatedBy"),
+                        CreatedOn = reader.GetDateTime("CreatedOn"),
+                    }
+                );
             }
 
-            _logger.LogInformation(MagicStrings.LogMessages.RouteStopsCompleted, routeStops.Count);
-            return Result.Success(routeStops);
+            BusFileLogger.LogInfo("Retrieved {0} buses", buses.Count);
+            return Result.Success(buses);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, MagicStrings.LogMessages.RouteStopsFailed, ex.Message);
-            return Result.Failure<List<RouteStop>>(
-                Error.Failure("RouteStops.Failed", MagicStrings.ErrorMessages.DatabaseError)
+            BusFileLogger.LogError("Error getting buses by vendor", ex);
+            return Result.Failure<List<BusEntity>>(
+                Error.Failure("Bus.ListFailed", BusMessages.ErrorMessages.DatabaseError)
             );
         }
     }
 
-    public async Task<Result<List<SeatLayoutDetail>>> ValidateSeatsAndStopsAsync(
-        int scheduleId,
-        DateTime travelDate,
-        List<string> seatNumbers,
-        int boardingStopId,
-        int droppingStopId
+    public async Task<Result<int>> GetCountByVendorIdAsync(
+        int vendorId,
+        BusStatus? status = null,
+        BusType? busType = null,
+        string? search = null
     )
     {
         try
         {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.SeatValidationStarted,
-                seatNumbers.Count
-            );
+            var whereClause = "WHERE VendorId = @VendorId";
+
+            if (status.HasValue)
+                whereClause += " AND Status = @Status";
+            if (busType.HasValue)
+                whereClause += " AND BusType = @BusType";
+            if (!string.IsNullOrWhiteSpace(search))
+                whereClause +=
+                    " AND (BusName LIKE @Search OR RegistrationNo LIKE @Search OR DriverName LIKE @Search)";
+
+            var sql = $"SELECT COUNT(*) FROM Buses {whereClause}";
 
             using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand(
-                MagicStrings.StoredProcedures.ValidateSeatsAndStops,
-                connection
-            )
-            {
-                CommandType = CommandType.StoredProcedure,
-            };
+            using var command = new SqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@VendorId", vendorId);
 
-            command.Parameters.AddWithValue("@ScheduleId", scheduleId);
-            command.Parameters.AddWithValue("@TravelDate", travelDate.Date);
-            command.Parameters.AddWithValue("@SeatNumbers", string.Join(",", seatNumbers));
-            command.Parameters.AddWithValue("@BoardingStopId", boardingStopId);
-            command.Parameters.AddWithValue("@DroppingStopId", droppingStopId);
+            if (status.HasValue)
+                command.Parameters.AddWithValue("@Status", (int)status.Value);
+            if (busType.HasValue)
+                command.Parameters.AddWithValue("@BusType", (int)busType.Value);
+            if (!string.IsNullOrWhiteSpace(search))
+                command.Parameters.AddWithValue("@Search", $"%{search}%");
 
             await connection.OpenAsync();
-            using var reader = await command.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
-            {
-                if (reader.FieldCount == 1 && reader.GetName(0) == "ValidationResult")
-                {
-                    var validationResult = reader.GetString("ValidationResult");
-                    var errorMessage = validationResult switch
-                    {
-                        "INVALID_STOPS" => MagicStrings.ErrorMessages.InvalidBoardingStop,
-                        "INVALID_STOP_ORDER" => MagicStrings.ErrorMessages.InvalidStopOrder,
-                        _ => MagicStrings.ErrorMessages.SeatsNotAvailable,
-                    };
-
-                    _logger.LogWarning(MagicStrings.LogMessages.SeatValidationFailed, errorMessage);
-                    return Result.Failure<List<SeatLayoutDetail>>(
-                        Error.Failure("SeatValidation.Failed", errorMessage)
-                    );
-                }
-            }
-
-            var seatDetails = new List<SeatLayoutDetail>();
-            do
-            {
-                var seatDetail = new SeatLayoutDetail
-                {
-                    SeatNumber = reader.GetString("SeatNumber"),
-                    SeatType = (SeatType)reader.GetInt32("SeatType"),
-                    SeatPosition = (SeatPosition)reader.GetInt32("SeatPosition"),
-                    PriceTier = (PriceTier)reader.GetInt32("PriceTier"),
-                    BasePrice = reader.GetDecimal("BasePrice"),
-                    BusTypeForPricing = (BusType)reader.GetInt32("BusType"),
-                    AmenitiesForPricing = (BusAmenities)reader.GetInt32("Amenities"),
-                    IsBooked = reader.GetInt32("IsBooked") == 1,
-                };
-                seatDetails.Add(seatDetail);
-            } while (await reader.ReadAsync());
-
-            var bookedSeats = seatDetails.Where(s => s.IsBooked).ToList();
-            if (bookedSeats.Any())
-            {
-                _logger.LogWarning(
-                    MagicStrings.LogMessages.SeatValidationFailed,
-                    MagicStrings.ErrorMessages.SeatsNotAvailable
-                );
-                return Result.Failure<List<SeatLayoutDetail>>(
-                    Error.Failure(
-                        "SeatValidation.Failed",
-                        MagicStrings.ErrorMessages.SeatsNotAvailable
-                    )
-                );
-            }
-
-            _logger.LogInformation(MagicStrings.LogMessages.SeatValidationCompleted);
-            return Result.Success(seatDetails);
+            var result = await command.ExecuteScalarAsync();
+            var count = result != null ? (int)result : 0;
+            return Result.Success(count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, MagicStrings.LogMessages.SeatValidationFailed, ex.Message);
-            return Result.Failure<List<SeatLayoutDetail>>(
-                Error.Failure("SeatValidation.Failed", MagicStrings.ErrorMessages.DatabaseError)
+            BusFileLogger.LogError("Error getting bus count", ex);
+            return Result.Failure<int>(
+                Error.Failure("Bus.CountFailed", BusMessages.ErrorMessages.DatabaseError)
             );
         }
     }
 
-    public async Task<Result<string>> ConfirmBookingAsync(
-        int bookingId,
-        string paymentReferenceId,
-        bool isPaymentSuccessful
-    )
+    public async Task<Result<BusEntity>> UpdateAsync(BusEntity bus)
     {
         try
         {
-            _logger.LogInformation(MagicStrings.LogMessages.BookingConfirmationStarted, bookingId);
+            BusFileLogger.LogInfo("Updating bus: {0}", bus.BusId);
 
-            using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand(
-                MagicStrings.StoredProcedures.ConfirmBooking,
-                connection
-            )
-            {
-                CommandType = CommandType.StoredProcedure,
-            };
+            bus.UpdatedOn = DateTime.UtcNow;
+            bus.UpdatedBy = "System";
 
-            command.Parameters.AddWithValue("@BookingId", bookingId);
-            command.Parameters.AddWithValue("@PaymentReferenceId", paymentReferenceId);
-            command.Parameters.AddWithValue("@IsPaymentSuccessful", isPaymentSuccessful);
+            _context.Buses.Update(bus);
+            _context.Entry(bus).Property(x => x.UpdatedBy).IsModified = true;
+            _context.Entry(bus).Property(x => x.UpdatedOn).IsModified = true;
 
-            await connection.OpenAsync();
-            using var reader = await command.ExecuteReaderAsync();
+            await _context.SaveChangesAsync();
 
-            if (await reader.ReadAsync())
-            {
-                var result = reader.GetString("Result");
-
-                switch (result)
-                {
-                    case "CONFIRMED":
-                        _logger.LogInformation(
-                            MagicStrings.LogMessages.BookingConfirmationCompleted,
-                            bookingId
-                        );
-                        return Result.Success("Booking confirmed successfully");
-
-                    case "BOOKING_NOT_FOUND":
-                        _logger.LogWarning(
-                            MagicStrings.LogMessages.BookingConfirmationFailed,
-                            MagicStrings.ErrorMessages.BookingNotFound
-                        );
-                        return Result.Failure<string>(
-                            Error.NotFound(
-                                "Booking.NotFound",
-                                MagicStrings.ErrorMessages.BookingNotFound
-                            )
-                        );
-
-                    case "ALREADY_CONFIRMED":
-                        _logger.LogWarning(
-                            MagicStrings.LogMessages.BookingConfirmationFailed,
-                            MagicStrings.ErrorMessages.BookingAlreadyConfirmed
-                        );
-                        return Result.Failure<string>(
-                            Error.Failure(
-                                "Booking.AlreadyConfirmed",
-                                MagicStrings.ErrorMessages.BookingAlreadyConfirmed
-                            )
-                        );
-
-                    case "BOOKING_EXPIRED":
-                        _logger.LogWarning(
-                            MagicStrings.LogMessages.BookingConfirmationFailed,
-                            MagicStrings.ErrorMessages.BookingExpired
-                        );
-                        return Result.Failure<string>(
-                            Error.Failure(
-                                "Booking.Expired",
-                                MagicStrings.ErrorMessages.BookingExpired
-                            )
-                        );
-
-                    case "PAYMENT_FAILED":
-                        _logger.LogInformation(
-                            "Booking cancelled due to payment failure for BookingId: {BookingId}",
-                            bookingId
-                        );
-                        return Result.Success("Booking cancelled due to payment failure");
-
-                    default:
-                        _logger.LogError(
-                            MagicStrings.LogMessages.BookingConfirmationFailed,
-                            "Unknown result: " + result
-                        );
-                        return Result.Failure<string>(
-                            Error.Failure(
-                                "Booking.UnknownResult",
-                                MagicStrings.ErrorMessages.UnexpectedError
-                            )
-                        );
-                }
-            }
-
-            _logger.LogError(
-                MagicStrings.LogMessages.BookingConfirmationFailed,
-                "No result returned from stored procedure"
-            );
-            return Result.Failure<string>(
-                Error.Failure("Booking.NoResult", MagicStrings.ErrorMessages.DatabaseError)
-            );
+            BusFileLogger.LogInfo("Bus updated successfully: {0}", bus.BusId);
+            return Result.Success(bus);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, MagicStrings.LogMessages.BookingConfirmationFailed, ex.Message);
-            return Result.Failure<string>(
+            BusFileLogger.LogError("Error updating bus", ex);
+            return Result.Failure<BusEntity>(
+                Error.Failure("Bus.UpdateFailed", BusMessages.ErrorMessages.DatabaseError)
+            );
+        }
+    }
+
+    public async Task<Result<bool>> DeleteAsync(int busId)
+    {
+        try
+        {
+            BusFileLogger.LogInfo("Deleting bus: {0}", busId);
+
+            var bus = await _context.Buses.FindAsync(busId);
+            if (bus == null)
+            {
+                BusFileLogger.LogWarning("Bus not found for deletion: {0}", busId);
+                return Result.Failure<bool>(
+                    Error.NotFound("Bus.NotFound", BusMessages.ErrorMessages.BusNotFound)
+                );
+            }
+
+            _context.Buses.Remove(bus);
+            await _context.SaveChangesAsync();
+
+            BusFileLogger.LogInfo("Bus deleted successfully: {0}", busId);
+            return Result.Success(true);
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error deleting bus", ex);
+            return Result.Failure<bool>(
+                Error.Failure("Bus.DeleteFailed", BusMessages.ErrorMessages.DatabaseError)
+            );
+        }
+    }
+
+    public async Task<Result<bool>> ExistsByRegistrationNoAsync(string registrationNo)
+    {
+        try
+        {
+            var exists = await _context.Buses.AnyAsync(b =>
+                b.RegistrationNo == registrationNo && b.IsActive
+            );
+            return Result.Success(exists);
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error checking bus exists by registration", ex);
+            return Result.Failure<bool>(
+                Error.Failure("Bus.ExistsFailed", BusMessages.ErrorMessages.DatabaseError)
+            );
+        }
+    }
+
+    public async Task<Result<bool>> ExistsByIdAndVendorAsync(int busId, int vendorId)
+    {
+        try
+        {
+            var exists = await _context.Buses.AnyAsync(b =>
+                b.BusId == busId && b.VendorId == vendorId
+            );
+            return Result.Success(exists);
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error checking bus exists by ID and vendor", ex);
+            return Result.Failure<bool>(
+                Error.Failure("Bus.ExistsFailed", BusMessages.ErrorMessages.DatabaseError)
+            );
+        }
+    }
+
+    public async Task<Result<List<BusEntity>>> GetAwaitingConfirmationByVendorAsync(int vendorId)
+    {
+        try
+        {
+            var buses = await _context
+                .Buses.Include(b => b.Vendor)
+                .ThenInclude(v => v.User)
+                .Where(b => b.VendorId == vendorId && b.Status == BusStatus.PendingApproval)
+                .ToListAsync();
+            return Result.Success(buses);
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error getting awaiting confirmation buses", ex);
+            return Result.Failure<List<BusEntity>>(
                 Error.Failure(
-                    "Booking.ConfirmationFailed",
-                    MagicStrings.ErrorMessages.DatabaseError
+                    "Bus.AwaitingConfirmationFailed",
+                    BusMessages.ErrorMessages.DatabaseError
                 )
             );
         }
     }
 
-    public async Task<Result<int>> ExpirePendingBookingsAsync()
+    public async Task<Result<bool>> ExistsByNameAndVendorAsync(string busName, int vendorId)
     {
         try
         {
-            _logger.LogInformation(MagicStrings.LogMessages.BookingExpiryStarted);
-
-            using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand(
-                MagicStrings.StoredProcedures.ExpirePendingBookings,
-                connection
-            )
-            {
-                CommandType = CommandType.StoredProcedure,
-            };
-
-            await connection.OpenAsync();
-            using var reader = await command.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
-            {
-                var expiredCount = reader.GetInt32("ExpiredCount");
-                if (expiredCount > 0)
-                {
-                    _logger.LogInformation(
-                        MagicStrings.LogMessages.BookingExpiryCompleted,
-                        expiredCount
-                    );
-                }
-                return Result.Success(expiredCount);
-            }
-
-            return Result.Success(0);
+            var exists = await _context.Buses.AnyAsync(b =>
+                b.BusName == busName && b.VendorId == vendorId && b.IsActive
+            );
+            return Result.Success(exists);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, MagicStrings.LogMessages.BookingExpiryFailed, ex.Message);
-            return Result.Failure<int>(
-                Error.Failure("BookingExpiry.Failed", MagicStrings.ErrorMessages.DatabaseError)
+            BusFileLogger.LogError("Error checking bus exists by name and vendor", ex);
+            return Result.Failure<bool>(
+                Error.Failure("Bus.ExistsFailed", BusMessages.ErrorMessages.DatabaseError)
             );
         }
     }
 
-    public async Task<Result<List<BusSchedule>>> SearchBusesFilteredAsync(
-        string source,
-        string destination,
-        DateTime travelDate,
-        List<int>? busTypes,
-        List<int>? amenities,
-        TimeSpan? departureTimeFrom,
-        TimeSpan? departureTimeTo,
-        decimal? minPrice,
-        decimal? maxPrice,
-        string? sortBy
-    )
+    public async Task<Result<bool>> ExistsAsync(int busId)
     {
         try
         {
-            _logger.LogInformation(
-                MagicStrings.LogMessages.FilteredBusSearchStarted,
-                source,
-                destination,
-                travelDate
-            );
-
             using var connection = new SqlConnection(_connectionString);
             using var command = new SqlCommand(
-                MagicStrings.StoredProcedures.SearchBusesFiltered,
+                "SELECT COUNT(1) FROM Buses WHERE BusId = @BusId",
                 connection
-            )
-            {
-                CommandType = CommandType.StoredProcedure,
-            };
-
-            command.Parameters.AddWithValue("@Source", source);
-            command.Parameters.AddWithValue("@Destination", destination);
-            command.Parameters.AddWithValue("@TravelDate", travelDate.Date);
-            command.Parameters.AddWithValue(
-                "@BusTypes",
-                busTypes != null ? string.Join(",", busTypes) : (object)DBNull.Value
             );
-            command.Parameters.AddWithValue(
-                "@Amenities",
-                amenities != null ? string.Join(",", amenities) : (object)DBNull.Value
-            );
-            command.Parameters.AddWithValue(
-                "@DepartureTimeFrom",
-                departureTimeFrom ?? (object)DBNull.Value
-            );
-            command.Parameters.AddWithValue(
-                "@DepartureTimeTo",
-                departureTimeTo ?? (object)DBNull.Value
-            );
-            command.Parameters.AddWithValue("@MinPrice", minPrice ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@MaxPrice", maxPrice ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@SortBy", sortBy ?? "time_asc");
+            command.Parameters.AddWithValue("@BusId", busId);
 
             await connection.OpenAsync();
-            using var reader = await command.ExecuteReaderAsync();
-
-            var busSchedules = new List<BusSchedule>();
-            while (await reader.ReadAsync())
-            {
-                var busSchedule = new BusSchedule
-                {
-                    ScheduleId = reader.GetInt32("ScheduleId"),
-                    TravelDate = reader.GetDateTime("TravelDate"),
-                    DepartureTime = reader.GetTimeSpan(reader.GetOrdinal("DepartureTime")),
-                    ArrivalTime = reader.GetTimeSpan(reader.GetOrdinal("ArrivalTime")),
-                    AvailableSeats = reader.GetInt32("AvailableSeats"),
-                    Bus = new Bus
-                    {
-                        BusId = reader.GetInt32("BusId"),
-                        BusName = reader.GetString("BusName"),
-                        BusType = (BusType)reader.GetInt32("BusType"),
-                        TotalSeats = reader.GetInt32("TotalSeats"),
-                        Amenities = (BusAmenities)reader.GetInt32("Amenities"),
-                        Vendor = new Vendor { AgencyName = reader.GetString("VendorName") },
-                    },
-                    Route = new Route
-                    {
-                        Source = reader.GetString("Source"),
-                        Destination = reader.GetString("Destination"),
-                        BasePrice = reader.GetDecimal("BasePrice"),
-                    },
-                };
-                busSchedules.Add(busSchedule);
-            }
-
-            _logger.LogInformation(
-                MagicStrings.LogMessages.FilteredBusSearchCompleted,
-                busSchedules.Count
-            );
-            return Result.Success(busSchedules);
+            var result = await command.ExecuteScalarAsync();
+            var count = result != null ? (int)result : 0;
+            return Result.Success(count > 0);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, MagicStrings.LogMessages.FilteredBusSearchFailed, ex.Message);
-            return Result.Failure<List<BusSchedule>>(
-                Error.Failure("FilteredBusSearch.Failed", MagicStrings.ErrorMessages.DatabaseError)
+            BusFileLogger.LogError("Error checking bus exists by ID", ex);
+            return Result.Failure<bool>(
+                Error.Failure("Bus.ExistsFailed", BusMessages.ErrorMessages.DatabaseError)
             );
         }
+    }
+
+    // Admin methods using ADO.NET for read operations
+    public async Task<List<BusEntity>> GetAllBusesForAdminAsync()
+    {
+        try
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("sp_GetAllBusesForAdmin", connection);
+            command.CommandType = CommandType.StoredProcedure;
+            
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            
+            var buses = new List<BusEntity>();
+            while (await reader.ReadAsync())
+            {
+                buses.Add(MapBusFromReader(reader));
+            }
+            return buses;
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error getting all buses for admin", ex);
+            return new List<BusEntity>();
+        }
+    }
+
+    public async Task<List<BusEntity>> GetBusesByStatusAsync(BusStatus status)
+    {
+        try
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("sp_GetBusesByStatus", connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@Status", (int)status);
+            
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            
+            var buses = new List<BusEntity>();
+            while (await reader.ReadAsync())
+            {
+                buses.Add(MapBusFromReader(reader));
+            }
+            return buses;
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error getting buses by status", ex);
+            return new List<BusEntity>();
+        }
+    }
+
+    public async Task<List<BusEntity>> FilterBusesForAdminAsync(string? searchName, int? status, bool? isActive)
+    {
+        try
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("sp_FilterBusesForAdmin", connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@SearchName", (object?)searchName ?? DBNull.Value);
+            command.Parameters.AddWithValue("@Status", (object?)status ?? DBNull.Value);
+            command.Parameters.AddWithValue("@IsActive", (object?)isActive ?? DBNull.Value);
+            
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            
+            var buses = new List<BusEntity>();
+            while (await reader.ReadAsync())
+            {
+                buses.Add(MapBusFromReader(reader));
+            }
+            return buses;
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error filtering buses for admin", ex);
+            return new List<BusEntity>();
+        }
+    }
+
+    public async Task<BusEntity?> GetBusDetailsForAdminAsync(int busId)
+    {
+        try
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("sp_GetBusDetailsForAdmin", connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@BusId", busId);
+            
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            
+            if (await reader.ReadAsync())
+            {
+                return MapBusFromReader(reader);
+            }
+            return null;
+        }
+        catch (Exception ex)
+        {
+            BusFileLogger.LogError("Error getting bus details for admin", ex);
+            return null;
+        }
+    }
+
+
+
+    private static BusEntity MapBusFromReader(SqlDataReader reader)
+    {
+        return new BusEntity
+        {
+            BusId = reader.GetInt32("BusId"),
+            BusName = reader.GetString("BusName"),
+            BusType = (BusType)reader.GetInt32("BusType"),
+            TotalSeats = reader.GetInt32("TotalSeats"),
+            RegistrationNo = reader.GetString("RegistrationNo"),
+            Status = (BusStatus)reader.GetInt32("Status"),
+            Amenities = (BusAmenities)reader.GetInt32("Amenities"),
+            DriverName = reader.IsDBNull("DriverName") ? null! : reader.GetString("DriverName"),
+            DriverContact = reader.IsDBNull("DriverContact") ? null! : reader.GetString("DriverContact"),
+            IsActive = reader.GetBoolean("IsActive"),
+            CreatedOn = reader.GetDateTime("CreatedOn"),
+            VendorId = reader.GetInt32("VendorId")
+        };
     }
 }

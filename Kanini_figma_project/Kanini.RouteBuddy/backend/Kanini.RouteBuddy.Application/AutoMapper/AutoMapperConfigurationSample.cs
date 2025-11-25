@@ -20,6 +20,7 @@ namespace Kanini.RouteBuddy.Application.AutoMapper
         {
             config.CreateMap<CreateUserRequestDto, User>();
             config.CreateMap<User, UserResponseDto>();
+            config.AddProfile<AuthMappingProfile>();
             config.AddProfile<BusProfile>();
             config.AddProfile<BookingProfile>();
             config.AddProfile<RouteStopProfile>();
@@ -28,6 +29,7 @@ namespace Kanini.RouteBuddy.Application.AutoMapper
             config.AddProfile<ConnectingBookingProfile>();
             config.AddProfile<SmartEmailProfile>();
             config.AddProfile<SeatLayoutProfile>();
+            config.AddProfile<PaymentProfile>();
         }
     }
 }

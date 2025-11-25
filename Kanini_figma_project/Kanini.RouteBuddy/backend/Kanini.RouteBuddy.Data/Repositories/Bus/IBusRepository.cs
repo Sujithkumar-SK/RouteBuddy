@@ -1,57 +1,39 @@
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Domain.Entities;
 using Kanini.RouteBuddy.Domain.Enums;
+using BusEntity = Kanini.RouteBuddy.Domain.Entities.Bus;
 
 namespace Kanini.RouteBuddy.Data.Repositories.Buses;
 
 public interface IBusRepository
 {
-    Task<Result<List<BusSchedule>>> SearchBusesAsync(
-        string source,
-        string destination,
-        DateTime travelDate
+    Task<Result<BusEntity>> CreateAsync(BusEntity bus);
+    Task<Result<BusEntity>> GetByIdAsync(int busId);
+    Task<Result<List<BusEntity>>> GetByVendorIdAsync(
+        int vendorId,
+        int pageNumber,
+        int pageSize,
+        BusStatus? status = null,
+        BusType? busType = null,
+        string? search = null
     );
-    Task<Result<List<BusSchedule>>> SearchBusesFilteredAsync(
-        string source,
-        string destination,
-        DateTime travelDate,
-        List<int>? busTypes,
-        List<int>? amenities,
-        TimeSpan? departureTimeFrom,
-        TimeSpan? departureTimeTo,
-        decimal? minPrice,
-        decimal? maxPrice,
-        string? sortBy
+    Task<Result<int>> GetCountByVendorIdAsync(
+        int vendorId,
+        BusStatus? status = null,
+        BusType? busType = null,
+        string? search = null
     );
-    Task<Result<List<SeatLayoutDetail>>> GetSeatLayoutAsync(int scheduleId, DateTime travelDate);
-    Task<Result<List<SeatLayoutDetail>>> ValidateSeatsAvailabilityAsync(
-        int scheduleId,
-        DateTime travelDate,
-        List<string> seatNumbers
-    );
-    Task<Result<Booking>> BookSeatsAsync(
-        int scheduleId,
-        int customerId,
-        DateTime travelDate,
-        List<string> seatNumbers,
-        List<(string Name, int Age, Gender Gender)> passengers,
-        decimal totalAmount,
-        int boardingStopId,
-        int droppingStopId
-    );
-    Task<Result<(string BusName, string Route)>> GetBusInfoAsync(int scheduleId);
-    Task<Result<List<RouteStop>>> GetRouteStopsAsync(int scheduleId);
-    Task<Result<List<SeatLayoutDetail>>> ValidateSeatsAndStopsAsync(
-        int scheduleId,
-        DateTime travelDate,
-        List<string> seatNumbers,
-        int boardingStopId,
-        int droppingStopId
-    );
-    Task<Result<string>> ConfirmBookingAsync(
-        int bookingId,
-        string paymentReferenceId,
-        bool isPaymentSuccessful
-    );
-    Task<Result<int>> ExpirePendingBookingsAsync();
+    Task<Result<BusEntity>> UpdateAsync(BusEntity bus);
+    Task<Result<bool>> DeleteAsync(int busId);
+    Task<Result<bool>> ExistsByRegistrationNoAsync(string registrationNo);
+    Task<Result<bool>> ExistsByIdAndVendorAsync(int busId, int vendorId);
+    Task<Result<bool>> ExistsByNameAndVendorAsync(string busName, int vendorId);
+    Task<Result<bool>> ExistsAsync(int busId);
+    Task<Result<List<BusEntity>>> GetAwaitingConfirmationByVendorAsync(int vendorId);
+    
+    // Admin methods
+    Task<List<BusEntity>> GetAllBusesForAdminAsync();
+    Task<List<BusEntity>> GetBusesByStatusAsync(BusStatus status);
+    Task<List<BusEntity>> FilterBusesForAdminAsync(string? searchName, int? status, bool? isActive);
+    Task<BusEntity?> GetBusDetailsForAdminAsync(int busId);
 }

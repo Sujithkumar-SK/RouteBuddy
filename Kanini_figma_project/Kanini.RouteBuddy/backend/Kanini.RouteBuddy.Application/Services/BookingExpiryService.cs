@@ -41,7 +41,7 @@ public class BookingExpiryService : BackgroundService
     private async Task ExpirePendingBookingsAsync()
     {
         using var scope = _serviceProvider.CreateScope();
-        var busService = scope.ServiceProvider.GetRequiredService<IBusService>();
+        var busService = scope.ServiceProvider.GetRequiredService<IBus_Search_Book_Service>();
 
         var result = await busService.ExpirePendingBookingsAsync();
 

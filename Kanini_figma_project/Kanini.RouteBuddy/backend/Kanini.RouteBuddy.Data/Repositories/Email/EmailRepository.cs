@@ -16,11 +16,11 @@ public class EmailRepository : IEmailRepository
         _connectionString =
             configuration.GetConnectionString(MagicStrings.ConfigKeys.DatabaseConnectionString)
             ?? string.Empty;
+        _logger = logger;
         if (string.IsNullOrEmpty(_connectionString))
         {
             _logger.LogError("Database connection string not found");
         }
-        _logger = logger;
     }
 
     public async Task<BookingEmailData?> GetBookingDetailsForEmailAsync(int bookingId)

@@ -1,13 +1,12 @@
+using System.Net;
+using System.Net.Mail;
 using System.Reflection;
 using Kanini.RouteBuddy.Application.Services.Pdf;
 using Kanini.RouteBuddy.Common;
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Data.Repositories.Email;
-using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using MimeKit;
 
 namespace Kanini.RouteBuddy.Application.Services.Email;
 
@@ -176,6 +175,80 @@ public class EmailService : IEmailService
         }
     }
 
+    public async Task<Result<string>> SendVendorRejectionEmailAsync(string vendorEmail, string vendorName, string rejectionReason)
+    {
+        try
+        {
+            _logger.LogInformation(MagicStrings.LogMessages.EmailSendingStarted, "VendorRejection");
+
+            var subject = MagicStrings.EmailTemplates.VendorRejectionSubject;
+            var body = string.Format(MagicStrings.EmailTemplates.VendorRejectionTemplate, vendorName, rejectionReason);
+
+            var result = await SendEmailAsync(vendorEmail, subject, body);
+            if (result.IsFailure)
+            {
+                return Result.Failure<string>(result.Error);
+            }
+
+            _logger.LogInformation(MagicStrings.LogMessages.EmailSendingCompleted, "VendorRejection");
+            return Result.Success(MagicStrings.SuccessMessages.EmailSentSuccessfully);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MagicStrings.LogMessages.EmailSendingFailed, "VendorRejection", ex.Message);
+            return Result.Failure<string>(
+                Error.Failure(MagicStrings.ErrorCodes.EmailSendingFailed, ex.Message)
+            );
+        }
+    }
+
+    public async Task<Result<string>> SendBusNotificationEmailAsync(string vendorEmail, string vendorName, string message)
+    {
+        try
+        {
+            _logger.LogInformation(MagicStrings.LogMessages.EmailSendingStarted, "BusNotification");
+
+            var subject = MagicStrings.EmailTemplates.BusNotificationSubject;
+            var body = string.Format(MagicStrings.EmailTemplates.BusNotificationTemplate, vendorName, message);
+
+            var result = await SendEmailAsync(vendorEmail, subject, body);
+            if (result.IsFailure)
+            {
+                return Result.Failure<string>(result.Error);
+            }
+
+            _logger.LogInformation(MagicStrings.LogMessages.EmailSendingCompleted, "BusNotification");
+            return Result.Success(MagicStrings.SuccessMessages.EmailSentSuccessfully);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MagicStrings.LogMessages.EmailSendingFailed, "BusNotification", ex.Message);
+            return Result.Failure<string>(
+                Error.Failure(MagicStrings.ErrorCodes.EmailSendingFailed, ex.Message)
+            );
+        }
+    }
+
+    public async Task<Result<string>> SendGenericEmailAsync(string toEmail, string subject, string htmlBody)
+    {
+        try
+        {
+            _logger.LogInformation("Sending generic email to: {Email}", toEmail);
+            var result = await SendEmailAsync(toEmail, subject, htmlBody);
+            if (result.IsFailure)
+            {
+                return Result.Failure<string>(result.Error);
+            }
+            _logger.LogInformation("Generic email sent successfully to: {Email}", toEmail);
+            return Result.Success(MagicStrings.SuccessMessages.EmailSentSuccessfully);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send generic email to: {Email}", toEmail);
+            return Result.Failure<string>(Error.Failure(MagicStrings.ErrorCodes.EmailSendingFailed, ex.Message));
+        }
+    }
+
     private async Task<Result<string>> SendEmailAsync(
         string toEmail,
         string subject,
@@ -185,44 +258,44 @@ public class EmailService : IEmailService
     {
         try
         {
-            var message = new MimeMessage();
-            message.From.Add(
-                new MailboxAddress(
-                    _configuration[MagicStrings.ConfigKeys.EmailSenderName],
-                    _configuration[MagicStrings.ConfigKeys.EmailSenderEmail]
-                )
-            );
-            message.To.Add(new MailboxAddress("", toEmail));
-            message.Subject = subject;
+            var fromEmail = _configuration[MagicStrings.ConfigKeys.EmailSenderEmail];
+            var appPassword = _configuration[MagicStrings.ConfigKeys.EmailPassword];
 
-            var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
-
-            if (pdfAttachment != null)
+            if (string.IsNullOrEmpty(fromEmail) || string.IsNullOrEmpty(appPassword))
             {
-                bodyBuilder.Attachments.Add(
-                    MagicStrings.EmailAttachments.TicketFileName,
-                    pdfAttachment,
-                    ContentType.Parse(MagicStrings.EmailAttachments.PdfContentType)
+                _logger.LogError(MagicStrings.LogMessages.SmtpConnectionFailed, "Email configuration missing");
+                return Result.Failure<string>(
+                    Error.Failure(MagicStrings.ErrorCodes.SmtpConnectionFailed, "Email configuration missing")
                 );
             }
 
-            message.Body = bodyBuilder.ToMessageBody();
+            using var client = new System.Net.Mail.SmtpClient("smtp.gmail.com", 587)
+            {
+                EnableSsl = true,
+                Credentials = new NetworkCredential(fromEmail, appPassword)
+            };
 
-            using var client = new SmtpClient();
-            await client.ConnectAsync(
-                _configuration[MagicStrings.ConfigKeys.SmtpServer],
-                int.Parse(_configuration[MagicStrings.ConfigKeys.SmtpPort] ?? "587"),
-                SecureSocketOptions.StartTls
-            );
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(fromEmail, _configuration[MagicStrings.ConfigKeys.EmailSenderName] ?? "RouteBuddy"),
+                Subject = subject,
+                Body = htmlBody,
+                IsBodyHtml = true
+            };
 
-            await client.AuthenticateAsync(
-                _configuration[MagicStrings.ConfigKeys.EmailUsername],
-                _configuration[MagicStrings.ConfigKeys.EmailPassword]
-            );
+            mailMessage.To.Add(toEmail);
 
-            await client.SendAsync(message);
-            await client.DisconnectAsync(true);
+            if (pdfAttachment != null)
+            {
+                var attachment = new Attachment(
+                    new MemoryStream(pdfAttachment),
+                    MagicStrings.EmailAttachments.TicketFileName,
+                    MagicStrings.EmailAttachments.PdfContentType
+                );
+                mailMessage.Attachments.Add(attachment);
+            }
 
+            await client.SendMailAsync(mailMessage);
             return Result.Success(MagicStrings.SuccessMessages.EmailSentSuccessfully);
         }
         catch (Exception ex)
