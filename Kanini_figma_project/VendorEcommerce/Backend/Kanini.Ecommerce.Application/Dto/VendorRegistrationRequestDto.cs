@@ -1,1 +1,0 @@
-// This file is no longer needed - registration is now handled by RegisterWithOtpRequestDto

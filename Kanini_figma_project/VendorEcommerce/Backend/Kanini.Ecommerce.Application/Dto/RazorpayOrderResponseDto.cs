@@ -1,1 +1,0 @@
-// This file has been consolidated into PaymentResponseDto.cs to avoid duplicates
