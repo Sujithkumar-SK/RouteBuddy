@@ -1,1 +1,0 @@
-// This AutoMapper profile has been removed - functionality consolidated into unified EmailRepository using SegmentEmailData

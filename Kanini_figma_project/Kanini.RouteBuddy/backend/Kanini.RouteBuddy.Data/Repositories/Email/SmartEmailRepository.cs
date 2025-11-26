@@ -1,1 +1,0 @@
-// This repository has been consolidated into EmailRepository - functionality moved to unified EmailRepository

@@ -1,1 +1,0 @@
-// This interface has been removed - functionality consolidated into IPdfService.cs using QuestPDF
