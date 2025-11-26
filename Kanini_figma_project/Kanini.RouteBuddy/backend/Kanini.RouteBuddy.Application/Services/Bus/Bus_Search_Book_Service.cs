@@ -3,26 +3,31 @@ using Kanini.RouteBuddy.Application.Dto;
 using Kanini.RouteBuddy.Common;
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Data.Repositories.Buses;
+using Kanini.RouteBuddy.Data.Repositories.Customer;
 using Kanini.RouteBuddy.Domain.Entities;
 using Kanini.RouteBuddy.Domain.Enums;
 using Microsoft.Extensions.Logging;
 using BookingEntity = Kanini.RouteBuddy.Domain.Entities.Booking;
+using CustomerEntity = Kanini.RouteBuddy.Domain.Entities.Customer;
 
 namespace Kanini.RouteBuddy.Application.Services.Buses;
 
 public class Bus_Search_Book_Service : IBus_Search_Book_Service
 {
     private readonly IBus_Search_Book_Repository _busRepository;
+    private readonly ICustomerRepository _customerRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<Bus_Search_Book_Service> _logger;
 
     public Bus_Search_Book_Service(
         IBus_Search_Book_Repository busRepository,
+        ICustomerRepository customerRepository,
         IMapper mapper,
         ILogger<Bus_Search_Book_Service> logger
     )
     {
         _busRepository = busRepository;
+        _customerRepository = customerRepository;
         _mapper = mapper;
         _logger = logger;
     }
@@ -585,6 +590,34 @@ public class Bus_Search_Book_Service : IBus_Search_Book_Service
             _logger.LogError(ex, "Failed to get booking details for BookingId: {BookingId}", bookingId);
             return Result.Failure<BookingEntity>(
                 Error.Failure("GetBookingDetails.Failed", MagicStrings.ErrorMessages.UnexpectedError)
+            );
+        }
+    }
+
+    public async Task<Result<CustomerEntity>> GetCustomerByUserIdAsync(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Getting customer for UserId: {UserId}", userId);
+
+            var customer = await _customerRepository.GetCustomerProfileByUserIdAsync(userId);
+            
+            if (customer == null)
+            {
+                _logger.LogWarning("Customer not found for UserId: {UserId}", userId);
+                return Result.Failure<CustomerEntity>(
+                    Error.Failure("Customer.NotFound", "Customer profile not found")
+                );
+            }
+
+            _logger.LogInformation("Successfully retrieved customer for UserId: {UserId}", userId);
+            return Result.Success(customer);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get customer for UserId: {UserId}", userId);
+            return Result.Failure<CustomerEntity>(
+                Error.Failure("GetCustomer.Failed", MagicStrings.ErrorMessages.UnexpectedError)
             );
         }
     }

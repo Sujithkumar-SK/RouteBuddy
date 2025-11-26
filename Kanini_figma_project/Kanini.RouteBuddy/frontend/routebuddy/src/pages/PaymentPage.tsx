@@ -125,8 +125,14 @@ const PaymentPage = () => {
               }
             });
           } catch (error: any) {
-            setError('Payment verification failed. Please contact support.');
             console.error('Payment verification error:', error);
+            // Redirect to search results with error message
+            navigate('/search-results', {
+              state: { 
+                message: 'Payment verification failed. Your booking may have expired. Please try booking again.',
+                type: 'error'
+              }
+            });
           }
         },
         modal: {

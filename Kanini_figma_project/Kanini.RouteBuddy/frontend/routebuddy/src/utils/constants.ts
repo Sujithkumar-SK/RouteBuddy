@@ -43,6 +43,8 @@ export const ROUTES = {
   VENDOR_DASHBOARD: '/vendor/dashboard',
   ADMIN_DASHBOARD: '/admin/dashboard',
   SEARCH_RESULTS: '/search-results',
+  PROFILE: '/profile',
+  MY_BOOKINGS: '/my-bookings',
 };
 
 export const getBusTypeName = (type: number): string => {

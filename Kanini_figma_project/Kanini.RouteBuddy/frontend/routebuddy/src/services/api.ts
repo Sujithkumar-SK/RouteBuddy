@@ -28,7 +28,8 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        window.location.href = '/login';
+        // Don't redirect directly, let the component handle it
+        localStorage.removeItem('user');
         return Promise.reject(refreshError);
       }
     }

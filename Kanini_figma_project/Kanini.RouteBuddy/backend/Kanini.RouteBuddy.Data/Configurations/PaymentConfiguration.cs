@@ -9,7 +9,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<Payment> builder
     )
     {
-        builder.HasQueryFilter(p => p.IsActive);
+        // Removed global query filter to allow updates to inactive payments
 
         builder.HasIndex(p => p.TransactionId).IsUnique();
 

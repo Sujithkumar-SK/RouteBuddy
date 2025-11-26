@@ -107,52 +107,85 @@ public class EmailService : IEmailService
                 bookingId
             );
 
-            // Get connecting booking data from repository (same method works for both)
-            var bookingData = await _emailRepository.GetBookingDetailsForEmailAsync(bookingId);
-            if (bookingData == null)
+            // Try to get connecting booking data first
+            var connectingBookingData = await _emailRepository.GetConnectingBookingDetailsForEmailAsync(bookingId);
+            if (connectingBookingData != null)
             {
-                _logger.LogWarning(
-                    MagicStrings.LogMessages.BookingEmailDataRetrievalFailed,
-                    bookingId,
-                    MagicStrings.ErrorMessages.BookingDataNotFound
+                // Use connecting booking PDF generation
+                var pdfResult = await _pdfService.GenerateConnectingBookingTicketAsync(connectingBookingData);
+                if (pdfResult.IsFailure)
+                {
+                    _logger.LogError(
+                        MagicStrings.LogMessages.PdfGenerationFailed,
+                        bookingId,
+                        pdfResult.Error.Description
+                    );
+                    return Result.Failure<string>(pdfResult.Error);
+                }
+
+                var htmlContent = await GenerateConnectingEmailHtmlAsync(connectingBookingData);
+                var subject = string.Format(
+                    MagicStrings.EmailTemplates.ConnectingBookingConfirmationSubject,
+                    connectingBookingData.PNRNo
                 );
-                return Result.Failure<string>(
-                    Error.NotFound(
-                        MagicStrings.ErrorCodes.BookingDataNotFound,
+
+                var emailResult = await SendEmailAsync(
+                    connectingBookingData.CustomerEmail,
+                    subject,
+                    htmlContent,
+                    pdfResult.Value
+                );
+                if (emailResult.IsFailure)
+                {
+                    return Result.Failure<string>(emailResult.Error);
+                }
+            }
+            else
+            {
+                // Fallback to regular booking
+                var bookingData = await _emailRepository.GetBookingDetailsForEmailAsync(bookingId);
+                if (bookingData == null)
+                {
+                    _logger.LogWarning(
+                        MagicStrings.LogMessages.BookingEmailDataRetrievalFailed,
+                        bookingId,
                         MagicStrings.ErrorMessages.BookingDataNotFound
-                    )
+                    );
+                    return Result.Failure<string>(
+                        Error.NotFound(
+                            MagicStrings.ErrorCodes.BookingDataNotFound,
+                            MagicStrings.ErrorMessages.BookingDataNotFound
+                        )
+                    );
+                }
+
+                var pdfResult = await _pdfService.GenerateBookingTicketAsync(bookingData);
+                if (pdfResult.IsFailure)
+                {
+                    _logger.LogError(
+                        MagicStrings.LogMessages.PdfGenerationFailed,
+                        bookingId,
+                        pdfResult.Error.Description
+                    );
+                    return Result.Failure<string>(pdfResult.Error);
+                }
+
+                var htmlContent = await GenerateEmailHtmlAsync(bookingData);
+                var subject = string.Format(
+                    MagicStrings.EmailTemplates.ConnectingBookingConfirmationSubject,
+                    bookingData.PNRNo
                 );
-            }
 
-            // Generate PDF ticket for connecting route
-            var pdfResult = await _pdfService.GenerateBookingTicketAsync(bookingData);
-            if (pdfResult.IsFailure)
-            {
-                _logger.LogError(
-                    MagicStrings.LogMessages.PdfGenerationFailed,
-                    bookingId,
-                    pdfResult.Error.Description
+                var emailResult = await SendEmailAsync(
+                    bookingData.CustomerEmail,
+                    subject,
+                    htmlContent,
+                    pdfResult.Value
                 );
-                return Result.Failure<string>(pdfResult.Error);
-            }
-
-            // Generate HTML email content
-            var htmlContent = await GenerateEmailHtmlAsync(bookingData);
-            var subject = string.Format(
-                MagicStrings.EmailTemplates.ConnectingBookingConfirmationSubject,
-                bookingData.PNRNo
-            );
-
-            // Send email with PDF attachment
-            var emailResult = await SendEmailAsync(
-                bookingData.CustomerEmail,
-                subject,
-                htmlContent,
-                pdfResult.Value
-            );
-            if (emailResult.IsFailure)
-            {
-                return Result.Failure<string>(emailResult.Error);
+                if (emailResult.IsFailure)
+                {
+                    return Result.Failure<string>(emailResult.Error);
+                }
             }
 
             _logger.LogInformation(
@@ -360,6 +393,78 @@ public class EmailService : IEmailService
             .Replace("{{DroppingStop}}", bookingData.DroppingStopName)
             .Replace("{{PassengerRows}}", passengerRows)
             .Replace("{{TotalAmount}}", bookingData.TotalAmount.ToString("F2"));
+    }
+
+    private async Task<string> GenerateConnectingEmailHtmlAsync(ConnectingBookingEmailData bookingData)
+    {
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = "Kanini.RouteBuddy.Application.ConnectingBookingConfirmationEmail.html";
+
+            using var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null)
+            {
+                var templatePath = Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    "ConnectingBookingConfirmationEmail.html"
+                );
+                var fileTemplate = await File.ReadAllTextAsync(templatePath);
+                return PopulateConnectingEmailTemplate(fileTemplate, bookingData);
+            }
+
+            using var reader = new StreamReader(stream);
+            var resourceTemplate = await reader.ReadToEndAsync();
+            return PopulateConnectingEmailTemplate(resourceTemplate, bookingData);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load connecting email template: {Error}", ex.Message);
+            return GenerateFallbackConnectingEmailHtml(bookingData);
+        }
+    }
+
+    private static string PopulateConnectingEmailTemplate(string template, ConnectingBookingEmailData bookingData)
+    {
+        var customerName = $"{bookingData.FirstName} {bookingData.LastName}".Trim();
+        var segmentRows = string.Join("", bookingData.Segments.Select(s =>
+            $"<tr><td>{s.SegmentOrder}</td><td>{s.BusName}</td><td>{s.Source} → {s.Destination}</td><td>{s.DepartureTime:HH:mm} - {s.ArrivalTime:HH:mm}</td><td>{string.Join(", ", s.SeatNumbers)}</td><td>₹{s.SegmentAmount:F2}</td></tr>"
+        ));
+
+        return template
+            .Replace("{{CustomerName}}", customerName)
+            .Replace("{{PNR}}", bookingData.PNRNo)
+            .Replace("{{OverallSource}}", bookingData.OverallSource)
+            .Replace("{{OverallDestination}}", bookingData.OverallDestination)
+            .Replace("{{TravelDate}}", bookingData.TravelDate.ToString("dd MMM yyyy"))
+            .Replace("{{SegmentRows}}", segmentRows)
+            .Replace("{{TotalAmount}}", bookingData.TotalAmount.ToString("F2"))
+            .Replace("{{TotalSegments}}", bookingData.Segments.Count.ToString());
+    }
+
+    private static string GenerateFallbackConnectingEmailHtml(ConnectingBookingEmailData bookingData)
+    {
+        var customerName = $"{bookingData.FirstName} {bookingData.LastName}".Trim();
+        var segmentDetails = string.Join("<br/>", bookingData.Segments.Select(s =>
+            $"Segment {s.SegmentOrder}: {s.BusName} ({s.Source} → {s.Destination}) - Seats: {string.Join(", ", s.SeatNumbers)}"
+        ));
+
+        return $@"
+        <html><body style='font-family: Arial, sans-serif;'>
+        <h2>🎉 Connecting Route Booking Confirmed!</h2>
+        <p>Dear {customerName},</p>
+        <p>Your connecting route booking has been confirmed.</p>
+        <div style='background: #f5f5f5; padding: 15px; margin: 20px 0;'>
+            <h3>Booking Details</h3>
+            <p><strong>PNR:</strong> {bookingData.PNRNo}</p>
+            <p><strong>Journey:</strong> {bookingData.OverallSource} → {bookingData.OverallDestination}</p>
+            <p><strong>Travel Date:</strong> {bookingData.TravelDate:dd MMM yyyy}</p>
+            <p><strong>Total Segments:</strong> {bookingData.Segments.Count}</p>
+            <p><strong>Segments:</strong><br/>{segmentDetails}</p>
+            <p><strong>Total Amount:</strong> ₹{bookingData.TotalAmount:F2}</p>
+        </div>
+        <p>Thank you for choosing RouteBuddy!</p>
+        </body></html>";
     }
 
     private static string GenerateFallbackEmailHtml(BookingEmailData bookingData)

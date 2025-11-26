@@ -28,18 +28,26 @@ const loadAuthState = (): AuthState => {
   try {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      return {
-        user: JSON.parse(savedUser),
-        tempEmail: null,
-        tempRole: null,
-        tempOtpToken: null,
-        loading: false,
-        error: null,
-        isAuthenticated: true,
-      };
+      const user = JSON.parse(savedUser);
+      // Validate user object has required fields
+      if (user && user.userId && user.email && user.role) {
+        return {
+          user,
+          tempEmail: null,
+          tempRole: null,
+          tempOtpToken: null,
+          loading: false,
+          error: null,
+          isAuthenticated: true,
+        };
+      } else {
+        // Invalid user data, clear it
+        localStorage.removeItem('user');
+      }
     }
   } catch (e) {
     console.error('Failed to load auth state', e);
+    localStorage.removeItem('user');
   }
   return {
     user: null,
@@ -129,6 +137,29 @@ const authSlice = createSlice({
       localStorage.removeItem('user');
       authAPI.logout().catch(console.error);
     },
+    checkAuthState: (state) => {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        try {
+          const user = JSON.parse(savedUser);
+          if (user && user.userId && user.email && user.role) {
+            state.user = user;
+            state.isAuthenticated = true;
+          } else {
+            localStorage.removeItem('user');
+            state.user = null;
+            state.isAuthenticated = false;
+          }
+        } catch (e) {
+          localStorage.removeItem('user');
+          state.user = null;
+          state.isAuthenticated = false;
+        }
+      } else {
+        state.user = null;
+        state.isAuthenticated = false;
+      }
+    },
     clearError: (state) => {
       state.error = null;
     },
@@ -194,5 +225,5 @@ export const setTempUserId = (userId: number) => (dispatch: any) => {
   sessionStorage.setItem('tempUserId', userId.toString());
 };
 
-export const { setTempEmail, setTempRole, setTempOtpToken, logout, clearError } = authSlice.actions;
+export const { setTempEmail, setTempRole, setTempOtpToken, logout, clearError, checkAuthState } = authSlice.actions;
 export default authSlice.reducer;

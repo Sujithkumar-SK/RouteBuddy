@@ -179,7 +179,9 @@ public class PaymentRepository : IPaymentRepository
         {
             _logger.LogInformation(MagicStrings.LogMessages.PaymentUpdateStarted, paymentId);
 
-            var payment = await _context.Payments.FindAsync(paymentId);
+            var payment = await _context.Payments
+                .Where(p => p.PaymentId == paymentId)
+                .FirstOrDefaultAsync();
             if (payment == null)
             {
                 return Result.Failure<Payment>(Error.NotFound(

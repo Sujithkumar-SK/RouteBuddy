@@ -30,6 +30,15 @@ public static class MagicStrings
         public const string CreateRefreshToken = "sp_CreateRefreshToken";
         public const string RevokeRefreshToken = "sp_RevokeRefreshToken";
         public const string UpdateUserPassword = "sp_UpdateUserPassword";
+        public const string GetCustomerProfileById = "sp_GetCustomerProfileById";
+        public const string GetCustomerProfileByUserId = "sp_GetCustomerProfileByUserId";
+        public const string UpdateCustomerProfile = "sp_UpdateCustomerProfile";
+        public const string GetCustomerBookings = "sp_GetCustomerBookings";
+        public const string GetCustomerById = "sp_GetCustomerById";
+        public const string GetAllCustomersWithSummary = "sp_GetAllCustomersWithSummary";
+        public const string FilterCustomersWithSummary = "sp_FilterCustomersWithSummary";
+        public const string SoftDeleteCustomer = "sp_SoftDeleteCustomer";
+        public const string GetBookingForCancellation = "sp_GetBookingForCancellation";
     }
 
     public static class LogMessages
@@ -212,6 +221,23 @@ public static class MagicStrings
         public const string GetPaymentsFailed = "Get payments failed: {Error}";
         public const string InvalidPaymentId = "Invalid payment ID: {PaymentId}";
         public const string InvalidBookingId = "Invalid booking ID: {BookingId}";
+        public const string CustomerProfileRetrievalStarted = "Customer profile retrieval started for CustomerId: {CustomerId}";
+        public const string CustomerProfileRetrievalCompleted = "Customer profile retrieved successfully for CustomerId: {CustomerId}";
+        public const string CustomerProfileRetrievalFailed = "Customer profile retrieval failed for CustomerId: {CustomerId}: {Error}";
+        public const string CustomerProfileUpdateStarted = "Customer profile update started for CustomerId: {CustomerId}";
+        public const string CustomerProfileUpdateCompleted = "Customer profile updated successfully for CustomerId: {CustomerId}";
+        public const string CustomerProfileUpdateFailed = "Customer profile update failed for CustomerId: {CustomerId}: {Error}";
+        public const string CustomerBookingsRetrievalStarted = "Customer bookings retrieval started for CustomerId: {CustomerId}";
+        public const string CustomerBookingsRetrievalCompleted = "Customer bookings retrieved successfully for CustomerId: {CustomerId}, Count: {Count}";
+        public const string CustomerBookingsRetrievalFailed = "Customer bookings retrieval failed for CustomerId: {CustomerId}: {Error}";
+        public const string BookingCancellationDataRetrievalStarted = "Booking cancellation data retrieval started for BookingId: {BookingId}, CustomerId: {CustomerId}";
+        public const string BookingCancellationDataRetrievalCompleted = "Booking cancellation data retrieved successfully for BookingId: {BookingId}";
+        public const string BookingCancellationDataRetrievalFailed = "Booking cancellation data retrieval failed for BookingId: {BookingId}, CustomerId: {CustomerId}: {Error}";
+        public const string BookingNotFoundForCancellation = "Booking not found for cancellation - BookingId: {BookingId}, CustomerId: {CustomerId}";
+        public const string BookingCancellationStarted = "Booking cancellation started for BookingId: {BookingId}";
+        public const string BookingCancellationCompleted = "Booking cancelled successfully for BookingId: {BookingId}";
+        public const string BookingCancellationFailed = "Booking cancellation failed for BookingId: {BookingId}: {Error}";
+        public const string BookingNotFound = "Booking not found for BookingId: {BookingId}";
     }
 
     public static class ErrorMessages
@@ -315,7 +341,15 @@ public static class MagicStrings
         public const string InvalidBookingId = "Invalid booking ID";
         public const string InvalidPaymentId = "Invalid payment ID";
         public const string InvalidBookingStatus = "Invalid booking status";
+        public const string CustomerProfileNotFound = "Customer profile not found";
+        public const string CustomerProfileUpdateFailed = "Customer profile update failed";
+        public const string InvalidCustomerData = "Invalid customer data provided";
         public const string PaymentAlreadyProcessed = "Payment has already been processed";
+        public const string BookingCannotBeCancelled = "Booking cannot be cancelled";
+        public const string BookingAlreadyCancelled = "Booking is already cancelled";
+        public const string CancellationNotAllowed = "Cancellation not allowed within 2 hours of travel";
+        public const string CancellationReasonRequired = "Cancellation reason is required";
+        public const string InvalidCancellationReason = "Cancellation reason must be between 10 and 250 characters";
     }
 
     public static class ConfigKeys
@@ -378,6 +412,10 @@ public static class MagicStrings
         public const string PaymentVerifiedSuccessfully = "Payment verified successfully";
         public const string PaymentInitiatedSuccessfully = "Payment initiated successfully";
         public const string BookingConfirmedAfterPayment = "Booking confirmed after successful payment";
+        public const string CustomerProfileRetrievedSuccessfully = "Customer profile retrieved successfully";
+        public const string CustomerProfileUpdatedSuccessfully = "Customer profile updated successfully";
+        public const string BookingCancelledSuccessfully = "Booking cancelled successfully";
+        public const string RefundProcessedSuccessfully = "Refund processed successfully";
     }
 
     public static class EmailAttachments

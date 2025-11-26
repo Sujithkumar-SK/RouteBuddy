@@ -142,11 +142,14 @@ public class PaymentService : IPaymentService
             Utils.verifyPaymentSignature(attributes);
 
             // Get payment by transaction ID (Razorpay order ID)
+            _logger.LogInformation("Searching for payment with TransactionId: {TransactionId}", request.RazorpayOrderId);
             var paymentResult = await _paymentRepository.GetPaymentByTransactionIdAsync(request.RazorpayOrderId);
             if (paymentResult.IsFailure)
             {
+                _logger.LogError("Payment not found for TransactionId: {TransactionId}, Error: {Error}", request.RazorpayOrderId, paymentResult.Error.Description);
                 return Result.Failure<PaymentResponseDto>(paymentResult.Error);
             }
+            _logger.LogInformation("Found payment with PaymentId: {PaymentId} for TransactionId: {TransactionId}", paymentResult.Value.PaymentId, request.RazorpayOrderId);
 
             var payment = paymentResult.Value;
 

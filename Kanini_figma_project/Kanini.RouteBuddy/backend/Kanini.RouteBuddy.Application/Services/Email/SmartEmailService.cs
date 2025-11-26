@@ -15,20 +15,20 @@ public class SmartEmailService : ISmartEmailService
 {
     private readonly IConfiguration _configuration;
     private readonly ILogger<SmartEmailService> _logger;
-    private readonly ISmartEmailRepository _smartEmailRepository;
-    private readonly ISmartPdfService _smartPdfService;
+    private readonly IEmailRepository _emailRepository;
+    private readonly IPdfService _pdfService;
 
     public SmartEmailService(
         IConfiguration configuration,
         ILogger<SmartEmailService> logger,
-        ISmartEmailRepository smartEmailRepository,
-        ISmartPdfService smartPdfService
+        IEmailRepository emailRepository,
+        IPdfService pdfService
     )
     {
         _configuration = configuration;
         _logger = logger;
-        _smartEmailRepository = smartEmailRepository;
-        _smartPdfService = smartPdfService;
+        _emailRepository = emailRepository;
+        _pdfService = pdfService;
     }
 
     public async Task<Result<string>> SendConnectingBookingConfirmationAsync(int bookingId)
@@ -38,7 +38,7 @@ public class SmartEmailService : ISmartEmailService
             _logger.LogInformation(MagicStrings.LogMessages.SmartEmailSendingStarted, bookingId);
 
             var connectingBookingData =
-                await _smartEmailRepository.GetConnectingBookingDetailsForEmailAsync(bookingId);
+                await _emailRepository.GetConnectingBookingDetailsForEmailAsync(bookingId);
             if (connectingBookingData == null)
             {
                 _logger.LogWarning(
@@ -54,7 +54,7 @@ public class SmartEmailService : ISmartEmailService
                 );
             }
 
-            var pdfResult = await _smartPdfService.GenerateConnectingBookingTicketAsync(
+            var pdfResult = await _pdfService.GenerateConnectingBookingTicketAsync(
                 connectingBookingData
             );
             if (pdfResult.IsFailure)

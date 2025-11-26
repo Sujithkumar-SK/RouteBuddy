@@ -35,12 +35,12 @@ namespace Kanini.RouteBuddy.Data
             services.AddScoped<IBus_Search_Book_Repository, Bus_Search_Book_Repository>();
             services.AddScoped<ISmartEngineRepository, SmartEngineRepository>();
             services.AddScoped<IEmailRepository, EmailRepository>();
-            services.AddScoped<ISmartEmailRepository, SmartEmailRepository>();
             services.AddScoped<ISeatLayoutRepository, SeatLayoutRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<IVendorRepository, VendorRepository>();
             services.AddScoped<Repositories.Customer.ICustomerRepository, Repositories.Customer.CustomerRepository>();
             services.AddScoped<Repositories.VendorDocuments.IVendorDocumentRepository, Repositories.VendorDocuments.VendorDocumentRepository>();
+            services.AddScoped<Repositories.Booking.IBookingCancellationRepository, Repositories.Booking.BookingCancellationRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             return services;
         }

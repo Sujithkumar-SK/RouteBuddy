@@ -1,7 +1,10 @@
 using Kanini.RouteBuddy.Api.Constants;
 using Kanini.RouteBuddy.Application.Dto.Admin;
+using Kanini.RouteBuddy.Application.Dto.Booking;
 using Kanini.RouteBuddy.Application.Services.Customer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace Kanini.RouteBuddy.Api.Controllers
 {
@@ -118,6 +121,62 @@ namespace Kanini.RouteBuddy.Api.Controllers
             }
             catch (Exception ex)
             {
+                return StatusCode(500, string.Format(ErrorMessages.InternalServerError, ex.Message));
+            }
+        }
+
+        [HttpPost("{customerId}/bookings/cancel")]
+        [Authorize(Roles = "Customer")]
+        public async Task<ActionResult<CancelBookingResponseDto>> CancelBooking(int customerId, [FromBody] CancelBookingRequestDto request)
+        {
+            try
+            {
+                // Validate customer ID
+                if (customerId <= 0)
+                    return BadRequest(ErrorMessages.CustomerIdInvalid);
+
+                // Get customer ID from JWT token
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out int userId))
+                    return BadRequest("Invalid user token");
+
+                // Validate model
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                // Validate booking ID
+                if (request.BookingId <= 0)
+                    return BadRequest("Invalid booking ID");
+
+                // Validate reason length
+                if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length < 10 || request.Reason.Length > 250)
+                    return BadRequest("Cancellation reason must be between 10 and 250 characters");
+
+                var result = await _customerService.CancelBookingAsync(customerId, request);
+                
+                if (!result.IsSuccess)
+                    return BadRequest(new { error = result.Message });
+
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Invalid argument in cancel booking: {Message}", ex.Message);
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Database connection error in cancel booking");
+                return StatusCode(503, "Database connection error");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex, "Unauthorized access attempt in cancel booking");
+                return StatusCode(403, "Unauthorized access");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error in cancel booking for customer: {CustomerId}, booking: {BookingId}", customerId, request.BookingId);
                 return StatusCode(500, string.Format(ErrorMessages.InternalServerError, ex.Message));
             }
         }

@@ -290,16 +290,16 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("accessToken", accessToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = false, // Set to false for development (HTTP)
+            SameSite = SameSiteMode.Lax, // Changed to Lax for cross-origin requests
             Expires = DateTimeOffset.UtcNow.AddMinutes(15)
         });
 
         Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
+            Secure = false, // Set to false for development (HTTP)
+            SameSite = SameSiteMode.Lax, // Changed to Lax for cross-origin requests
             Expires = DateTimeOffset.UtcNow.AddDays(7)
         });
     }

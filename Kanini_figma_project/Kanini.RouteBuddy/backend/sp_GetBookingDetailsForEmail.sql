@@ -19,7 +19,7 @@ BEGIN
         c.FirstName,
         c.LastName,
         
-        -- User Info (Email)
+        -- User Info (Email) - Fixed to get correct customer's email
         u.Email AS CustomerEmail,
         u.Phone AS CustomerPhone,
         
@@ -57,14 +57,14 @@ BEGIN
         bseg.SegmentAmount
         
     FROM Bookings b
-    INNER JOIN Customers c ON b.CustomerId = c.CustomerId
-    INNER JOIN Users u ON c.UserId = u.UserId
+    INNER JOIN Customers c ON b.CustomerId = c.CustomerId AND c.IsActive = 1
+    INNER JOIN Users u ON c.UserId = u.UserId AND u.IsActive = 1
     INNER JOIN BookingSegments bseg ON b.BookingId = bseg.BookingId
-    INNER JOIN BusSchedules bs ON bseg.ScheduleId = bs.ScheduleId
-    INNER JOIN Buses bus ON bs.BusId = bus.BusId
-    INNER JOIN Routes r ON bs.RouteId = r.RouteId
+    INNER JOIN BusSchedules bs ON bseg.ScheduleId = bs.ScheduleId AND bs.IsActive = 1
+    INNER JOIN Buses bus ON bs.BusId = bus.BusId AND bus.IsActive = 1
+    INNER JOIN Routes r ON bs.RouteId = r.RouteId AND r.IsActive = 1
     INNER JOIN Vendors v ON bus.VendorId = v.VendorId
-    LEFT JOIN Payments p ON b.BookingId = p.BookingId
+    LEFT JOIN Payments p ON b.BookingId = p.BookingId AND p.IsActive = 1
     LEFT JOIN Stops boardingStop ON bseg.BoardingStopId = boardingStop.StopId
     LEFT JOIN Stops droppingStop ON bseg.DroppingStopId = droppingStop.StopId
     
@@ -85,6 +85,9 @@ BEGIN
         bseg.SegmentOrder
     FROM BookedSeats bst
     INNER JOIN BookingSegments bseg ON bst.BookingSegmentId = bseg.BookingSegmentId
+    INNER JOIN Bookings b ON bseg.BookingId = b.BookingId
     WHERE bseg.BookingId = @BookingId
+        AND b.IsActive = 1
+        AND b.Status = 2
     ORDER BY bseg.SegmentOrder ASC, bst.SeatNumber ASC;
 END

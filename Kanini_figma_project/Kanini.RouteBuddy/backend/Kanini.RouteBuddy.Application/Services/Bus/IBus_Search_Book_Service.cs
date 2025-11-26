@@ -1,6 +1,7 @@
 using Kanini.RouteBuddy.Application.Dto;
 using Kanini.RouteBuddy.Common.Utility;
 using BookingEntity = Kanini.RouteBuddy.Domain.Entities.Booking;
+using CustomerEntity = Kanini.RouteBuddy.Domain.Entities.Customer;
 
 namespace Kanini.RouteBuddy.Application.Services.Buses;
 
@@ -14,4 +15,5 @@ public interface IBus_Search_Book_Service
     Task<Result<string>> ConfirmBookingAsync(BookingConfirmationDto request);
     Task<Result<int>> ExpirePendingBookingsAsync();
     Task<Result<BookingEntity>> GetBookingDetailsAsync(int bookingId);
+    Task<Result<CustomerEntity>> GetCustomerByUserIdAsync(int userId);
 }

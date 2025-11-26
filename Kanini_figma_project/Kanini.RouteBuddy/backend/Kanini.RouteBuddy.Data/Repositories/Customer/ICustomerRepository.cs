@@ -1,5 +1,9 @@
 ﻿using System.Threading.Tasks;
 using CustomerEntity = Kanini.RouteBuddy.Domain.Entities.Customer;
+using BookingEntity = Kanini.RouteBuddy.Domain.Entities.Booking;
+using Kanini.RouteBuddy.Domain.Enums;
+using Kanini.RouteBuddy.Data.Models;
+using System.Data;
 
 namespace Kanini.RouteBuddy.Data.Repositories.Customer
 {
@@ -32,5 +36,11 @@ namespace Kanini.RouteBuddy.Data.Repositories.Customer
         Task<IEnumerable<CustomerEntity>> FilterCustomersAsync(string? searchName, bool? isActive, int? minAge, int? maxAge);
         Task<CustomerEntity?> GetCustomerByIdAsync(int customerId);
         Task<bool> SoftDeleteCustomerAsync(int customerId);
+        Task<CustomerEntity?> GetCustomerProfileByIdAsync(int customerId);
+        Task<CustomerEntity?> GetCustomerProfileByUserIdAsync(int userId);
+        Task<bool> UpdateCustomerProfileAsync(int customerId, string firstName, string? middleName, string lastName, DateTime dateOfBirth, int gender, string phone);
+        Task<bool> UpdateCustomerProfilePictureAsync(int customerId, byte[] profilePicture);
+        Task<IEnumerable<BookingEntity>> GetCustomerBookingsAsync(int customerId, BookingStatus? status, DateTime? fromDate, DateTime? toDate);
+        Task<IEnumerable<BookingWithDetails>> GetCustomerBookingsWithDetailsAsync(int customerId, BookingStatus? status, DateTime? fromDate, DateTime? toDate);
     }
 }

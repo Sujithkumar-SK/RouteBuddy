@@ -3,6 +3,7 @@ using Kanini.RouteBuddy.Application.Dto;
 using Kanini.RouteBuddy.Application.Services.Buses;
 using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Common;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -150,6 +151,7 @@ public class Bus_Search_Book_Controller : ControllerBase
     }
 
     [HttpPost("book")]
+    [Authorize(Roles = "Customer")]
     public async Task<IActionResult> BookSeats([FromBody] BookingRequestDto request)
     {
         try
@@ -159,6 +161,22 @@ public class Bus_Search_Book_Controller : ControllerBase
                 _logger.LogWarning(MagicStrings.LogMessages.ValidationFailed);
                 return BadRequest(ModelState);
             }
+
+            // Get CustomerId from JWT token instead of trusting frontend
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return BadRequest(new { Error = "Invalid user token" });
+
+            // Get customer profile to find the correct CustomerId
+            var customerResult = await _busService.GetCustomerByUserIdAsync(userId);
+            if (customerResult.IsFailure)
+            {
+                _logger.LogError("Customer not found for UserId: {UserId}", userId);
+                return BadRequest(new { Error = "Customer profile not found" });
+            }
+
+            // Override the CustomerId from JWT token
+            request.CustomerId = customerResult.Value.CustomerId;
 
             _logger.LogInformation(
                 MagicStrings.LogMessages.BookingStarted,

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Container,
@@ -8,14 +8,25 @@ import {
   Button,
   Card,
   CardContent,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
-import { CheckCircle, Download, Home } from '@mui/icons-material';
+import { CheckCircle, Download, Home, BookmarkBorder } from '@mui/icons-material';
 import Layout from '../components/layout/Layout';
+import { useAppDispatch, useAppSelector } from '../hooks/useAppDispatch';
+import { fetchCustomerProfile } from '../features/auth/customerProfileSlice';
+import { downloadTicket } from '../features/auth/customerBookingsSlice';
 
 const PaymentSuccessPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
   const { paymentId, bookingId, amount } = location.state || {};
+  const { user } = useAppSelector((state) => state.auth);
+  const { profile } = useAppSelector((state) => state.customerProfile);
+  const { loading: downloadLoading, error: downloadError } = useAppSelector((state) => state.customerBookings);
+  
+  const [ticketError, setTicketError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!paymentId || !bookingId) {
@@ -23,9 +34,28 @@ const PaymentSuccessPage = () => {
     }
   }, [paymentId, bookingId, navigate]);
 
-  const handleDownloadTicket = () => {
-    // TODO: Implement ticket download
-    alert('Ticket download will be implemented soon!');
+  useEffect(() => {
+    // Fetch customer profile to get customerId
+    if (user && !profile) {
+      dispatch(fetchCustomerProfile());
+    }
+  }, [dispatch, user, profile]);
+
+  const handleDownloadTicket = async () => {
+    if (!profile?.customerId || !bookingId) {
+      setTicketError('Unable to download ticket. Missing customer or booking information.');
+      return;
+    }
+
+    try {
+      setTicketError(null);
+      await dispatch(downloadTicket({ 
+        customerId: profile.customerId, 
+        bookingId: parseInt(bookingId.toString()) 
+      })).unwrap();
+    } catch (error: any) {
+      setTicketError(error || 'Failed to download ticket. Please try again.');
+    }
   };
 
   return (
@@ -77,14 +107,31 @@ const PaymentSuccessPage = () => {
             </CardContent>
           </Card>
 
+          {/* Error Alert */}
+          {(ticketError || downloadError) && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {ticketError || downloadError}
+            </Alert>
+          )}
+
           <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Button
               variant="contained"
-              startIcon={<Download />}
+              startIcon={downloadLoading ? <CircularProgress size={16} color="inherit" /> : <Download />}
               onClick={handleDownloadTicket}
+              disabled={downloadLoading || !profile?.customerId}
               sx={{ minWidth: 150 }}
             >
-              Download Ticket
+              {downloadLoading ? 'Downloading...' : 'Download Ticket'}
+            </Button>
+            
+            <Button
+              variant="outlined"
+              startIcon={<BookmarkBorder />}
+              onClick={() => navigate('/my-bookings')}
+              sx={{ minWidth: 150 }}
+            >
+              My Bookings
             </Button>
             
             <Button

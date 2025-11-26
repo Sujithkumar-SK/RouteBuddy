@@ -17,10 +17,16 @@ import SearchResultsPage from '../pages/SearchResultsPage';
 import SeatSelectionPage from '../pages/SeatSelectionPage';
 import PaymentPage from '../pages/PaymentPage';
 import PaymentSuccessPage from '../pages/PaymentSuccessPage';
+import ProfilePage from '../pages/ProfilePage';
+import MyBookingsPage from '../pages/MyBookingsPage';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
-  return isAuthenticated ? <>{children}</> : <Navigate to={ROUTES.LOGIN} />;
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  
+  // Check if we have both authentication flag and user data
+  const isActuallyAuthenticated = isAuthenticated && user && user.userId;
+  
+  return isActuallyAuthenticated ? <>{children}</> : <Navigate to={ROUTES.LOGIN} replace />;
 };
 
 const AppRoutes = () => {
@@ -37,6 +43,22 @@ const AppRoutes = () => {
       <Route path="/seat-selection/:scheduleId" element={<SeatSelectionPage />} />
       <Route path="/payment/:bookingId" element={<PaymentPage />} />
       <Route path="/payment-success" element={<PaymentSuccessPage />} />
+      <Route
+        path={ROUTES.PROFILE}
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.MY_BOOKINGS}
+        element={
+          <ProtectedRoute>
+            <MyBookingsPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Protected Routes */}
       <Route

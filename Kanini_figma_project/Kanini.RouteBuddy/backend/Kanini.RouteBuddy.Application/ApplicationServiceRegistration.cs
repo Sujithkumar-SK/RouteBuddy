@@ -3,6 +3,7 @@ using Kanini.RouteBuddy.Application.Common;
 using Kanini.RouteBuddy.Application.Services;
 using Kanini.RouteBuddy.Application.Services.Admin;
 using Kanini.RouteBuddy.Application.Services.Buses;
+using Kanini.RouteBuddy.Application.Services.Customer;
 using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Application.Services.Pdf;
 using Kanini.RouteBuddy.Application.Services.SmartEnigne;
@@ -18,6 +19,7 @@ namespace Kanini.RouteBuddy.Application
             services.AddSingleton(AutoMapperConfiguration.Configure().CreateMapper());
             services.AddMemoryCache();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICustomerService, CustomerService>();
             services.AddScoped<Services.Auth.IAuthService, Services.Auth.AuthService>();
             services.AddScoped<Services.Auth.IJwtTokenService, Services.Auth.JwtTokenService>();
             services.AddScoped<Services.Auth.IJwtOtpService, Services.Auth.JwtOtpService>();
@@ -27,7 +29,6 @@ namespace Kanini.RouteBuddy.Application
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPdfService, PdfService>();
             services.AddScoped<ISmartEmailService, SmartEmailService>();
-            services.AddScoped<ISmartPdfService, SmartPdfService>();
             services.AddScoped<IAdminSeatLayoutService, AdminSeatLayoutService>();
             services.AddScoped<IAdminBusService, AdminBusService>();
             services.AddScoped<IPaymentService, PaymentService>();

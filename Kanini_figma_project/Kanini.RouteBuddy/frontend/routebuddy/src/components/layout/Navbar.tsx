@@ -43,7 +43,7 @@ const Navbar = () => {
           <Button color="inherit" onClick={() => navigate(ROUTES.CUSTOMER_DASHBOARD)}>
             Bus Tickets
           </Button>
-          <Button color="inherit">My Bookings</Button>
+          <Button color="inherit" onClick={() => navigate(ROUTES.MY_BOOKINGS)}>My Bookings</Button>
           <Button color="inherit">Help</Button>
         </Box>
 
@@ -52,7 +52,10 @@ const Navbar = () => {
             {user?.email}
           </Typography>
           <IconButton color="inherit" onClick={handleMenuOpen}>
-            <Avatar sx={{ width: 32, height: 32, bgcolor: 'white', color: '#d84e55' }}>
+            <Avatar 
+              sx={{ width: 32, height: 32, bgcolor: 'white', color: '#d84e55' }}
+              // src={user?.profileImage} // Will be implemented when backend supports images
+            >
               <AccountCircleIcon />
             </Avatar>
           </IconButton>
@@ -62,7 +65,7 @@ const Navbar = () => {
                 {user?.role}
               </Typography>
             </MenuItem>
-            <MenuItem onClick={handleMenuClose}>My Profile</MenuItem>
+            <MenuItem onClick={() => { navigate(ROUTES.PROFILE); handleMenuClose(); }}>My Profile</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </Menu>
         </Box>

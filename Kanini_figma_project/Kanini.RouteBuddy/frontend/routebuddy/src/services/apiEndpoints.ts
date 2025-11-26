@@ -12,4 +12,8 @@ export const API_ENDPOINTS = {
   RESET_PASSWORD: '/auth/reset-password',
   COMPLETE_CUSTOMER_PROFILE: '/auth/complete-customer-profile',
   COMPLETE_VENDOR_PROFILE: '/auth/complete-vendor-profile',
+  
+  // Customer Profile
+  GET_MY_PROFILE: '/customer/profile/my-profile',
+  UPDATE_MY_PROFILE: '/customer/profile/my-profile',
 };

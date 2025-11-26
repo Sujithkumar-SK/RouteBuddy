@@ -27,9 +27,10 @@ namespace Kanini.RouteBuddy.Application.AutoMapper
             config.AddProfile<BusFilterProfile>();
             config.AddProfile<ConnectingRouteProfile>();
             config.AddProfile<ConnectingBookingProfile>();
-            config.AddProfile<SmartEmailProfile>();
             config.AddProfile<SeatLayoutProfile>();
             config.AddProfile<PaymentProfile>();
+            config.AddProfile<CustomerProfileMappingProfile>();
+            config.AddProfile<CustomerMappingProfile>();
         }
     }
 }
