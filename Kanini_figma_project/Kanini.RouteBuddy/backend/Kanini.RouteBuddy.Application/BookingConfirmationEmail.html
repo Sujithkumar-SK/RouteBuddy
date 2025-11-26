@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteBuddy - Booking Confirmation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 600px; margin: 0 auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #2c5aa0, #1e3d72); color: white; padding: 30px 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; font-weight: bold; }
+        .header p { margin: 10px 0 0 0; font-size: 16px; opacity: 0.9; }
+        .content { padding: 30px 20px; }
+        .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
+        .booking-card { background: #f8f9fa; border-left: 4px solid #2c5aa0; padding: 20px; margin: 20px 0; border-radius: 4px; }
+        .booking-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .pnr { font-size: 20px; font-weight: bold; color: #2c5aa0; }
+        .status { background: #28a745; color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .journey-info { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
+        .info-item { }
+        .info-label { font-size: 12px; color: #666; text-transform: uppercase; font-weight: bold; }
+        .info-value { font-size: 16px; color: #333; font-weight: 500; margin-top: 2px; }
+        .route { text-align: center; margin: 20px 0; }
+        .route-text { font-size: 18px; font-weight: bold; color: #2c5aa0; }
+        .passengers-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        .passengers-table th { background: #2c5aa0; color: white; padding: 10px; text-align: left; font-size: 12px; }
+        .passengers-table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .amount { text-align: center; margin: 20px 0; }
+        .amount-text { font-size: 24px; font-weight: bold; color: #28a745; }
+        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 14px; }
+        .footer a { color: #2c5aa0; text-decoration: none; }
+        .attachment-note { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+        .attachment-note strong { color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Booking Confirmed!</h1>
+            <p>Your journey with RouteBuddy is confirmed</p>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Dear {{CustomerName}},
+            </div>
+            
+            <p>Great news! Your bus booking has been successfully confirmed. We're excited to be part of your journey.</p>
+            
+            <div class="booking-card">
+                <div class="booking-header">
+                    <div class="pnr">PNR: {{PNR}}</div>
+                    <div class="status">CONFIRMED</div>
+                </div>
+                
+                <div class="route">
+                    <div class="route-text">{{Source}} → {{Destination}}</div>
+                </div>
+                
+                <div class="journey-info">
+                    <div class="info-item">
+                        <div class="info-label">Travel Date</div>
+                        <div class="info-value">{{TravelDate}}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Bus Name</div>
+                        <div class="info-value">{{BusName}}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Departure Time</div>
+                        <div class="info-value">{{DepartureTime}}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Arrival Time</div>
+                        <div class="info-value">{{ArrivalTime}}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Boarding Point</div>
+                        <div class="info-value">{{BoardingStop}}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Dropping Point</div>
+                        <div class="info-value">{{DroppingStop}}</div>
+                    </div>
+                </div>
+                
+                <table class="passengers-table">
+                    <thead>
+                        <tr>
+                            <th>Passenger Name</th>
+                            <th>Age</th>
+                            <th>Gender</th>
+                            <th>Seat No.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{PassengerRows}}
+                    </tbody>
+                </table>
+                
+                <div class="amount">
+                    <div class="info-label">Total Amount Paid</div>
+                    <div class="amount-text">₹{{TotalAmount}}</div>
+                </div>
+            </div>
+            
+            <div class="attachment-note">
+                <strong>📎 E-Ticket Attached:</strong> Please find your e-ticket attached to this email. Keep it handy during your journey for verification.
+            </div>
+            
+            <p><strong>Important Instructions:</strong></p>
+            <ul>
+                <li>Please arrive at the boarding point 15 minutes before departure</li>
+                <li>Carry a valid ID proof during travel</li>
+                <li>Keep your e-ticket ready for verification</li>
+                <li>Contact our support team for any assistance</li>
+            </ul>
+            
+            <p>Thank you for choosing RouteBuddy. We wish you a comfortable and safe journey!</p>
+            
+            <p>Best regards,<br>
+            <strong>Team RouteBuddy</strong></p>
+        </div>
+        
+        <div class="footer">
+            <p>Need help? Contact us at <a href="mailto:support@routebuddy.com">support@routebuddy.com</a> | Call: +91-1800-123-4567</p>
+            <p>© 2024 RouteBuddy. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
