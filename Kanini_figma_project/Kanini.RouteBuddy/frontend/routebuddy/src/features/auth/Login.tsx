@@ -30,19 +30,22 @@ const Login = () => {
     try {
       const result = await dispatch(login(formData)).unwrap();
       
-      switch (result.role) {
-        case 'Customer':
-          navigate(ROUTES.CUSTOMER_DASHBOARD);
-          break;
-        case 'Vendor':
-          navigate(ROUTES.VENDOR_DASHBOARD);
-          break;
-        case 'Admin':
-          navigate(ROUTES.ADMIN_DASHBOARD);
-          break;
-        default:
-          navigate(ROUTES.HOME);
-      }
+      // Small delay to ensure Redux state is updated
+      setTimeout(() => {
+        switch (result.role) {
+          case 'Customer':
+            navigate(ROUTES.CUSTOMER_DASHBOARD);
+            break;
+          case 'Vendor':
+            navigate(ROUTES.VENDOR_DASHBOARD);
+            break;
+          case 'Admin':
+            navigate(ROUTES.ADMIN_DASHBOARD);
+            break;
+          default:
+            navigate(ROUTES.HOME);
+        }
+      }, 100);
     } catch (err) {
       console.error('Login failed:', err);
     }

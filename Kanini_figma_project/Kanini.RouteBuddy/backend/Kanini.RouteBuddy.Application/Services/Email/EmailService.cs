@@ -235,6 +235,49 @@ public class EmailService : IEmailService
         }
     }
 
+    public async Task<Result<string>> SendVendorApprovalEmailAsync(string vendorEmail, string vendorName)
+    {
+        try
+        {
+            _logger.LogInformation(MagicStrings.LogMessages.EmailSendingStarted, "VendorApproval");
+
+            var subject = "🎉 Vendor Account Approved - RouteBuddy";
+            var body = $@"
+            <html><body style='font-family: Arial, sans-serif;'>
+            <h2 style='color: #28a745;'>🎉 Congratulations! Your Vendor Account is Approved</h2>
+            <p>Dear {vendorName},</p>
+            <p>We are pleased to inform you that your vendor account has been <strong>approved</strong> by our admin team.</p>
+            <div style='background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; margin: 20px 0; border-radius: 5px;'>
+                <h3 style='color: #155724; margin-top: 0;'>What's Next?</h3>
+                <ul style='color: #155724;'>
+                    <li>You can now log in to your vendor dashboard</li>
+                    <li>Add your buses and routes</li>
+                    <li>Start managing your bookings</li>
+                    <li>Access analytics and reports</li>
+                </ul>
+            </div>
+            <p>Thank you for choosing RouteBuddy as your partner!</p>
+            <p>Best regards,<br/>RouteBuddy Admin Team</p>
+            </body></html>";
+
+            var result = await SendEmailAsync(vendorEmail, subject, body);
+            if (result.IsFailure)
+            {
+                return Result.Failure<string>(result.Error);
+            }
+
+            _logger.LogInformation(MagicStrings.LogMessages.EmailSendingCompleted, "VendorApproval");
+            return Result.Success(MagicStrings.SuccessMessages.EmailSentSuccessfully);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MagicStrings.LogMessages.EmailSendingFailed, "VendorApproval", ex.Message);
+            return Result.Failure<string>(
+                Error.Failure(MagicStrings.ErrorCodes.EmailSendingFailed, ex.Message)
+            );
+        }
+    }
+
     public async Task<Result<string>> SendBusNotificationEmailAsync(string vendorEmail, string vendorName, string message)
     {
         try

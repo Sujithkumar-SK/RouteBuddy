@@ -130,8 +130,10 @@ public class VendorRepository : IVendorRepository
                     BusinessLicenseNumber = reader.GetString("BusinessLicenseNumber"),
                     OfficeAddress = reader.GetString("OfficeAddress"),
                     FleetSize = reader.GetInt32("FleetSize"),
+                    TaxRegistrationNumber = reader.IsDBNull("TaxRegistrationNumber") ? null : reader.GetString("TaxRegistrationNumber"),
                     IsActive = reader.GetBoolean("IsActive"),
                     Status = (VendorStatus)reader.GetInt32("Status"),
+                    CreatedOn = reader.GetDateTime("CreatedOn"),
                     User = new Domain.Entities.User
                     {
                         UserId = reader.GetInt32("UserId"),
@@ -279,9 +281,22 @@ public class VendorRepository : IVendorRepository
                 vendors.Add(new Domain.Entities.Vendor
                 {
                     VendorId = reader.GetInt32("VendorId"),
+                    UserId = reader.GetInt32("UserId"),
                     AgencyName = reader.GetString("AgencyName"),
                     OwnerName = reader.GetString("OwnerName"),
-                    Status = (VendorStatus)reader.GetInt32("Status")
+                    BusinessLicenseNumber = reader.GetString("BusinessLicenseNumber"),
+                    OfficeAddress = reader.GetString("OfficeAddress"),
+                    FleetSize = reader.GetInt32("FleetSize"),
+                    TaxRegistrationNumber = reader.IsDBNull("TaxRegistrationNumber") ? null : reader.GetString("TaxRegistrationNumber"),
+                    Status = (VendorStatus)reader.GetInt32("Status"),
+                    IsActive = reader.GetBoolean("IsActive"),
+                    CreatedOn = reader.GetDateTime("CreatedOn"),
+                    User = new Domain.Entities.User
+                    {
+                        UserId = reader.GetInt32("UserId"),
+                        Email = reader.GetString("Email"),
+                        Phone = reader.GetString("Phone")
+                    }
                 });
             }
             return vendors;
@@ -324,38 +339,20 @@ public class VendorRepository : IVendorRepository
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
             
-            int totalBuses = 0, activeBuses = 0, pendingBuses = 0;
-            int totalRoutes = 0, totalSchedules = 0, upcomingSchedules = 0;
-            string vendorStatus = "Unknown";
-            
-            // Read bus counts
             if (await reader.ReadAsync())
             {
-                totalBuses = reader.GetInt32("TotalBuses");
-                activeBuses = reader.GetInt32("ActiveBuses");
-                pendingBuses = reader.GetInt32("PendingBuses");
+                return (
+                    reader.GetInt32("TotalBuses"),
+                    reader.GetInt32("ActiveBuses"),
+                    reader.GetInt32("PendingBuses"),
+                    reader.GetInt32("TotalRoutes"),
+                    reader.GetInt32("TotalSchedules"),
+                    reader.GetInt32("UpcomingSchedules"),
+                    reader.GetString("VendorStatus")
+                );
             }
             
-            // Read route count
-            if (await reader.NextResultAsync() && await reader.ReadAsync())
-            {
-                totalRoutes = reader.GetInt32("TotalRoutes");
-            }
-            
-            // Read schedule counts
-            if (await reader.NextResultAsync() && await reader.ReadAsync())
-            {
-                totalSchedules = reader.GetInt32("TotalSchedules");
-                upcomingSchedules = reader.GetInt32("UpcomingSchedules");
-            }
-            
-            // Read vendor status
-            if (await reader.NextResultAsync() && await reader.ReadAsync())
-            {
-                vendorStatus = reader.GetString("VendorStatus");
-            }
-            
-            return (totalBuses, activeBuses, pendingBuses, totalRoutes, totalSchedules, upcomingSchedules, vendorStatus);
+            return (0, 0, 0, 0, 0, 0, "Unknown");
         }
         catch (SqlException ex)
         {

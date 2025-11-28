@@ -4,6 +4,5 @@ BEGIN
     SET NOCOUNT ON;
     
     SELECT COUNT(*) AS TotalCount
-    FROM Vendors 
-    WHERE IsActive = 1;
+    FROM Vendors;
 END

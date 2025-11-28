@@ -16,6 +16,7 @@ public interface IVendorService
     Task<Result<VendorResponseDto>> ApproveVendorAsync(int vendorId);
     Task<Result<bool>> RejectVendorAsync(int vendorId);
     Task<PagedResultDto<VendorResponseDto>> GetPendingVendorsAsync(int pageNumber, int pageSize);
+    Task<PagedResultDto<AdminVendorDTO>> GetPendingVendorsForAdminAsync(int pageNumber, int pageSize);
     Task<VendorDashboardSummaryDto> GetVendorDashboardSummaryAsync(int vendorId);
     
     // Admin methods
@@ -24,4 +25,5 @@ public interface IVendorService
     Task<Result<bool>> RejectVendorWithReasonAsync(int vendorId, string rejectionReason);
     Task<Result<bool>> DeactivateVendorWithReasonAsync(int vendorId, string reason);
     Task<Result<bool>> ReactivateVendorWithReasonAsync(int vendorId, string reason);
+    Task<PagedResultDto<AdminVendorDTO>> GetAllVendorsForAdminAsync(int pageNumber, int pageSize);
 }

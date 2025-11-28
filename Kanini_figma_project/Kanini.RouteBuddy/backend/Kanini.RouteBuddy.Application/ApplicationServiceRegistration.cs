@@ -32,6 +32,7 @@ namespace Kanini.RouteBuddy.Application
             services.AddScoped<IAdminSeatLayoutService, AdminSeatLayoutService>();
             services.AddScoped<IAdminBusService, AdminBusService>();
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<Services.Vendor.IVendorService, Services.Vendor.VendorService>();
             services.AddHttpClient<ICaptchaService, CaptchaService>();
             services.AddHostedService<BookingExpiryService>();
             services.AddHostedService<TokenCleanupService>();

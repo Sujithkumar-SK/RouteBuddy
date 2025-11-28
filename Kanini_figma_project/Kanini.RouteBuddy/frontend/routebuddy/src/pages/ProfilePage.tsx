@@ -13,7 +13,6 @@ const ProfilePage = () => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    // Check auth state on mount
     dispatch(checkAuthState());
   }, [dispatch]);
 

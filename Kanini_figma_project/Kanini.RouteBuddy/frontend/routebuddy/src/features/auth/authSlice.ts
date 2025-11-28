@@ -29,7 +29,6 @@ const loadAuthState = (): AuthState => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       const user = JSON.parse(savedUser);
-      // Validate user object has required fields
       if (user && user.userId && user.email && user.role) {
         return {
           user,
@@ -41,7 +40,6 @@ const loadAuthState = (): AuthState => {
           isAuthenticated: true,
         };
       } else {
-        // Invalid user data, clear it
         localStorage.removeItem('user');
       }
     }

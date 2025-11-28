@@ -27,7 +27,7 @@ namespace Kanini.RouteBuddy.Api.Controllers
             _logger.LogInformation("Getting pending vendors");
             try
             {
-                var vendors = await _vendorService.GetPendingVendorsAsync(pageNumber, pageSize);
+                var vendors = await _vendorService.GetPendingVendorsForAdminAsync(pageNumber, pageSize);
                 _logger.LogInformation("Retrieved {Count} pending vendors", vendors.Data.Count());
                 return Ok(vendors);
             }
@@ -45,7 +45,7 @@ namespace Kanini.RouteBuddy.Api.Controllers
         {
             try
             {
-                var vendors = await _vendorService.GetAllVendorsAsync(pageNumber, pageSize);
+                var vendors = await _vendorService.GetAllVendorsForAdminAsync(pageNumber, pageSize);
                 return Ok(vendors);
             }
             catch (Exception ex)

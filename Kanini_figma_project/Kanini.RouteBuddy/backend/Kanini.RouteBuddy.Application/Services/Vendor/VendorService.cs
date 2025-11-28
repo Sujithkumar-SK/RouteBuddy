@@ -2,6 +2,7 @@ using AutoMapper;
 using Kanini.RouteBuddy.Application.Dto.Vendor;
 using Kanini.RouteBuddy.Application.Dto.Common;
 using Kanini.RouteBuddy.Application.Dto.Admin;
+using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Data.Repositories.Vendor;
 using Kanini.RouteBuddy.Data.Repositories.User;
 using Kanini.RouteBuddy.Data.Repositories.Buses;
@@ -14,6 +15,7 @@ using Kanini.RouteBuddy.Domain.Entities;
 using Kanini.RouteBuddy.Domain.Enums;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 
 namespace Kanini.RouteBuddy.Application.Services.Vendor;
@@ -25,16 +27,20 @@ public class VendorService : IVendorService
     private readonly IBusRepository _busRepository;
     private readonly IScheduleRepository _scheduleRepository;
     private readonly IRouteRepository _routeRepository;
+    private readonly IEmailService _emailService;
     private readonly IMapper _mapper;
+    private readonly ILogger<VendorService> _logger;
 
-    public VendorService(IVendorRepository vendorRepository, IUserRepository userRepository, IBusRepository busRepository, IScheduleRepository scheduleRepository, IRouteRepository routeRepository, IMapper mapper)
+    public VendorService(IVendorRepository vendorRepository, IUserRepository userRepository, IBusRepository busRepository, IScheduleRepository scheduleRepository, IRouteRepository routeRepository, IEmailService emailService, IMapper mapper, ILogger<VendorService> logger)
     {
         _vendorRepository = vendorRepository;
         _userRepository = userRepository;
         _busRepository = busRepository;
         _scheduleRepository = scheduleRepository;
         _routeRepository = routeRepository;
+        _emailService = emailService;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<Result<VendorResponseDto>> RegisterVendorAsync(VendorRegistrationDto dto)
@@ -350,6 +356,20 @@ public class VendorService : IVendorService
             vendor.User.UpdatedOn = DateTime.UtcNow;
             
             await _vendorRepository.UpdateAsync(vendor);
+            
+            // Send approval email
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _emailService.SendVendorApprovalEmailAsync(vendor.User.Email, vendor.OwnerName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send vendor approval email to {Email}", vendor.User.Email);
+                }
+            });
+            
             return Result.Success(true);
         }
         catch (Exception)
@@ -379,6 +399,20 @@ public class VendorService : IVendorService
             vendor.User.UpdatedOn = DateTime.UtcNow;
             
             await _vendorRepository.UpdateAsync(vendor);
+            
+            // Send rejection email
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _emailService.SendVendorRejectionEmailAsync(vendor.User.Email, vendor.OwnerName, rejectionReason);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send vendor rejection email to {Email}", vendor.User.Email);
+                }
+            });
+            
             return Result.Success(true);
         }
         catch (Exception)
@@ -441,6 +475,76 @@ public class VendorService : IVendorService
         {
             return Result.Failure<bool>(
                 Error.Failure("Vendor.UnexpectedError", VendorMessages.UnexpectedError));
+        }
+    }
+
+    public async Task<PagedResultDto<AdminVendorDTO>> GetPendingVendorsForAdminAsync(int pageNumber, int pageSize)
+    {
+        try
+        {
+            _logger.LogInformation("Getting pending vendors for admin - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
+            
+            var vendors = await _vendorRepository.GetPendingVendorsAsync(pageNumber, pageSize);
+            _logger.LogInformation("Retrieved {Count} pending vendors from repository", vendors?.Count() ?? 0);
+            
+            var totalCount = await _vendorRepository.GetPendingVendorsCountAsync();
+            _logger.LogInformation("Total pending vendors count: {TotalCount}", totalCount);
+            
+            var vendorDtos = _mapper.Map<List<AdminVendorDTO>>(vendors);
+            _logger.LogInformation("Mapped {Count} vendors to AdminVendorDTO", vendorDtos?.Count() ?? 0);
+
+            return new PagedResultDto<AdminVendorDTO>
+            {
+                Data = vendorDtos,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+        catch (SqlException ex)
+        {
+            _logger.LogError(ex, "SQL error getting pending vendors for admin");
+            throw new InvalidOperationException(VendorMessages.DatabaseError);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error getting pending vendors for admin");
+            throw new InvalidOperationException(VendorMessages.UnexpectedError);
+        }
+    }
+
+    public async Task<PagedResultDto<AdminVendorDTO>> GetAllVendorsForAdminAsync(int pageNumber, int pageSize)
+    {
+        try
+        {
+            _logger.LogInformation("Getting all vendors for admin - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
+            
+            var vendors = await _vendorRepository.GetAllAsync(pageNumber, pageSize);
+            _logger.LogInformation("Retrieved {Count} vendors from repository", vendors?.Count() ?? 0);
+            
+            var totalCount = await _vendorRepository.GetTotalCountAsync();
+            _logger.LogInformation("Total vendors count: {TotalCount}", totalCount);
+            
+            var vendorDtos = _mapper.Map<List<AdminVendorDTO>>(vendors);
+            _logger.LogInformation("Mapped {Count} vendors to AdminVendorDTO", vendorDtos?.Count() ?? 0);
+
+            return new PagedResultDto<AdminVendorDTO>
+            {
+                Data = vendorDtos,
+                TotalCount = totalCount,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+        }
+        catch (SqlException ex)
+        {
+            _logger.LogError(ex, "SQL error getting all vendors for admin");
+            throw new InvalidOperationException(VendorMessages.DatabaseError);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error getting all vendors for admin");
+            throw new InvalidOperationException(VendorMessages.UnexpectedError);
         }
     }
 }

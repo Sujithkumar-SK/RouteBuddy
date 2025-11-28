@@ -256,6 +256,17 @@ public class AuthService : IAuthService
                 return Result.Failure<LoginResponseDto>(Error.Unauthorized("Account.Inactive", MagicStrings.ErrorMessages.AccountInactive));
             }
 
+            // Additional check for vendor approval status
+            if (user.Role == UserRole.Vendor)
+            {
+                var vendor = await _vendorRepository.GetByUserIdAsync(user.UserId);
+                if (vendor == null || vendor.Status != VendorStatus.Active)
+                {
+                    _logger.LogWarning("Login failed: Vendor not approved - {Email}, Status: {Status}", request.Email, vendor?.Status.ToString() ?? "NotFound");
+                    return Result.Failure<LoginResponseDto>(Error.Unauthorized("Vendor.NotApproved", "Your vendor account is pending approval. Please contact admin."));
+                }
+            }
+
             // Revoke all existing tokens for single active session
             await _refreshTokenRepository.RevokeAllByUserIdAsync(user.UserId);
 
@@ -305,6 +316,16 @@ public class AuthService : IAuthService
 
             if (!user.IsActive)
                 return Result.Failure<LoginResponseDto>(Error.Unauthorized("Account.Inactive", "Account is inactive"));
+
+            // Additional check for vendor approval status
+            if (user.Role == UserRole.Vendor)
+            {
+                var vendor = await _vendorRepository.GetByUserIdAsync(user.UserId);
+                if (vendor == null || vendor.Status != VendorStatus.Active)
+                {
+                    return Result.Failure<LoginResponseDto>(Error.Unauthorized("Vendor.NotApproved", "Your vendor account is no longer approved. Please contact admin."));
+                }
+            }
 
             await _refreshTokenRepository.RevokeRefreshTokenAsync(request.RefreshToken);
 

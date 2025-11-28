@@ -4,6 +4,8 @@ import customerProfileReducer from '../features/auth/customerProfileSlice';
 import customerBookingsReducer from '../features/auth/customerBookingsSlice';
 import busReducer from '../features/bus/busSlice';
 import bookingReducer from '../features/booking/bookingSlice';
+import vendorReducer from '../features/vendor/vendorSlice';
+import adminReducer from '../features/admin/adminSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +14,8 @@ export const store = configureStore({
     customerBookings: customerBookingsReducer,
     bus: busReducer,
     booking: bookingReducer,
+    vendor: vendorReducer,
+    admin: adminReducer,
   },
 });
 

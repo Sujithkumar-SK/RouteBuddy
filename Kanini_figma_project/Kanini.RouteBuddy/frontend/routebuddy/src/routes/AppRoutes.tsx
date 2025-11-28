@@ -13,6 +13,7 @@ import VendorProfile from '../features/auth/VendorProfile';
 import HomePage from '../pages/HomePage';
 import CustomerDashboard from '../pages/CustomerDashboard';
 import VendorDashboard from '../pages/VendorDashboard';
+import AdminDashboard from '../pages/AdminDashboard';
 import SearchResultsPage from '../pages/SearchResultsPage';
 import SeatSelectionPage from '../pages/SeatSelectionPage';
 import PaymentPage from '../pages/PaymentPage';
@@ -74,6 +75,14 @@ const AppRoutes = () => {
         element={
           <ProtectedRoute>
             <VendorDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
           </ProtectedRoute>
         }
       />

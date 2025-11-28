@@ -31,6 +31,7 @@ namespace Kanini.RouteBuddy.Application.AutoMapper
             config.AddProfile<PaymentProfile>();
             config.AddProfile<CustomerProfileMappingProfile>();
             config.AddProfile<CustomerMappingProfile>();
+            config.AddProfile<VendorMappingProfile>();
         }
     }
 }

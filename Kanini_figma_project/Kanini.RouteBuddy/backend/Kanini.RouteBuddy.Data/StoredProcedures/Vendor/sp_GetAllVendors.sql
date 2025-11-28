@@ -12,14 +12,15 @@ BEGIN
         v.OwnerName, 
         v.BusinessLicenseNumber,
         v.OfficeAddress, 
-        v.FleetSize, 
+        v.FleetSize,
+        v.TaxRegistrationNumber,
         v.IsActive, 
-        v.Status, 
+        v.Status,
+        v.CreatedOn,
         u.Email, 
         u.Phone
     FROM Vendors v 
     INNER JOIN Users u ON v.UserId = u.UserId 
-    WHERE v.IsActive = 1
-    ORDER BY v.VendorId 
+    ORDER BY v.CreatedOn DESC
     OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
 END

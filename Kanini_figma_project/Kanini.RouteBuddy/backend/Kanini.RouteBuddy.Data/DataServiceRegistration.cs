@@ -42,6 +42,8 @@ namespace Kanini.RouteBuddy.Data
             services.AddScoped<Repositories.VendorDocuments.IVendorDocumentRepository, Repositories.VendorDocuments.VendorDocumentRepository>();
             services.AddScoped<Repositories.Booking.IBookingCancellationRepository, Repositories.Booking.BookingCancellationRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
+            services.AddScoped<Repositories.Schedule.IScheduleRepository, Repositories.Schedule.ScheduleRepository>();
+            services.AddScoped<Repositories.Route.IRouteRepository, Repositories.Route.RouteRepository>();
             return services;
         }
     }
