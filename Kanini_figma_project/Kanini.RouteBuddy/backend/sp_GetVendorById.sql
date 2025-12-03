@@ -16,10 +16,11 @@ BEGIN
         v.TaxRegistrationNumber,
         v.Status,
         v.IsActive,
+        v.CreatedOn,
         u.Email,
         u.Phone
     FROM Vendors v
     INNER JOIN Users u ON v.UserId = u.UserId
     WHERE v.VendorId = @VendorId
-    AND v.IsActive = 1;
+    ORDER BY v.CreatedOn DESC;
 END

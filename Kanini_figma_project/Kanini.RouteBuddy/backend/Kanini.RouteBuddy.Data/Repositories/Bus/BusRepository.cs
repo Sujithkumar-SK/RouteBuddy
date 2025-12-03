@@ -1,4 +1,5 @@
 using System.Data;
+using Kanini.RouteBuddy.Common;
 using Kanini.RouteBuddy.Common.Errors;
 using Kanini.RouteBuddy.Common.Services;
 using Kanini.RouteBuddy.Common.Utility;
@@ -420,10 +421,10 @@ public class BusRepository : IBusRepository
             using var connection = new SqlConnection(_connectionString);
             using var command = new SqlCommand("sp_GetAllBusesForAdmin", connection);
             command.CommandType = CommandType.StoredProcedure;
-            
+
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
-            
+
             var buses = new List<BusEntity>();
             while (await reader.ReadAsync())
             {
@@ -446,10 +447,10 @@ public class BusRepository : IBusRepository
             using var command = new SqlCommand("sp_GetBusesByStatus", connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@Status", (int)status);
-            
+
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
-            
+
             var buses = new List<BusEntity>();
             while (await reader.ReadAsync())
             {
@@ -464,7 +465,11 @@ public class BusRepository : IBusRepository
         }
     }
 
-    public async Task<List<BusEntity>> FilterBusesForAdminAsync(string? searchName, int? status, bool? isActive)
+    public async Task<List<BusEntity>> FilterBusesForAdminAsync(
+        string? searchName,
+        int? status,
+        bool? isActive
+    )
     {
         try
         {
@@ -474,10 +479,10 @@ public class BusRepository : IBusRepository
             command.Parameters.AddWithValue("@SearchName", (object?)searchName ?? DBNull.Value);
             command.Parameters.AddWithValue("@Status", (object?)status ?? DBNull.Value);
             command.Parameters.AddWithValue("@IsActive", (object?)isActive ?? DBNull.Value);
-            
+
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
-            
+
             var buses = new List<BusEntity>();
             while (await reader.ReadAsync())
             {
@@ -500,10 +505,10 @@ public class BusRepository : IBusRepository
             using var command = new SqlCommand("sp_GetBusDetailsForAdmin", connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@BusId", busId);
-            
+
             await connection.OpenAsync();
             using var reader = await command.ExecuteReaderAsync();
-            
+
             if (await reader.ReadAsync())
             {
                 return MapBusFromReader(reader);
@@ -517,8 +522,6 @@ public class BusRepository : IBusRepository
         }
     }
 
-
-
     private static BusEntity MapBusFromReader(SqlDataReader reader)
     {
         return new BusEntity
@@ -531,10 +534,48 @@ public class BusRepository : IBusRepository
             Status = (BusStatus)reader.GetInt32("Status"),
             Amenities = (BusAmenities)reader.GetInt32("Amenities"),
             DriverName = reader.IsDBNull("DriverName") ? null! : reader.GetString("DriverName"),
-            DriverContact = reader.IsDBNull("DriverContact") ? null! : reader.GetString("DriverContact"),
+            DriverContact = reader.IsDBNull("DriverContact")
+                ? null!
+                : reader.GetString("DriverContact"),
             IsActive = reader.GetBoolean("IsActive"),
             CreatedOn = reader.GetDateTime("CreatedOn"),
-            VendorId = reader.GetInt32("VendorId")
+            VendorId = reader.GetInt32("VendorId"),
         };
+    }
+
+    public async Task<Result<bool>> ApplyTemplateAsync(int busId, int templateId)
+    {
+        try
+        {
+            _logger.LogInformation(
+                MagicStrings.LogMessages.BusTemplateApplicationStarted,
+                busId,
+                templateId
+            );
+
+            // Use EF Core for write operation (following rule 2)
+            var bus = await _context.Buses.FindAsync(busId);
+            if (bus == null)
+            {
+                _logger.LogWarning("Bus not found for template application: {BusId}", busId);
+                return Result.Failure<bool>(Error.NotFound("Bus.NotFound", "Bus not found"));
+            }
+
+            bus.SeatLayoutTemplateId = templateId;
+            bus.UpdatedOn = DateTime.UtcNow;
+            bus.UpdatedBy = "System";
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation(MagicStrings.LogMessages.BusTemplateApplicationCompleted, busId);
+            return Result.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MagicStrings.LogMessages.BusTemplateApplicationFailed, ex.Message);
+            return Result.Failure<bool>(
+                Error.Failure("Template.ApplyFailed", "Template application failed")
+            );
+        }
     }
 }

@@ -193,4 +193,30 @@ public class StopController : ControllerBase
             return StatusCode(500, new { Error = StopMessages.UnexpectedError });
         }
     }
+
+    [HttpGet("places")]
+    public async Task<IActionResult> GetAllPlaces()
+    {
+        try
+        {
+            _logger.LogInformation("Getting all places started");
+
+            var request = new PlaceAutocompleteRequestDto { Query = "", Limit = 1000 };
+            var result = await _stopService.GetPlaceAutocompleteAsync(request);
+
+            if (result.IsFailure)
+            {
+                _logger.LogError("Get all places failed: {Error}", result.Error.Description);
+                return BadRequest(result.Error);
+            }
+
+            _logger.LogInformation("Get all places completed. Found {Count} places", result.Value.Count);
+            return Ok(result.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Get all places failed: {Error}", ex.Message);
+            return StatusCode(500, new { Error = "An unexpected error occurred" });
+        }
+    }
 }

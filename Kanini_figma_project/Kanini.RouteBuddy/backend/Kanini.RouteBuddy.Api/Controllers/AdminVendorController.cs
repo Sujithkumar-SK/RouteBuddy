@@ -102,18 +102,40 @@ namespace Kanini.RouteBuddy.Api.Controllers
                     return BadRequest(ErrorMessages.VendorIdInvalid);
 
                 var vendor = await _vendorService.GetVendorByIdAsync(vendorId);
-                if (vendor == null)
-                    return NotFound(string.Format(ErrorMessages.VendorNotFound, vendorId));
+                if (vendor.IsFailure)
+                    return NotFound(vendor.Error.Description);
 
-                return Ok(vendor);
+                return Ok(vendor.Value);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error getting vendor {VendorId}", vendorId);
                 return StatusCode(500, string.Format(ErrorMessages.InternalServerError, ex.Message));
             }
         }
 
-        [HttpPost("approve/{vendorId}")]
+        [HttpGet("{vendorId}/approval")]
+        public async Task<ActionResult> GetVendorForApproval(int vendorId)
+        {
+            try
+            {
+                if (vendorId <= 0)
+                    return BadRequest(ErrorMessages.VendorIdInvalid);
+
+                var result = await _vendorService.GetVendorForApprovalAsync(vendorId);
+                if (result.IsFailure)
+                    return NotFound(result.Error.Description);
+
+                return Ok(result.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting vendor for approval {VendorId}", vendorId);
+                return StatusCode(500, string.Format(ErrorMessages.InternalServerError, ex.Message));
+            }
+        }
+
+        [HttpPatch("approve/{vendorId}")]
         public async Task<ActionResult> ApproveVendor(int vendorId)
         {
             try
@@ -133,7 +155,7 @@ namespace Kanini.RouteBuddy.Api.Controllers
             }
         }
 
-        [HttpPost("reject/{vendorId}")]
+        [HttpPatch("reject/{vendorId}")]
         public async Task<ActionResult> RejectVendor(int vendorId, [FromBody] VendorRejectionDTO rejectionDto)
         {
             try

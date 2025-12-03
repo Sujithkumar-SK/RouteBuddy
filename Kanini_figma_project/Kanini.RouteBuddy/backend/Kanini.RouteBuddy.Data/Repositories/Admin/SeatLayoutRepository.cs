@@ -514,4 +514,69 @@ public class SeatLayoutRepository : ISeatLayoutRepository
             );
         }
     }
+
+    public async Task<Result<List<SeatLayoutTemplate>>> GetTemplatesByBusTypeAsync(int busType)
+    {
+        try
+        {
+            _logger.LogInformation(MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeStarted, busType);
+
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand(
+                MagicStrings.StoredProcedures.GetSeatLayoutTemplatesByBusType,
+                connection
+            )
+            {
+                CommandType = CommandType.StoredProcedure,
+            };
+
+            command.Parameters.AddWithValue("@BusType", busType);
+
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+
+            var templates = new List<SeatLayoutTemplate>();
+            while (await reader.ReadAsync())
+            {
+                var template = new SeatLayoutTemplate
+                {
+                    SeatLayoutTemplateId = reader.GetInt32("SeatLayoutTemplateId"),
+                    TemplateName = reader.GetString("TemplateName"),
+                    TotalSeats = reader.GetInt32("TotalSeats"),
+                    BusType = (BusType)reader.GetInt32("BusType"),
+                    Description = reader.IsDBNull("Description")
+                        ? null
+                        : reader.GetString("Description"),
+                    IsActive = reader.GetBoolean("IsActive"),
+                    CreatedBy = reader.GetString("CreatedBy"),
+                    CreatedOn = reader.GetDateTime("CreatedOn"),
+                    UpdatedBy = reader.IsDBNull("UpdatedBy") ? null : reader.GetString("UpdatedBy"),
+                    UpdatedOn = reader.IsDBNull("UpdatedOn")
+                        ? null
+                        : reader.GetDateTime("UpdatedOn"),
+                };
+                templates.Add(template);
+            }
+
+            _logger.LogInformation(
+                MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeCompleted,
+                templates.Count
+            );
+            return Result.Success(templates);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeFailed,
+                ex.Message
+            );
+            return Result.Failure<List<SeatLayoutTemplate>>(
+                Error.Failure(
+                    "SeatLayoutTemplate.GetByBusTypeFailed",
+                    MagicStrings.ErrorMessages.DatabaseError
+                )
+            );
+        }
+    }
 }

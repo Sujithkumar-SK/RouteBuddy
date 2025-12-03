@@ -1,6 +1,7 @@
 using AutoMapper;
 using Kanini.RouteBuddy.Application.Dto.Bus;
 using Kanini.RouteBuddy.Application.Dto.Common;
+using Kanini.RouteBuddy.Common;
 using Kanini.RouteBuddy.Common.Errors;
 using Kanini.RouteBuddy.Common.Services;
 using Kanini.RouteBuddy.Common.Utility;
@@ -91,6 +92,7 @@ public class BusService : IBusService
             bus.IsActive = false;  // Bus should be inactive until approved
             bus.Status = BusStatus.PendingApproval;
             bus.RegistrationPath = rcPath;
+            bus.SeatLayoutTemplateId = dto.SeatLayoutTemplateId; // Now mandatory
             bus.CreatedBy = vendor?.AgencyName ?? "System";
             bus.CreatedOn = DateTime.UtcNow;
 
@@ -280,11 +282,12 @@ public class BusService : IBusService
                 return Result.Failure<BusResponseDto>(Error.NotFound(BusMessages.ErrorCodes.BusNotFound, BusMessages.ErrorMessages.UnauthorizedBusAccess));
             }
 
-            if (result.Value.Status != BusStatus.PendingApproval)
-            {
-                _logger.LogWarning(BusMessages.LogMessages.InvalidStatusWarning, busId);
-                return Result.Failure<BusResponseDto>(Error.Failure(BusMessages.ErrorCodes.InvalidStatus, BusMessages.ErrorMessages.InvalidBusStatus));
-            }
+            // Allow activation regardless of current status
+            // if (result.Value.Status != BusStatus.PendingApproval)
+            // {
+            //     _logger.LogWarning(BusMessages.LogMessages.InvalidStatusWarning, busId);
+            //     return Result.Failure<BusResponseDto>(Error.Failure(BusMessages.ErrorCodes.InvalidStatus, BusMessages.ErrorMessages.InvalidBusStatus));
+            // }
 
             var vendor = await _vendorRepository.GetByIdAsync(vendorId);
             result.Value.Status = BusStatus.Active;
@@ -431,6 +434,60 @@ public class BusService : IBusService
             return Result.Failure<List<BusResponseDto>>(
                 Error.Failure(BusMessages.ErrorCodes.BusUnexpectedError, BusMessages.ErrorMessages.UnexpectedError)
             );
+        }
+    }
+
+    public async Task<Result<bool>> ApplyTemplateAsync(int busId, int templateId, int vendorId)
+    {
+        try
+        {
+            _logger.LogInformation(MagicStrings.LogMessages.BusTemplateApplicationStarted, busId, templateId);
+
+            // Validate bus belongs to vendor
+            var busResult = await _busRepository.GetByIdAsync(busId);
+            if (busResult.IsFailure)
+            {
+                _logger.LogError("Bus not found for template application: {BusId}", busId);
+                return Result.Failure<bool>(Error.NotFound("Bus.NotFound", "Bus not found"));
+            }
+
+            if (busResult.Value.VendorId != vendorId)
+            {
+                _logger.LogWarning("Unauthorized template application attempt for bus: {BusId}", busId);
+                return Result.Failure<bool>(Error.NotFound("Bus.NotFound", "Bus not found"));
+            }
+
+            // Apply template
+            var result = await _busRepository.ApplyTemplateAsync(busId, templateId);
+            if (result.IsFailure)
+            {
+                _logger.LogError(MagicStrings.LogMessages.BusTemplateApplicationFailed, result.Error.Description);
+                return Result.Failure<bool>(result.Error);
+            }
+
+            _logger.LogInformation(MagicStrings.LogMessages.BusTemplateApplicationCompleted, busId);
+            return Result.Success(true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Apply template service failed for bus: {BusId}", busId);
+            return Result.Failure<bool>(
+                Error.Failure("Template.Failed", "Template application failed")
+            );
+        }
+    }
+
+    public async Task<Domain.Entities.Vendor?> GetVendorByUserIdAsync(int userId)
+    {
+        try
+        {
+            var result = await _vendorRepository.GetByUserIdAsync(userId);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get vendor by UserId: {UserId}", userId);
+            return null;
         }
     }
 }

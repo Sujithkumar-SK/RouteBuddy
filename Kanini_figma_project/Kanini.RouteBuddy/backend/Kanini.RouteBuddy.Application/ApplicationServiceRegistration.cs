@@ -7,7 +7,12 @@ using Kanini.RouteBuddy.Application.Services.Customer;
 using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Application.Services.Pdf;
 using Kanini.RouteBuddy.Application.Services.SmartEnigne;
+using Kanini.RouteBuddy.Application.Services.Stop;
 using Kanini.RouteBuddy.Application.Services.User;
+using Kanini.RouteBuddy.Application.Services.BusPhoto;
+using Kanini.RouteBuddy.Application.Services.Schedule;
+using Kanini.RouteBuddy.Application.Services.Route;
+using Kanini.RouteBuddy.Application.Services.RouteStop;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Kanini.RouteBuddy.Application
@@ -24,7 +29,9 @@ namespace Kanini.RouteBuddy.Application
             services.AddScoped<Services.Auth.IJwtTokenService, Services.Auth.JwtTokenService>();
             services.AddScoped<Services.Auth.IJwtOtpService, Services.Auth.JwtOtpService>();
             services.AddScoped<IBusService, BusService>();
+            services.AddScoped<IBusPhotoService, BusPhotoService>();
             services.AddScoped<IBus_Search_Book_Service, Bus_Search_Book_Service>();
+            services.AddScoped<IStopService, StopService>();
             services.AddScoped<ISmartEngineService, SmartEngineService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IPdfService, PdfService>();
@@ -33,6 +40,9 @@ namespace Kanini.RouteBuddy.Application
             services.AddScoped<IAdminBusService, AdminBusService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<Services.Vendor.IVendorService, Services.Vendor.VendorService>();
+            services.AddScoped<IScheduleService, ScheduleService>();
+            services.AddScoped<Services.Route.IRouteService, Services.Route.RouteService>();
+            services.AddScoped<IRouteStopService, RouteStopService>();
             services.AddHttpClient<ICaptchaService, CaptchaService>();
             services.AddHostedService<BookingExpiryService>();
             services.AddHostedService<TokenCleanupService>();

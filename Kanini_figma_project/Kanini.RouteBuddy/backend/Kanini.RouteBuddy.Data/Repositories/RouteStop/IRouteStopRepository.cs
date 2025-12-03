@@ -10,4 +10,5 @@ public interface IRouteStopRepository
     Task<Domain.Entities.RouteStop> UpdateAsync(Domain.Entities.RouteStop routeStop);
     Task<bool> DeleteAsync(int routeStopId);
     Task<bool> ExistsByRouteAndOrderAsync(int routeId, int orderNumber);
+    Task<IEnumerable<Domain.Entities.RouteStop>> GetByScheduleIdAsync(int scheduleId);
 }

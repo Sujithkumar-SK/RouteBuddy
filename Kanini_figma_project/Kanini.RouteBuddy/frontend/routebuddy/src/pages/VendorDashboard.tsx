@@ -2,13 +2,7 @@ import { useEffect } from 'react';
 import { Container, Typography, Grid, Box, CircularProgress, Alert } from '@mui/material';
 import Layout from '../components/layout/Layout';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppDispatch';
-import {
-  fetchDashboardSummary,
-  fetchRevenueAnalytics,
-  fetchFleetStatus,
-  fetchQuickStats,
-  fetchRecentBookings,
-} from '../features/vendor/vendorSlice';
+import { fetchVendorDashboard } from '../features/vendor/vendorSlice';
 import DashboardSummaryCard from '../features/vendor/components/DashboardSummaryCard';
 import RevenueAnalyticsCard from '../features/vendor/components/RevenueAnalyticsCard';
 import FleetStatusCard from '../features/vendor/components/FleetStatusCard';
@@ -28,11 +22,7 @@ const VendorDashboard = () => {
   } = useAppSelector((state) => state.vendor);
 
   useEffect(() => {
-    dispatch(fetchDashboardSummary());
-    dispatch(fetchRevenueAnalytics());
-    dispatch(fetchFleetStatus());
-    dispatch(fetchQuickStats());
-    dispatch(fetchRecentBookings());
+    dispatch(fetchVendorDashboard());
   }, [dispatch]);
 
   if (loading.dashboard) {

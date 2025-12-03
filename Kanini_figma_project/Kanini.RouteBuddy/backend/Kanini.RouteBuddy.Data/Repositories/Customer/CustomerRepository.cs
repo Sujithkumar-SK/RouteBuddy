@@ -497,7 +497,7 @@ namespace Kanini.RouteBuddy.Data.Repositories.Customer
                 customer.DateOfBirth = dateOfBirth;
                 customer.Gender = (Kanini.RouteBuddy.Domain.Enums.Gender)gender;
                 customer.UpdatedOn = DateTime.UtcNow;
-                customer.UpdatedBy = customer.User?.UserId.ToString(); // Set UpdatedBy to the user who is updating
+                customer.UpdatedBy = customer.User?.UserId.ToString() ?? "System"; // Set UpdatedBy to the user who is updating
 
                 // Update user phone
                 if (customer.User != null)

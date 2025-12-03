@@ -17,4 +17,6 @@ public interface IBusService
     Task<Result<BusResponseDto>> DeactivateBusAsync(int busId, int vendorId);
     Task<Result<BusResponseDto>> SetMaintenanceAsync(int busId, int vendorId);
     Task<Result<List<BusResponseDto>>> GetAwaitingConfirmationAsync(int vendorId);
+    Task<Result<bool>> ApplyTemplateAsync(int busId, int templateId, int vendorId);
+    Task<Domain.Entities.Vendor?> GetVendorByUserIdAsync(int userId);
 }

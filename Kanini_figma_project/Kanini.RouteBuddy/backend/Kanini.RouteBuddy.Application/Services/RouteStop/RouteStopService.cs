@@ -37,6 +37,7 @@ public class RouteStopService : IRouteStopService
             if (stopResult.IsFailure)
                 return Result.Failure<RouteStopDto>(Error.NotFound("Stop.NotFound", RouteStopMessages.StopNotFound));
 
+            // Check for route-level template stops only (ScheduleId = NULL)
             if (await _routeStopRepository.ExistsByRouteAndOrderAsync(routeId, dto.OrderNumber))
                 return Result.Failure<RouteStopDto>(Error.Conflict("Order.Exists", RouteStopMessages.DuplicateOrderNumber));
 
@@ -47,6 +48,7 @@ public class RouteStopService : IRouteStopService
                 OrderNumber = dto.OrderNumber,
                 ArrivalTime = dto.ArrivalTime,
                 DepartureTime = dto.DepartureTime,
+                ScheduleId = null, // Route-level template
                 CreatedOn = DateTime.UtcNow,
                 CreatedBy = "System"
             };

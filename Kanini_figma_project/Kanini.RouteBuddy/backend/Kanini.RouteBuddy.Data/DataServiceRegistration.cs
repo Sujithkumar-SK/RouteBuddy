@@ -3,8 +3,11 @@ using Kanini.RouteBuddy.Data.Infrastructure;
 using Kanini.RouteBuddy.Data.Repositories;
 using Kanini.RouteBuddy.Data.Repositories.Admin;
 using Kanini.RouteBuddy.Data.Repositories.Buses;
+using Kanini.RouteBuddy.Data.Repositories.BusPhoto;
 using Kanini.RouteBuddy.Data.Repositories.Email;
 using Kanini.RouteBuddy.Data.Repositories.SmartEngine;
+using Kanini.RouteBuddy.Data.Repositories.Stop;
+using Kanini.RouteBuddy.Data.Repositories.RouteStop;
 using Kanini.RouteBuddy.Data.Repositories.Token;
 using Kanini.RouteBuddy.Data.Repositories.User;
 using Kanini.RouteBuddy.Data.Repositories.Vendor;
@@ -32,10 +35,12 @@ namespace Kanini.RouteBuddy.Data
             // Repositories
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IBusRepository, BusRepository>();
+            services.AddScoped<IBusPhotoRepository, BusPhotoRepository>();
             services.AddScoped<IBus_Search_Book_Repository, Bus_Search_Book_Repository>();
             services.AddScoped<ISmartEngineRepository, SmartEngineRepository>();
             services.AddScoped<IEmailRepository, EmailRepository>();
-            services.AddScoped<ISeatLayoutRepository, SeatLayoutRepository>();
+            services.AddScoped<Kanini.RouteBuddy.Data.Repositories.Admin.ISeatLayoutRepository, Kanini.RouteBuddy.Data.Repositories.Admin.SeatLayoutRepository>();
+            services.AddScoped<IVendorSeatLayoutRepository, VendorSeatLayoutRepository>();
             services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
             services.AddScoped<IVendorRepository, VendorRepository>();
             services.AddScoped<Repositories.Customer.ICustomerRepository, Repositories.Customer.CustomerRepository>();
@@ -44,6 +49,8 @@ namespace Kanini.RouteBuddy.Data
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<Repositories.Schedule.IScheduleRepository, Repositories.Schedule.ScheduleRepository>();
             services.AddScoped<Repositories.Route.IRouteRepository, Repositories.Route.RouteRepository>();
+            services.AddScoped<IRouteStopRepository, RouteStopRepository>();
+            services.AddScoped<IStopRepository, StopRepository>();
             return services;
         }
     }

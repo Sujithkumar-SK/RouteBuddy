@@ -6,6 +6,7 @@ import busReducer from '../features/bus/busSlice';
 import bookingReducer from '../features/booking/bookingSlice';
 import vendorReducer from '../features/vendor/vendorSlice';
 import adminReducer from '../features/admin/adminSlice';
+import busFleetReducer from '../features/vendor/busFleetSlice';
 
 export const store = configureStore({
   reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
     booking: bookingReducer,
     vendor: vendorReducer,
     admin: adminReducer,
+    busFleet: busFleetReducer,
   },
 });
 

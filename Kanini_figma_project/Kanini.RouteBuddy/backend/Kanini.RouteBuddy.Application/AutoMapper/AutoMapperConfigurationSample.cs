@@ -22,6 +22,8 @@ namespace Kanini.RouteBuddy.Application.AutoMapper
             config.CreateMap<User, UserResponseDto>();
             config.AddProfile<AuthMappingProfile>();
             config.AddProfile<BusProfile>();
+            config.AddProfile<BusMappingProfile>();
+            config.AddProfile<BusPhotoMappingProfile>();
             config.AddProfile<BookingProfile>();
             config.AddProfile<RouteStopProfile>();
             config.AddProfile<BusFilterProfile>();
@@ -32,6 +34,12 @@ namespace Kanini.RouteBuddy.Application.AutoMapper
             config.AddProfile<CustomerProfileMappingProfile>();
             config.AddProfile<CustomerMappingProfile>();
             config.AddProfile<VendorMappingProfile>();
+            config.AddProfile<VendorDocumentMappingProfile>();
+            config.AddProfile<VendorApprovalMappingProfile>();
+            config.AddProfile<PlaceAutocompleteProfile>();
+            config.AddProfile<RouteMappingProfile>();
+            config.AddProfile<ScheduleMappingProfile>();
+            config.AddProfile<StopMappingProfile>();
         }
     }
 }

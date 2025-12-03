@@ -27,6 +27,53 @@ const Navbar = () => {
     handleMenuClose();
   };
 
+  const getDashboardRoute = () => {
+    switch (user?.role) {
+      case 'Vendor':
+        return ROUTES.VENDOR_DASHBOARD;
+      case 'Admin':
+        return ROUTES.ADMIN_DASHBOARD;
+      default:
+        return ROUTES.CUSTOMER_DASHBOARD;
+    }
+  };
+
+  const renderNavigationItems = () => {
+    switch (user?.role) {
+      case 'Vendor':
+        return (
+          <>
+            <Button color="inherit" onClick={() => navigate(ROUTES.VENDOR_DASHBOARD)}>
+              Dashboard
+            </Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.VENDOR_FLEET)}>My Fleet</Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.VENDOR_SCHEDULES)}>Schedules</Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.VENDOR_ANALYTICS)}>Analytics</Button>
+          </>
+        );
+      case 'Admin':
+        return (
+          <>
+            <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_DASHBOARD)}>
+              Dashboard
+            </Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_VENDORS)}>Vendors</Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_BUSES)}>Buses</Button>
+          </>
+        );
+      default: // Customer
+        return (
+          <>
+            <Button color="inherit" onClick={() => navigate(ROUTES.CUSTOMER_DASHBOARD)}>
+              Bus Tickets
+            </Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.MY_BOOKINGS)}>My Bookings</Button>
+            <Button color="inherit">Help</Button>
+          </>
+        );
+    }
+  };
+
   return (
     <AppBar position="sticky" sx={{ bgcolor: '#d84e55' }}>
       <Toolbar>
@@ -34,17 +81,13 @@ const Navbar = () => {
         <Typography
           variant="h5"
           sx={{ flexGrow: 0, fontWeight: 700, cursor: 'pointer', mr: 4 }}
-          onClick={() => navigate(ROUTES.CUSTOMER_DASHBOARD)}
+          onClick={() => navigate(getDashboardRoute())}
         >
           RouteBuddy
         </Typography>
 
         <Box sx={{ flexGrow: 1, display: 'flex', gap: 2 }}>
-          <Button color="inherit" onClick={() => navigate(ROUTES.CUSTOMER_DASHBOARD)}>
-            Bus Tickets
-          </Button>
-          <Button color="inherit" onClick={() => navigate(ROUTES.MY_BOOKINGS)}>My Bookings</Button>
-          <Button color="inherit">Help</Button>
+          {renderNavigationItems()}
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

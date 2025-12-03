@@ -49,102 +49,14 @@ const initialState: VendorState = {
   error: null,
 };
 
-// Async thunks
-export const fetchDashboardSummary = createAsyncThunk(
-  'vendor/fetchDashboardSummary',
+// Single consolidated async thunk
+export const fetchVendorDashboard = createAsyncThunk(
+  'vendor/fetchDashboard',
   async (_, { rejectWithValue }) => {
     try {
-      return await vendorAPI.getDashboardSummary();
+      return await vendorAPI.getDashboardData();
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch dashboard summary');
-    }
-  }
-);
-
-export const fetchVendorProfile = createAsyncThunk(
-  'vendor/fetchProfile',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await vendorAPI.getProfile();
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch profile');
-    }
-  }
-);
-
-export const fetchRevenueAnalytics = createAsyncThunk(
-  'vendor/fetchRevenueAnalytics',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await vendorAPI.getRevenueAnalytics();
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch revenue analytics');
-    }
-  }
-);
-
-export const fetchPerformanceMetrics = createAsyncThunk(
-  'vendor/fetchPerformanceMetrics',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await vendorAPI.getPerformanceMetrics();
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch performance metrics');
-    }
-  }
-);
-
-export const fetchFleetStatus = createAsyncThunk(
-  'vendor/fetchFleetStatus',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await vendorAPI.getFleetStatus();
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch fleet status');
-    }
-  }
-);
-
-export const fetchQuickStats = createAsyncThunk(
-  'vendor/fetchQuickStats',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await vendorAPI.getQuickStats();
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch quick stats');
-    }
-  }
-);
-
-export const fetchRecentBookings = createAsyncThunk(
-  'vendor/fetchRecentBookings',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await vendorAPI.getRecentBookings();
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch recent bookings');
-    }
-  }
-);
-
-export const fetchNotifications = createAsyncThunk(
-  'vendor/fetchNotifications',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await vendorAPI.getNotifications();
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch notifications');
-    }
-  }
-);
-
-export const fetchAlerts = createAsyncThunk(
-  'vendor/fetchAlerts',
-  async (_, { rejectWithValue }) => {
-    try {
-      return await vendorAPI.getAlerts();
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.error || 'Failed to fetch alerts');
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch dashboard data');
     }
   }
 );
@@ -161,65 +73,18 @@ const vendorSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Dashboard Summary
     builder
-      .addCase(fetchDashboardSummary.pending, (state) => {
+      .addCase(fetchVendorDashboard.pending, (state) => {
         state.loading.dashboard = true;
         state.error = null;
       })
-      .addCase(fetchDashboardSummary.fulfilled, (state, action) => {
+      .addCase(fetchVendorDashboard.fulfilled, (state, action) => {
         state.loading.dashboard = false;
         state.dashboard = action.payload;
       })
-      .addCase(fetchDashboardSummary.rejected, (state, action) => {
+      .addCase(fetchVendorDashboard.rejected, (state, action) => {
         state.loading.dashboard = false;
         state.error = action.payload as string;
-      })
-
-    // Profile
-      .addCase(fetchVendorProfile.pending, (state) => {
-        state.loading.profile = true;
-        state.error = null;
-      })
-      .addCase(fetchVendorProfile.fulfilled, (state, action) => {
-        state.loading.profile = false;
-        state.profile = action.payload;
-      })
-      .addCase(fetchVendorProfile.rejected, (state, action) => {
-        state.loading.profile = false;
-        state.error = action.payload as string;
-      })
-
-    // Analytics
-      .addCase(fetchRevenueAnalytics.pending, (state) => {
-        state.loading.analytics = true;
-      })
-      .addCase(fetchRevenueAnalytics.fulfilled, (state, action) => {
-        state.loading.analytics = false;
-        state.revenueAnalytics = action.payload;
-      })
-      .addCase(fetchRevenueAnalytics.rejected, (state, action) => {
-        state.loading.analytics = false;
-        state.error = action.payload as string;
-      })
-
-      .addCase(fetchPerformanceMetrics.fulfilled, (state, action) => {
-        state.performanceMetrics = action.payload;
-      })
-      .addCase(fetchFleetStatus.fulfilled, (state, action) => {
-        state.fleetStatus = action.payload;
-      })
-      .addCase(fetchQuickStats.fulfilled, (state, action) => {
-        state.quickStats = action.payload;
-      })
-      .addCase(fetchRecentBookings.fulfilled, (state, action) => {
-        state.recentBookings = action.payload;
-      })
-      .addCase(fetchNotifications.fulfilled, (state, action) => {
-        state.notifications = action.payload;
-      })
-      .addCase(fetchAlerts.fulfilled, (state, action) => {
-        state.alerts = action.payload;
       });
   },
 });

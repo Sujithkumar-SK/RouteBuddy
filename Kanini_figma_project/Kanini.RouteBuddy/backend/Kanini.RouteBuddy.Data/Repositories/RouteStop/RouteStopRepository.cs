@@ -30,9 +30,10 @@ public class RouteStopRepository : IRouteStopRepository
 
     public async Task<IEnumerable<Domain.Entities.RouteStop>> GetByRouteIdAsync(int routeId)
     {
+        // Get only route-level template stops (ScheduleId = NULL)
         return await _context.RouteStops
             .Include(rs => rs.Stop)
-            .Where(rs => rs.RouteId == routeId)
+            .Where(rs => rs.RouteId == routeId && rs.ScheduleId == null)
             .OrderBy(rs => rs.OrderNumber)
             .ToListAsync();
     }
@@ -58,7 +59,18 @@ public class RouteStopRepository : IRouteStopRepository
 
     public async Task<bool> ExistsByRouteAndOrderAsync(int routeId, int orderNumber)
     {
+        // Check only route-level template stops (ScheduleId = NULL)
         return await _context.RouteStops
-            .AnyAsync(rs => rs.RouteId == routeId && rs.OrderNumber == orderNumber);
+            .AnyAsync(rs => rs.RouteId == routeId && rs.OrderNumber == orderNumber && rs.ScheduleId == null);
+    }
+
+    public async Task<IEnumerable<Domain.Entities.RouteStop>> GetByScheduleIdAsync(int scheduleId)
+    {
+        // Get schedule-specific stops with timings
+        return await _context.RouteStops
+            .Include(rs => rs.Stop)
+            .Where(rs => rs.ScheduleId == scheduleId)
+            .OrderBy(rs => rs.OrderNumber)
+            .ToListAsync();
     }
 }

@@ -56,10 +56,21 @@ public class ScheduleService : IScheduleService
                 return Result.Failure<ScheduleResponseDto>(Error.Failure(ScheduleMessages.ErrorCodes.PastDate, ScheduleMessages.ErrorMessages.PastDateSchedule));
             }
 
-            if (dto.ArrivalTime <= dto.DepartureTime)
+            // Handle overnight journeys
+            var timeDifference = dto.ArrivalTime > dto.DepartureTime 
+                ? dto.ArrivalTime - dto.DepartureTime 
+                : TimeSpan.FromDays(1) - dto.DepartureTime + dto.ArrivalTime;
+
+            if (timeDifference.TotalMinutes < 30)
             {
                 _logger.LogWarning(ScheduleMessages.LogMessages.InvalidScheduleTime, dto.DepartureTime, dto.ArrivalTime);
-                return Result.Failure<ScheduleResponseDto>(Error.Failure(ScheduleMessages.ErrorCodes.InvalidTime, ScheduleMessages.ErrorMessages.InvalidScheduleTime));
+                return Result.Failure<ScheduleResponseDto>(Error.Failure(ScheduleMessages.ErrorCodes.InvalidTime, "Journey must be at least 30 minutes long"));
+            }
+
+            if (timeDifference.TotalHours > 24)
+            {
+                _logger.LogWarning(ScheduleMessages.LogMessages.InvalidScheduleTime, dto.DepartureTime, dto.ArrivalTime);
+                return Result.Failure<ScheduleResponseDto>(Error.Failure(ScheduleMessages.ErrorCodes.InvalidTime, "Journey cannot exceed 24 hours"));
             }
 
             var routeResult = await _routeRepository.GetByIdAsync(dto.RouteId);
@@ -86,6 +97,8 @@ public class ScheduleService : IScheduleService
             schedule.AvailableSeats = bus.TotalSeats;
             schedule.Status = ScheduleStatus.Scheduled;
             schedule.IsActive = true;
+            schedule.CreatedBy = $"Vendor-{vendorId}";
+            schedule.CreatedOn = DateTime.UtcNow;
 
             var createResult = await _scheduleRepository.CreateAsync(schedule);
             if (!createResult.IsSuccess)
@@ -94,6 +107,10 @@ public class ScheduleService : IScheduleService
                 return Result.Failure<ScheduleResponseDto>(Error.Failure(ScheduleMessages.ErrorCodes.CreationFailed, ScheduleMessages.ErrorMessages.ScheduleCreationFailed));
             }
 
+            // Load related entities for response
+            createResult.Value.Bus = bus;
+            createResult.Value.Route = routeResult.Value;
+            
             var response = _mapper.Map<ScheduleResponseDto>(createResult.Value);
             _logger.LogInformation(ScheduleMessages.LogMessages.ScheduleCreatedSuccessfully, createResult.Value.ScheduleId);
             

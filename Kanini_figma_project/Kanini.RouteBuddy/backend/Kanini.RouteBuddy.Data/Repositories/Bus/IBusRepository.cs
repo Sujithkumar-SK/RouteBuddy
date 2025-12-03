@@ -36,4 +36,7 @@ public interface IBusRepository
     Task<List<BusEntity>> GetBusesByStatusAsync(BusStatus status);
     Task<List<BusEntity>> FilterBusesForAdminAsync(string? searchName, int? status, bool? isActive);
     Task<BusEntity?> GetBusDetailsForAdminAsync(int busId);
+    
+    // Seat layout template methods
+    Task<Result<bool>> ApplyTemplateAsync(int busId, int templateId);
 }

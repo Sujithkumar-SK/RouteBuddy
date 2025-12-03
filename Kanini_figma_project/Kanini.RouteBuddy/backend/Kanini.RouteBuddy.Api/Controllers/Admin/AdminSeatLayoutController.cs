@@ -22,28 +22,52 @@ public class AdminSeatLayoutController : ControllerBase
     }
 
     [HttpGet("seat-layout-templates")]
-    public async Task<IActionResult> GetAllTemplates()
+    public async Task<IActionResult> GetTemplates([FromQuery] int? busType = null)
     {
         try
         {
-            _logger.LogInformation(MagicStrings.LogMessages.SeatLayoutTemplateGetAllStarted);
-
-            var result = await _adminSeatLayoutService.GetAllTemplatesAsync();
-
-            if (result.IsFailure)
+            if (busType.HasValue)
             {
-                _logger.LogError(
-                    MagicStrings.LogMessages.SeatLayoutTemplateGetAllFailed,
-                    result.Error.Description
+                _logger.LogInformation(MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeStarted, busType.Value);
+                
+                var result = await _adminSeatLayoutService.GetTemplatesByBusTypeAsync(busType.Value);
+                
+                if (result.IsFailure)
+                {
+                    _logger.LogError(
+                        MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeFailed,
+                        result.Error.Description
+                    );
+                    return BadRequest(result.Error);
+                }
+                
+                _logger.LogInformation(
+                    MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeCompleted,
+                    result.Value.Count
                 );
-                return BadRequest(result.Error);
+                return Ok(result.Value);
             }
+            else
+            {
+                _logger.LogInformation(MagicStrings.LogMessages.SeatLayoutTemplateGetAllStarted);
 
-            _logger.LogInformation(
-                MagicStrings.LogMessages.SeatLayoutTemplateGetAllCompleted,
-                result.Value.Count
-            );
-            return Ok(result.Value);
+                var result = await _adminSeatLayoutService.GetAllTemplatesAsync();
+
+                if (result.IsFailure)
+                {
+                    _logger.LogError(
+                        MagicStrings.LogMessages.SeatLayoutTemplateGetAllFailed,
+                        result.Error.Description
+                    );
+                    return BadRequest(result.Error);
+                }
+
+                _logger.LogInformation(
+                    MagicStrings.LogMessages.SeatLayoutTemplateGetAllCompleted,
+                    result.Value.Count
+                );
+                return Ok(result.Value);
+            }
         }
         catch (Exception ex)
         {

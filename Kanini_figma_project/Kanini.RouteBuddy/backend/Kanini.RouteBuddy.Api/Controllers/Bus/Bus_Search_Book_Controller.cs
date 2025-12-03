@@ -1,5 +1,6 @@
 using AutoMapper;
 using Kanini.RouteBuddy.Application.Dto;
+using Kanini.RouteBuddy.Application.Dto.Stop;
 using Kanini.RouteBuddy.Application.Services.Buses;
 using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Common;
@@ -270,6 +271,8 @@ public class Bus_Search_Book_Controller : ControllerBase
             return StatusCode(500, new { Error = MagicStrings.ErrorMessages.UnexpectedError });
         }
     }
+
+
 
     [HttpPost("search/filtered")]
     public async Task<IActionResult> SearchBusesFiltered([FromBody] BusSearchFilterDto request)

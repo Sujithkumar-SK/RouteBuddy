@@ -5,6 +5,7 @@ using Kanini.RouteBuddy.Application.Dto.Common;
 using Kanini.RouteBuddy.Data.Repositories.Stop;
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Common.Errors;
+using Kanini.RouteBuddy.Common;
 using Kanini.RouteBuddy.Domain.Entities;
 
 namespace Kanini.RouteBuddy.Application.Services.Stop;
@@ -189,6 +190,57 @@ public class StopService : IStopService
             _logger.LogError(ex, "Stop delete failed: {Message}", ex.Message);
             return Result.Failure<bool>(
                 Error.Failure(StopMessages.ErrorCodes.UnexpectedError, StopMessages.ErrorMessages.UnexpectedError)
+            );
+        }
+    }
+
+    public async Task<Result<List<PlaceAutocompleteResponseDto>>> GetPlaceAutocompleteAsync(PlaceAutocompleteRequestDto request)
+    {
+        try
+        {
+            _logger.LogInformation(MagicStrings.LogMessages.PlaceAutocompleteStarted, request.Query);
+
+            var result = await _stopRepository.GetPlaceAutocompleteAsync(request.Query, request.Limit);
+            if (result.IsFailure)
+            {
+                _logger.LogError(MagicStrings.LogMessages.PlaceAutocompleteFailed, result.Error.Description);
+                return Result.Failure<List<PlaceAutocompleteResponseDto>>(result.Error);
+            }
+
+            var response = _mapper.Map<List<PlaceAutocompleteResponseDto>>(result.Value);
+            _logger.LogInformation(MagicStrings.LogMessages.PlaceAutocompleteCompleted, response.Count);
+            return Result.Success(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MagicStrings.LogMessages.PlaceAutocompleteFailed, ex.Message);
+            return Result.Failure<List<PlaceAutocompleteResponseDto>>(
+                Error.Failure("PLACE_AUTOCOMPLETE_FAILED", MagicStrings.ErrorMessages.UnexpectedError)
+            );
+        }
+    }
+
+    public async Task<Result<bool>> ValidatePlaceExistsAsync(string placeName)
+    {
+        try
+        {
+            _logger.LogInformation(MagicStrings.LogMessages.PlaceValidationStarted, placeName, placeName);
+
+            var result = await _stopRepository.ValidatePlaceExistsAsync(placeName);
+            if (result.IsFailure)
+            {
+                _logger.LogError(MagicStrings.LogMessages.PlaceValidationFailed, result.Error.Description);
+                return Result.Failure<bool>(result.Error);
+            }
+
+            _logger.LogInformation(MagicStrings.LogMessages.PlaceValidationCompleted);
+            return Result.Success(result.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MagicStrings.LogMessages.PlaceValidationFailed, ex.Message);
+            return Result.Failure<bool>(
+                Error.Failure("PLACE_VALIDATION_FAILED", MagicStrings.ErrorMessages.UnexpectedError)
             );
         }
     }

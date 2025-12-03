@@ -22,4 +22,5 @@ public interface ISeatLayoutRepository
         string templateName,
         int? excludeTemplateId = null
     );
+    Task<Result<List<SeatLayoutTemplate>>> GetTemplatesByBusTypeAsync(int busType);
 }

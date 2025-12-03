@@ -301,7 +301,11 @@ public class VendorService : IVendorService
     {
         try
         {
+            _logger.LogInformation("Getting dashboard summary for vendor: {VendorId}", vendorId);
+            
             var dashboardData = await _vendorRepository.GetDashboardSummaryAsync(vendorId);
+            
+            _logger.LogInformation("Successfully retrieved dashboard data for vendor: {VendorId}", vendorId);
             
             return new VendorDashboardSummaryDto
             {
@@ -315,8 +319,14 @@ public class VendorService : IVendorService
                 LastUpdated = DateTime.UtcNow
             };
         }
-        catch (Exception)
+        catch (SqlException ex)
         {
+            _logger.LogError(ex, "SQL error getting dashboard summary for vendor: {VendorId}", vendorId);
+            throw new InvalidOperationException(VendorMessages.DatabaseError);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error getting dashboard summary for vendor: {VendorId}", vendorId);
             throw new InvalidOperationException(VendorMessages.UnexpectedError);
         }
     }
@@ -345,17 +355,20 @@ public class VendorService : IVendorService
                 return Result.Failure<bool>(
                     Error.NotFound("Vendor.NotFound", VendorMessages.VendorNotFound));
 
+            // Update vendor status
             vendor.Status = VendorStatus.Active;
             vendor.IsActive = true;
             vendor.UpdatedBy = "Admin";
             vendor.UpdatedOn = DateTime.UtcNow;
             
-            // Activate the user account as well
-            vendor.User.IsActive = true;
-            vendor.User.UpdatedBy = "Admin";
-            vendor.User.UpdatedOn = DateTime.UtcNow;
+            // Update vendor without touching user entity
+            await _vendorRepository.UpdateVendorOnlyAsync(vendor);
             
-            await _vendorRepository.UpdateAsync(vendor);
+            // Separately update user IsActive status
+            await _userRepository.UpdateUserActiveStatusAsync(vendor.UserId, true);
+            
+            // Update vendor documents to verified status
+            await _vendorRepository.UpdateVendorDocumentsStatusAsync(vendorId, DocumentStatus.Verified, "Admin");
             
             // Send approval email
             _ = Task.Run(async () =>
@@ -545,6 +558,62 @@ public class VendorService : IVendorService
         {
             _logger.LogError(ex, "Unexpected error getting all vendors for admin");
             throw new InvalidOperationException(VendorMessages.UnexpectedError);
+        }
+    }
+
+    public async Task<Result<VendorApprovalDTO>> GetVendorForApprovalAsync(int vendorId)
+    {
+        try
+        {
+            var vendorWithDocuments = await _vendorRepository.GetVendorForApprovalAsync(vendorId);
+            if (vendorWithDocuments == null)
+                return Result.Failure<VendorApprovalDTO>(
+                    Error.NotFound("Vendor.NotFound", VendorMessages.VendorNotFound));
+
+            var response = _mapper.Map<VendorApprovalDTO>(vendorWithDocuments);
+            return Result.Success(response);
+        }
+        catch (SqlException ex)
+        {
+            _logger.LogError(ex, "SQL error getting vendor for approval: {VendorId}", vendorId);
+            return Result.Failure<VendorApprovalDTO>(
+                Error.Failure("Database.Error", VendorMessages.DatabaseError));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error getting vendor for approval: {VendorId}", vendorId);
+            return Result.Failure<VendorApprovalDTO>(
+                Error.Failure("Vendor.UnexpectedError", VendorMessages.UnexpectedError));
+        }
+    }
+
+    public async Task<Result<VendorResponseDto>> GetVendorByUserIdAsync(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Getting vendor by user ID: {UserId}", userId);
+            
+            var vendor = await _vendorRepository.GetByUserIdAsync(userId);
+            if (vendor == null)
+            {
+                _logger.LogWarning("Vendor not found for user ID: {UserId}", userId);
+                return Result.Failure<VendorResponseDto>(Error.NotFound("Vendor.NotFound", VendorMessages.VendorNotFound));
+            }
+
+            var response = _mapper.Map<VendorResponseDto>(vendor);
+            _logger.LogInformation("Successfully retrieved vendor {VendorId} for user {UserId}", vendor.VendorId, userId);
+            
+            return Result.Success(response);
+        }
+        catch (SqlException ex)
+        {
+            _logger.LogError(ex, "SQL error getting vendor by user ID: {UserId}", userId);
+            return Result.Failure<VendorResponseDto>(Error.Failure("Database.Error", VendorMessages.DatabaseError));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error getting vendor by user ID: {UserId}", userId);
+            return Result.Failure<VendorResponseDto>(Error.Failure("Unexpected.Error", VendorMessages.UnexpectedError));
         }
     }
 }

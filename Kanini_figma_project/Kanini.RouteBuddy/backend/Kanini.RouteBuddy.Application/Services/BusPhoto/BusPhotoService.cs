@@ -2,6 +2,7 @@ using AutoMapper;
 using Kanini.RouteBuddy.Application.Dto.BusPhoto;
 using Kanini.RouteBuddy.Data.Repositories.BusPhoto;
 using Kanini.RouteBuddy.Data.Repositories.Buses;
+using Kanini.RouteBuddy.Data.Repositories.Vendor;
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Common.Errors;
 using Kanini.RouteBuddy.Common.Services;
@@ -13,15 +14,17 @@ public class BusPhotoService : IBusPhotoService
 {
     private readonly IBusPhotoRepository _repository;
     private readonly IBusRepository _busRepository;
+    private readonly IVendorRepository _vendorRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<BusPhotoService> _logger;
     private const int MaxPhotosPerBus = 10;
     private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5MB
 
-    public BusPhotoService(IBusPhotoRepository repository, IBusRepository busRepository, IMapper mapper, ILogger<BusPhotoService> logger)
+    public BusPhotoService(IBusPhotoRepository repository, IBusRepository busRepository, IVendorRepository vendorRepository, IMapper mapper, ILogger<BusPhotoService> logger)
     {
         _repository = repository;
         _busRepository = busRepository;
+        _vendorRepository = vendorRepository;
         _mapper = mapper;
         _logger = logger;
     }
@@ -63,12 +66,17 @@ public class BusPhotoService : IBusPhotoService
             // Save image
             var imagePath = await FileValidationService.SaveFileAsync(createDto.Photo, "bus-photos", $"bus_{createDto.BusId}_{Guid.NewGuid()}");
 
+            // Get bus to find vendor
+            var busResult = await _busRepository.GetByIdAsync(createDto.BusId);
+            var vendor = busResult.IsSuccess ? await _vendorRepository.GetByIdAsync(busResult.Value.VendorId) : null;
+            var createdBy = vendor?.AgencyName ?? "System";
+
             var busPhoto = new Domain.Entities.BusPhoto
             {
                 BusId = createDto.BusId,
                 ImagePath = imagePath,
                 Caption = createDto.Caption?.Trim(),
-                CreatedBy = "System",
+                CreatedBy = createdBy,
                 CreatedOn = DateTime.UtcNow
             };
 
@@ -142,7 +150,10 @@ public class BusPhotoService : IBusPhotoService
 
             var busPhoto = getResult.Value;
             busPhoto.Caption = updateDto.Caption?.Trim();
-            busPhoto.UpdatedBy = "System";
+            // Get bus to find vendor
+            var busResult = await _busRepository.GetByIdAsync(busPhoto.BusId);
+            var vendor = busResult.IsSuccess ? await _vendorRepository.GetByIdAsync(busResult.Value.VendorId) : null;
+            busPhoto.UpdatedBy = vendor?.AgencyName ?? "System";
             busPhoto.UpdatedOn = DateTime.UtcNow;
 
             var updateResult = await _repository.UpdateAsync(busPhoto);

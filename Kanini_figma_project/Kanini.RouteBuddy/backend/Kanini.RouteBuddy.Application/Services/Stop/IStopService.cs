@@ -11,4 +11,6 @@ public interface IStopService
     Task<Result<PagedResultDto<StopResponseDto>>> GetAllStopsAsync(int pageNumber, int pageSize);
     Task<Result<StopResponseDto>> UpdateStopAsync(int stopId, UpdateStopDto dto);
     Task<Result<bool>> DeleteStopAsync(int stopId);
+    Task<Result<List<PlaceAutocompleteResponseDto>>> GetPlaceAutocompleteAsync(PlaceAutocompleteRequestDto request);
+    Task<Result<bool>> ValidatePlaceExistsAsync(string placeName);
 }

@@ -13,8 +13,7 @@ BEGIN
         rs.ArrivalTime,
         rs.DepartureTime
     FROM BusSchedules bs
-    INNER JOIN Routes r ON bs.RouteId = r.RouteId
-    INNER JOIN RouteStops rs ON r.RouteId = rs.RouteId
+    INNER JOIN RouteStops rs ON bs.ScheduleId = rs.ScheduleId
     INNER JOIN Stops s ON rs.StopId = s.StopId
     WHERE bs.ScheduleId = @ScheduleId
         AND bs.Status = 1 -- Scheduled

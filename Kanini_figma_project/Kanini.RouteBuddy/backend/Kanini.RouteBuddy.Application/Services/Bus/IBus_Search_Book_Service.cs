@@ -1,4 +1,5 @@
 using Kanini.RouteBuddy.Application.Dto;
+using Kanini.RouteBuddy.Application.Dto.Stop;
 using Kanini.RouteBuddy.Common.Utility;
 using BookingEntity = Kanini.RouteBuddy.Domain.Entities.Booking;
 using CustomerEntity = Kanini.RouteBuddy.Domain.Entities.Customer;
@@ -16,4 +17,5 @@ public interface IBus_Search_Book_Service
     Task<Result<int>> ExpirePendingBookingsAsync();
     Task<Result<BookingEntity>> GetBookingDetailsAsync(int bookingId);
     Task<Result<CustomerEntity>> GetCustomerByUserIdAsync(int userId);
+    Task<Result<List<PlaceAutocompleteResponseDto>>> GetPlaceAutocompleteAsync(PlaceAutocompleteRequestDto request);
 }

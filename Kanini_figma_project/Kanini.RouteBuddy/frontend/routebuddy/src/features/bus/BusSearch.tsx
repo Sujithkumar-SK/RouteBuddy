@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch';
 import { searchBuses } from './busSlice';
 import { ROUTES } from '../../utils/constants';
+import PlaceAutocomplete from '../../components/ui/PlaceAutocomplete';
 
 const BusSearch = () => {
   const dispatch = useAppDispatch();
@@ -24,13 +25,13 @@ const BusSearch = () => {
 
   const validateSource = (value: string) => {
     if (!value) return 'Source is required';
-    if (value.length < 2) return 'Source must be at least 2 characters';
+    if (value.length < 1) return 'Source must be at least 1 character';
     return '';
   };
 
   const validateDestination = (value: string) => {
     if (!value) return 'Destination is required';
-    if (value.length < 2) return 'Destination must be at least 2 characters';
+    if (value.length < 1) return 'Destination must be at least 1 character';
     if (value.toLowerCase() === formData.source.toLowerCase()) return 'Source and destination cannot be same';
     return '';
   };
@@ -46,34 +47,37 @@ const BusSearch = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    let filteredValue = value;
-
-    if (name === 'source' || name === 'destination') {
-      filteredValue = value.replace(/[^A-Za-z\s]/g, '');
-    }
-
-    setFormData({ ...formData, [name]: filteredValue });
+    setFormData({ ...formData, [name]: value });
 
     let fieldError = '';
-    switch (name) {
-      case 'source':
-        fieldError = validateSource(filteredValue);
-        if (formData.destination) {
-          setFormErrors(prev => ({
-            ...prev,
-            destination: validateDestination(formData.destination)
-          }));
-        }
-        break;
-      case 'destination':
-        fieldError = validateDestination(filteredValue);
-        break;
-      case 'travelDate':
-        fieldError = validateDate(filteredValue);
-        break;
+    if (name === 'travelDate') {
+      fieldError = validateDate(value);
+      setFormErrors({ ...formErrors, [name]: fieldError });
     }
+  };
 
-    setFormErrors({ ...formErrors, [name]: fieldError });
+  const handlePlaceChange = (field: 'source' | 'destination', value: string) => {
+    setFormData({ ...formData, [field]: value });
+    
+    let fieldError = '';
+    if (field === 'source') {
+      fieldError = validateSource(value);
+      // Re-validate destination if source changes
+      if (formData.destination) {
+        setFormErrors(prev => ({
+          ...prev,
+          destination: validateDestination(formData.destination)
+        }));
+      }
+    } else {
+      fieldError = validateDestination(value);
+    }
+    
+    setFormErrors({ ...formErrors, [field]: fieldError });
+  };
+
+  const handlePlaceError = (field: 'source' | 'destination', error: string) => {
+    setFormErrors({ ...formErrors, [field]: error });
   };
 
   const isFormValid = () => {
@@ -109,26 +113,22 @@ const BusSearch = () => {
 
       <form onSubmit={handleSubmit}>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr auto' }, gap: 2 }}>
-          <TextField
-            fullWidth
+          <PlaceAutocomplete
             label="From"
-            name="source"
             value={formData.source}
-            onChange={handleChange}
-            error={!!formErrors.source}
-            helperText={formErrors.source}
+            onChange={(value) => handlePlaceChange('source', value)}
+            onError={(error) => handlePlaceError('source', error)}
+            error={formErrors.source}
             placeholder="Mumbai"
             required
           />
 
-          <TextField
-            fullWidth
+          <PlaceAutocomplete
             label="To"
-            name="destination"
             value={formData.destination}
-            onChange={handleChange}
-            error={!!formErrors.destination}
-            helperText={formErrors.destination}
+            onChange={(value) => handlePlaceChange('destination', value)}
+            onError={(error) => handlePlaceError('destination', error)}
+            error={formErrors.destination}
             placeholder="Pune"
             required
           />

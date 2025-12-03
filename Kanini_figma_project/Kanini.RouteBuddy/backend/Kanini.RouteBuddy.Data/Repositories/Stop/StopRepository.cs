@@ -217,4 +217,70 @@ public class StopRepository : IStopRepository
             );
         }
     }
+
+    public async Task<Result<List<PlaceAutocompleteResult>>> GetPlaceAutocompleteAsync(string query, int limit)
+    {
+        try
+        {
+            _logger.LogInformation("Place autocomplete started for Query: {Query}", query);
+            
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("sp_GetPlaceAutocomplete", connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@Query", query);
+            command.Parameters.AddWithValue("@Limit", limit);
+            
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            
+            var places = new List<PlaceAutocompleteResult>();
+            while (await reader.ReadAsync())
+            {
+                places.Add(new PlaceAutocompleteResult
+                {
+                    StopId = Convert.ToInt32(reader.GetInt64("StopId")),
+                    Name = reader.GetString("Name"),
+                    Landmark = reader.IsDBNull("Landmark") ? null : reader.GetString("Landmark")
+                });
+            }
+            
+            _logger.LogInformation("Place autocomplete completed. Found {Count} places", places.Count);
+            return Result.Success(places);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Place autocomplete failed: {Error}", ex.Message);
+            return Result.Failure<List<PlaceAutocompleteResult>>(
+                Error.Failure("PLACE_AUTOCOMPLETE_FAILED", "Failed to get place suggestions")
+            );
+        }
+    }
+
+    public async Task<Result<bool>> ValidatePlaceExistsAsync(string placeName)
+    {
+        try
+        {
+            _logger.LogInformation("Place validation started for: {PlaceName}", placeName);
+            
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("sp_ValidatePlaceExists", connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@PlaceName", placeName);
+            
+            await connection.OpenAsync();
+            var result = await command.ExecuteScalarAsync();
+            
+            var exists = Convert.ToInt32(result) > 0;
+            _logger.LogInformation("Place validation completed. Exists: {Exists}", exists);
+            
+            return Result.Success(exists);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Place validation failed: {Error}", ex.Message);
+            return Result.Failure<bool>(
+                Error.Failure("PLACE_VALIDATION_FAILED", "Failed to validate place")
+            );
+        }
+    }
 }

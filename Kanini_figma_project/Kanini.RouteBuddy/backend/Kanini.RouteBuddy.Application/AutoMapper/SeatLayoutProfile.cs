@@ -9,7 +9,8 @@ public class SeatLayoutProfile : Profile
     public SeatLayoutProfile()
     {
         // Entity to Response DTO mappings
-        CreateMap<SeatLayoutTemplate, SeatLayoutTemplateResponseDto>();
+        CreateMap<SeatLayoutTemplate, SeatLayoutTemplateResponseDto>()
+            .ForMember(dest => dest.SeatDetails, opt => opt.MapFrom(src => src.SeatLayoutDetails));
         CreateMap<SeatLayoutTemplate, SeatLayoutTemplateListDto>();
         CreateMap<SeatLayoutDetail, SeatLayoutDetailResponseDto>();
 

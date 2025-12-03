@@ -26,4 +26,6 @@ public interface IVendorService
     Task<Result<bool>> DeactivateVendorWithReasonAsync(int vendorId, string reason);
     Task<Result<bool>> ReactivateVendorWithReasonAsync(int vendorId, string reason);
     Task<PagedResultDto<AdminVendorDTO>> GetAllVendorsForAdminAsync(int pageNumber, int pageSize);
+    Task<Result<VendorApprovalDTO>> GetVendorForApprovalAsync(int vendorId);
+    Task<Result<VendorResponseDto>> GetVendorByUserIdAsync(int userId);
 }

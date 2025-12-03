@@ -73,53 +73,8 @@ export interface VendorAlert {
 }
 
 export const vendorAPI = {
-  getDashboardSummary: async (): Promise<VendorDashboardSummary> => {
-    const response = await api.get('/api/vendor/dashboard');
-    return response.data.data;
-  },
-
-  getProfile: async (): Promise<VendorProfile> => {
-    const response = await api.get('/api/vendor/me');
-    return response.data.data;
-  },
-
-  updateProfile: async (profileData: Partial<VendorProfile>): Promise<VendorProfile> => {
-    const response = await api.put('/api/vendor/profile', profileData);
-    return response.data.data;
-  },
-
-  getRevenueAnalytics: async (): Promise<RevenueAnalytics> => {
-    const response = await api.get('/api/vendor/revenue-analytics');
-    return response.data.data;
-  },
-
-  getPerformanceMetrics: async (): Promise<PerformanceMetrics> => {
-    const response = await api.get('/api/vendor/performance');
-    return response.data.data;
-  },
-
-  getFleetStatus: async (): Promise<VendorFleetStatus> => {
-    const response = await api.get('/api/vendor/fleet-status');
-    return response.data.data;
-  },
-
-  getQuickStats: async (): Promise<QuickStats> => {
-    const response = await api.get('/api/vendor/quick-stats');
-    return response.data.data;
-  },
-
-  getRecentBookings: async (): Promise<RecentBooking[]> => {
-    const response = await api.get('/api/vendor/recent-bookings');
-    return response.data.data;
-  },
-
-  getNotifications: async (): Promise<VendorNotification[]> => {
-    const response = await api.get('/api/vendor/notifications');
-    return response.data.data;
-  },
-
-  getAlerts: async (): Promise<VendorAlert[]> => {
-    const response = await api.get('/api/vendor/alerts');
-    return response.data.data;
+  getDashboardData: async () => {
+    const response = await api.get('/vendor/dashboard');
+    return response.data;
   },
 };

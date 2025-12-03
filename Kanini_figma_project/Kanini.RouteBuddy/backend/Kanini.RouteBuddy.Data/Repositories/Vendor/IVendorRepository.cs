@@ -1,4 +1,5 @@
 using Kanini.RouteBuddy.Domain.Entities;
+using Kanini.RouteBuddy.Domain.Enums;
 
 namespace Kanini.RouteBuddy.Data.Repositories.Vendor;
 
@@ -20,4 +21,13 @@ public interface IVendorRepository
     Task<int> GetPendingVendorsCountAsync();
     Task<(int TotalBuses, int ActiveBuses, int PendingBuses, int TotalRoutes, int TotalSchedules, int UpcomingSchedules, string VendorStatus)> GetDashboardSummaryAsync(int vendorId);
     Task<IEnumerable<Domain.Entities.Vendor>> FilterVendorsAsync(string? searchName, bool? isActive, int? status);
+    Task<VendorApprovalData?> GetVendorForApprovalAsync(int vendorId);
+    Task<Domain.Entities.Vendor> UpdateVendorOnlyAsync(Domain.Entities.Vendor vendor);
+    Task UpdateVendorDocumentsStatusAsync(int vendorId, DocumentStatus status, string verifiedBy);
+}
+
+public class VendorApprovalData
+{
+    public Domain.Entities.Vendor Vendor { get; set; } = null!;
+    public List<Domain.Entities.VendorDocument> Documents { get; set; } = new();
 }

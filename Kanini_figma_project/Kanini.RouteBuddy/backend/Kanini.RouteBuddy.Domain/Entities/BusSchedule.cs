@@ -48,4 +48,7 @@ public class BusSchedule : BaseEntity
 
     [InverseProperty(nameof(BookingSegment.Schedule))]
     public ICollection<BookingSegment> Segments { get; set; } = new List<BookingSegment>();
+
+    [InverseProperty(nameof(RouteStop.Schedule))]
+    public ICollection<RouteStop> RouteStops { get; set; } = new List<RouteStop>();
 }

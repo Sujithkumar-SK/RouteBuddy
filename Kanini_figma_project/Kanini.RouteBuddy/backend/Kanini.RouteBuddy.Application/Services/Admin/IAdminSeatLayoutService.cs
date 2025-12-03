@@ -15,4 +15,5 @@ public interface IAdminSeatLayoutService
         UpdateSeatLayoutTemplateRequestDto request
     );
     Task<Result<string>> DeactivateTemplateAsync(int templateId);
+    Task<Result<List<SeatLayoutTemplateListDto>>> GetTemplatesByBusTypeAsync(int busType);
 }

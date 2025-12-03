@@ -1,5 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAppSelector } from '../hooks/useAppDispatch';
+import { useEffect } from 'react';
+import { useAppSelector, useAppDispatch } from '../hooks/useAppDispatch';
+import { checkAuthState } from '../features/auth/authSlice';
 import { ROUTES } from '../utils/constants';
 
 // Auth
@@ -20,6 +22,12 @@ import PaymentPage from '../pages/PaymentPage';
 import PaymentSuccessPage from '../pages/PaymentSuccessPage';
 import ProfilePage from '../pages/ProfilePage';
 import MyBookingsPage from '../pages/MyBookingsPage';
+import BusFleetManagementPage from '../pages/BusFleetManagementPage';
+import VendorAnalyticsPage from '../pages/VendorAnalyticsPage';
+import VendorSchedulesPage from '../pages/VendorSchedulesPage';
+import EditBusForm from '../features/vendor/components/EditBusForm';
+import BusPhotoManager from '../features/vendor/components/BusPhotoManager';
+
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
@@ -31,6 +39,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const AppRoutes = () => {
+  const dispatch = useAppDispatch();
+  
+  useEffect(() => {
+    // Check auth state on app initialization
+    dispatch(checkAuthState());
+  }, [dispatch]);
+  
   return (
     <Routes>
       {/* Public Routes */}
@@ -79,13 +94,62 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/admin/dashboard"
+        path={ROUTES.ADMIN_DASHBOARD}
         element={
           <ProtectedRoute>
             <AdminDashboard />
           </ProtectedRoute>
         }
       />
+      <Route
+        path={ROUTES.VENDOR_FLEET}
+        element={
+          <ProtectedRoute>
+            <BusFleetManagementPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.VENDOR_SCHEDULES}
+        element={
+          <ProtectedRoute>
+            <VendorSchedulesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vendor/fleet/:tab/:busId?"
+        element={
+          <ProtectedRoute>
+            <BusFleetManagementPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vendor/fleet/edit/:busId"
+        element={
+          <ProtectedRoute>
+            <EditBusForm />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vendor/fleet/photos/:busId"
+        element={
+          <ProtectedRoute>
+            <BusPhotoManager />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.VENDOR_ANALYTICS}
+        element={
+          <ProtectedRoute>
+            <VendorAnalyticsPage />
+          </ProtectedRoute>
+        }
+      />
+
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to={ROUTES.LOGIN} />} />

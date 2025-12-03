@@ -11,7 +11,7 @@ namespace Kanini.RouteBuddy.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-// [Authorize] // Temporarily disabled for testing
+[Authorize(Roles = "Vendor")]
 public class BusPhotoController : ControllerBase
 {
     private readonly IBusPhotoService _service;
@@ -25,16 +25,25 @@ public class BusPhotoController : ControllerBase
         _logger = logger;
     }
 
-    private int GetVendorIdFromClaims()
+    private async Task<int> GetVendorIdFromClaimsAsync()
     {
-        // For testing without JWT - return default vendor ID
-        if (User?.Identity?.IsAuthenticated != true)
-            return 1; // Default vendor ID for testing
-            
-        var vendorIdClaim = User.FindFirst("VendorId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
-        if (vendorIdClaim != null && int.TryParse(vendorIdClaim.Value, out int vendorId))
-            return vendorId;
-        return 1; // Default fallback
+        try
+        {
+            if (User?.Identity?.IsAuthenticated != true)
+                return 0;
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return 0;
+
+            var vendor = await _busService.GetVendorByUserIdAsync(userId);
+            return vendor?.VendorId ?? 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get vendor ID from claims");
+            return 0;
+        }
     }
 
     private async Task<bool> ValidateBusOwnership(int busId, int vendorId)
@@ -48,7 +57,7 @@ public class BusPhotoController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized("Invalid vendor authentication");
 
@@ -93,7 +102,7 @@ public class BusPhotoController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized("Invalid vendor authentication");
 
@@ -138,7 +147,7 @@ public class BusPhotoController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized("Invalid vendor authentication");
 
@@ -176,7 +185,7 @@ public class BusPhotoController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized("Invalid vendor authentication");
 
@@ -231,7 +240,7 @@ public class BusPhotoController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized("Invalid vendor authentication");
 

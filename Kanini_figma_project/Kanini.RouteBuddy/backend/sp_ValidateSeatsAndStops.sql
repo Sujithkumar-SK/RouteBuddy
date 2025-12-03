@@ -13,14 +13,12 @@ BEGIN
     
     SELECT @BoardingOrder = rs.OrderNumber
     FROM BusSchedules bs
-    INNER JOIN Routes r ON bs.RouteId = r.RouteId
-    INNER JOIN RouteStops rs ON r.RouteId = rs.RouteId
+    INNER JOIN RouteStops rs ON bs.ScheduleId = rs.ScheduleId
     WHERE bs.ScheduleId = @ScheduleId AND rs.RouteStopId = @BoardingStopId;
     
     SELECT @DroppingOrder = rs.OrderNumber
     FROM BusSchedules bs
-    INNER JOIN Routes r ON bs.RouteId = r.RouteId
-    INNER JOIN RouteStops rs ON r.RouteId = rs.RouteId
+    INNER JOIN RouteStops rs ON bs.ScheduleId = rs.ScheduleId
     WHERE bs.ScheduleId = @ScheduleId AND rs.RouteStopId = @DroppingStopId;
     
     -- Check if stops are valid

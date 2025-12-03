@@ -24,11 +24,12 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material';
-import { CheckCircle, Cancel, Visibility } from '@mui/icons-material';
+import { CheckCircle, Cancel, Visibility, Description, CheckCircleOutline, ErrorOutline } from '@mui/icons-material';
 import Layout from '../components/layout/Layout';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppDispatch';
 import { fetchPendingVendors, fetchAllVendors, approveVendor, rejectVendor, clearError } from '../features/admin/adminSlice';
-import type { AdminVendor } from '../features/admin/adminAPI';
+import type { AdminVendor, VendorApproval } from '../features/admin/adminAPI';
+import { adminAPI } from '../features/admin/adminAPI';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -55,6 +56,11 @@ const AdminDashboard = () => {
     vendor: null,
   });
   const [rejectionReason, setRejectionReason] = useState('');
+  const [viewDialog, setViewDialog] = useState<{ open: boolean; vendor: VendorApproval | null; loading: boolean }>({
+    open: false,
+    vendor: null,
+    loading: false,
+  });
 
   useEffect(() => {
     dispatch(fetchPendingVendors({ pageNumber: 1, pageSize: 50 }));
@@ -82,6 +88,37 @@ const AdminDashboard = () => {
       }));
       setRejectDialog({ open: false, vendor: null });
       setRejectionReason('');
+    }
+  };
+
+  const handleViewVendor = async (vendorId: number) => {
+    setViewDialog({ open: true, vendor: null, loading: true });
+    try {
+      const vendorData = await adminAPI.getVendorForApproval(vendorId);
+      setViewDialog({ open: true, vendor: vendorData, loading: false });
+    } catch (error) {
+      console.error('Error fetching vendor details:', error);
+      setViewDialog({ open: false, vendor: null, loading: false });
+    }
+  };
+
+  const getDocumentTypeName = (type: number) => {
+    switch (type) {
+      case 1: return 'Business License';
+      case 2: return 'Tax Registration';
+      case 3: return 'Insurance Certificate';
+      case 4: return 'Owner Identity';
+      case 5: return 'Bank Details';
+      default: return 'Unknown';
+    }
+  };
+
+  const getDocumentStatusChip = (status: number) => {
+    switch (status) {
+      case 1: return <Chip label="Pending" color="warning" size="small" />;
+      case 2: return <Chip label="Verified" color="success" size="small" />;
+      case 3: return <Chip label="Rejected" color="error" size="small" />;
+      default: return <Chip label="Unknown" color="default" size="small" />;
     }
   };
 
@@ -163,6 +200,15 @@ const AdminDashboard = () => {
                           <Box display="flex" gap={1}>
                             <Button
                               size="small"
+                              variant="outlined"
+                              startIcon={<Visibility />}
+                              onClick={() => handleViewVendor(vendor.vendorId)}
+                              sx={{ mr: 1 }}
+                            >
+                              View
+                            </Button>
+                            <Button
+                              size="small"
                               variant="contained"
                               color="success"
                               startIcon={<CheckCircle />}
@@ -238,6 +284,132 @@ const AdminDashboard = () => {
             )}
           </TabPanel>
         </Card>
+
+        {/* Vendor Details Dialog */}
+        <Dialog open={viewDialog.open} onClose={() => setViewDialog({ open: false, vendor: null, loading: false })} maxWidth="md" fullWidth>
+          <DialogTitle>Vendor Application Details</DialogTitle>
+          <DialogContent>
+            {viewDialog.loading ? (
+              <Box display="flex" justifyContent="center" py={4}>
+                <CircularProgress />
+              </Box>
+            ) : viewDialog.vendor ? (
+              <Box>
+                <Typography variant="h6" sx={{ mb: 2 }}>Basic Information</Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 3 }}>
+                  <TextField label="Agency Name" value={viewDialog.vendor.agencyName} InputProps={{ readOnly: true }} />
+                  <TextField label="Owner Name" value={viewDialog.vendor.ownerName} InputProps={{ readOnly: true }} />
+                  <TextField label="Email" value={viewDialog.vendor.email} InputProps={{ readOnly: true }} />
+                  <TextField label="Phone" value={viewDialog.vendor.phone} InputProps={{ readOnly: true }} />
+                  <TextField label="Fleet Size" value={viewDialog.vendor.fleetSize} InputProps={{ readOnly: true }} />
+                  <TextField label="Status" value={viewDialog.vendor.statusText} InputProps={{ readOnly: true }} />
+                </Box>
+                <TextField 
+                  fullWidth 
+                  label="Office Address" 
+                  value={viewDialog.vendor.officeAddress} 
+                  InputProps={{ readOnly: true }} 
+                  sx={{ mb: 3 }}
+                />
+                <TextField 
+                  fullWidth 
+                  label="Business License Number" 
+                  value={viewDialog.vendor.businessLicenseNumber} 
+                  InputProps={{ readOnly: true }} 
+                  sx={{ mb: 3 }}
+                />
+                {viewDialog.vendor.taxRegistrationNumber && (
+                  <TextField 
+                    fullWidth 
+                    label="Tax Registration Number" 
+                    value={viewDialog.vendor.taxRegistrationNumber} 
+                    InputProps={{ readOnly: true }} 
+                    sx={{ mb: 3 }}
+                  />
+                )}
+                
+                <Typography variant="h6" sx={{ mb: 2 }}>Documents</Typography>
+                {viewDialog.vendor.documents.length > 0 ? (
+                  <TableContainer component={Paper} sx={{ mb: 2 }}>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Document Type</TableCell>
+                          <TableCell>Status</TableCell>
+                          <TableCell>Uploaded</TableCell>
+                          <TableCell>Actions</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {viewDialog.vendor.documents.map((doc) => (
+                          <TableRow key={doc.documentId}>
+                            <TableCell>{getDocumentTypeName(doc.documentFile)}</TableCell>
+                            <TableCell>{getDocumentStatusChip(doc.status)}</TableCell>
+                            <TableCell>{new Date(doc.uploadedAt).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <Button 
+                                size="small" 
+                                startIcon={<Description />} 
+                                onClick={() => window.open(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5172'}${doc.documentPath}`, '_blank')}
+                              >
+                                View
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                ) : (
+                  <Alert severity="warning">No documents uploaded</Alert>
+                )}
+              </Box>
+            ) : null}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setViewDialog({ open: false, vendor: null, loading: false })}>
+              Close
+            </Button>
+            {viewDialog.vendor && viewDialog.vendor.status === 0 && (
+              <>
+                <Button 
+                  color="success" 
+                  variant="contained" 
+                  startIcon={<CheckCircleOutline />}
+                  onClick={() => {
+                    handleApprove(viewDialog.vendor!.vendorId);
+                    setViewDialog({ open: false, vendor: null, loading: false });
+                  }}
+                  disabled={loading.action}
+                >
+                  Approve
+                </Button>
+                <Button 
+                  color="error" 
+                  variant="outlined" 
+                  startIcon={<ErrorOutline />}
+                  onClick={() => {
+                    const vendor = {
+                      vendorId: viewDialog.vendor!.vendorId,
+                      agencyName: viewDialog.vendor!.agencyName,
+                      ownerName: viewDialog.vendor!.ownerName,
+                      status: viewDialog.vendor!.status,
+                      isActive: viewDialog.vendor!.isActive,
+                      createdOn: viewDialog.vendor!.createdOn,
+                      email: viewDialog.vendor!.email,
+                      phone: viewDialog.vendor!.phone,
+                      totalBuses: 0
+                    };
+                    handleRejectClick(vendor);
+                    setViewDialog({ open: false, vendor: null, loading: false });
+                  }}
+                >
+                  Reject
+                </Button>
+              </>
+            )}
+          </DialogActions>
+        </Dialog>
 
         {/* Rejection Dialog */}
         <Dialog open={rejectDialog.open} onClose={() => setRejectDialog({ open: false, vendor: null })} maxWidth="sm" fullWidth>

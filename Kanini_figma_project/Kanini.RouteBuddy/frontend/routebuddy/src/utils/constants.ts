@@ -45,6 +45,13 @@ export const ROUTES = {
   SEARCH_RESULTS: '/search-results',
   PROFILE: '/profile',
   MY_BOOKINGS: '/my-bookings',
+  // Vendor routes
+  VENDOR_FLEET: '/vendor/fleet',
+  VENDOR_SCHEDULES: '/vendor/schedules',
+  VENDOR_ANALYTICS: '/vendor/analytics',
+  // Admin routes
+  ADMIN_VENDORS: '/admin/vendors',
+  ADMIN_BUSES: '/admin/buses',
 };
 
 export const getBusTypeName = (type: number): string => {

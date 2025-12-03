@@ -14,4 +14,5 @@ public interface IUserRepository
     Task<Entities.User?> GetUserByEmailAsync(string email);
     Task UpdateUserPasswordAsync(int userId, string newPasswordHash);
     Task UpdateLastLoginAsync(int userId);
+    Task UpdateUserActiveStatusAsync(int userId, bool isActive);
 }

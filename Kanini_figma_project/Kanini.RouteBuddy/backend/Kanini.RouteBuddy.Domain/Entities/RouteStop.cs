@@ -32,4 +32,8 @@ public class RouteStop : BaseEntity
 
     [Column(TypeName = "TIME")]
     public TimeSpan? DepartureTime { get; set; }
+
+    [ForeignKey(nameof(Schedule))]
+    public int? ScheduleId { get; set; }
+    public BusSchedule? Schedule { get; set; }
 }

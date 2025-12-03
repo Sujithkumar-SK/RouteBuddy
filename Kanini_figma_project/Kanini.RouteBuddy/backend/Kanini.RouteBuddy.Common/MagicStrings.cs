@@ -19,7 +19,9 @@ public static class MagicStrings
         public const string GetConnectingBookingDetailsForEmail =
             "sp_GetConnectingBookingDetailsForEmail";
         public const string GetAllSeatLayoutTemplates = "sp_GetAllSeatLayoutTemplates";
+        public const string GetSeatLayoutTemplatesByBusType = "sp_GetSeatLayoutTemplatesByBusType";
         public const string GetSeatLayoutTemplateById = "sp_GetSeatLayoutTemplateById";
+        public const string ApplyTemplateToLayout = "sp_ApplyTemplateToLayout";
         public const string CheckUserExistsByEmail = "sp_CheckUserExistsByEmail";
         public const string CheckUserExistsByPhone = "sp_CheckUserExistsByPhone";
         public const string GetUserById = "sp_GetUserById";
@@ -39,6 +41,15 @@ public static class MagicStrings
         public const string FilterCustomersWithSummary = "sp_FilterCustomersWithSummary";
         public const string SoftDeleteCustomer = "sp_SoftDeleteCustomer";
         public const string GetBookingForCancellation = "sp_GetBookingForCancellation";
+        public const string GetPlaceAutocomplete = "sp_GetPlaceAutocomplete";
+        public const string ValidatePlaceExists = "sp_ValidatePlaceExists";
+        public const string GetAllActiveRoutes = "sp_GetAllActiveRoutes";
+        public const string GetAllActiveStops = "sp_GetAllActiveStops";
+        public const string GetScheduleById = "sp_GetScheduleById";
+        public const string GetSchedulesByVendor = "sp_GetSchedulesByVendor";
+        public const string GetScheduleCountByVendor = "sp_GetScheduleCountByVendor";
+        public const string CheckScheduleExists = "sp_CheckScheduleExists";
+        public const string GetRouteById = "sp_GetRouteById";
     }
 
     public static class LogMessages
@@ -176,6 +187,18 @@ public static class MagicStrings
             "Seat layout template deactivated successfully for TemplateId: {TemplateId}";
         public const string SeatLayoutTemplateDeactivationFailed =
             "Seat layout template deactivation failed: {Error}";
+        public const string SeatLayoutTemplatesByBusTypeStarted =
+            "Getting seat layout templates by bus type started for BusType: {BusType}";
+        public const string SeatLayoutTemplatesByBusTypeCompleted =
+            "Getting seat layout templates by bus type completed. Found {Count} templates";
+        public const string SeatLayoutTemplatesByBusTypeFailed =
+            "Getting seat layout templates by bus type failed: {Error}";
+        public const string BusTemplateApplicationStarted =
+            "Bus template application started for BusId: {BusId}, TemplateId: {TemplateId}";
+        public const string BusTemplateApplicationCompleted =
+            "Bus template applied successfully for BusId: {BusId}";
+        public const string BusTemplateApplicationFailed =
+            "Bus template application failed: {Error}";
         public const string RegistrationOtpStarted = "Registration OTP generation started for Email: {Email}";
         public const string RegistrationOtpCompleted = "Registration OTP sent successfully to Email: {Email}";
         public const string RegistrationOtpFailed = "Registration OTP failed for Email: {Email}: {Error}";
@@ -238,6 +261,13 @@ public static class MagicStrings
         public const string BookingCancellationCompleted = "Booking cancelled successfully for BookingId: {BookingId}";
         public const string BookingCancellationFailed = "Booking cancellation failed for BookingId: {BookingId}: {Error}";
         public const string BookingNotFound = "Booking not found for BookingId: {BookingId}";
+        public const string PlaceAutocompleteStarted = "Place autocomplete started for Query: {Query}";
+        public const string PlaceAutocompleteCompleted = "Place autocomplete completed. Found {Count} places";
+        public const string PlaceAutocompleteFailed = "Place autocomplete failed: {Error}";
+        public const string PlaceValidationStarted = "Place validation started for Source: {Source}, Destination: {Destination}";
+        public const string PlaceValidationCompleted = "Place validation completed successfully";
+        public const string PlaceValidationFailed = "Place validation failed: {Error}";
+        public const string VendorIdRetrievalFailed = "Vendor ID retrieval failed: {Error}";
     }
 
     public static class ErrorMessages
@@ -350,6 +380,9 @@ public static class MagicStrings
         public const string CancellationNotAllowed = "Cancellation not allowed within 2 hours of travel";
         public const string CancellationReasonRequired = "Cancellation reason is required";
         public const string InvalidCancellationReason = "Cancellation reason must be between 10 and 250 characters";
+        public const string InvalidPlace = "Invalid place name. Please select from suggestions";
+        public const string PlaceNotFound = "Place not found in our database";
+        public const string QueryTooShort = "Please enter at least 1 character to search places";
     }
 
     public static class ConfigKeys

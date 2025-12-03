@@ -12,6 +12,36 @@ export interface AdminVendor {
   totalBuses: number;
 }
 
+export interface VendorDocument {
+  documentId: number;
+  vendorId: number;
+  documentFile: number;
+  documentPath: string;
+  issueDate?: string;
+  expiryDate?: string;
+  uploadedAt: string;
+  isVerified: boolean;
+  status: number;
+}
+
+export interface VendorApproval {
+  vendorId: number;
+  userId: number;
+  agencyName: string;
+  ownerName: string;
+  businessLicenseNumber: string;
+  officeAddress: string;
+  fleetSize: number;
+  taxRegistrationNumber?: string;
+  status: number;
+  statusText: string;
+  isActive: boolean;
+  createdOn: string;
+  email: string;
+  phone: string;
+  documents: VendorDocument[];
+}
+
 export interface VendorRejection {
   rejectionReason: string;
 }
@@ -43,12 +73,12 @@ export const adminAPI = {
   },
 
   approveVendor: async (vendorId: number) => {
-    const response = await api.post(`/admin/vendors/approve/${vendorId}`);
+    const response = await api.patch(`/admin/vendors/approve/${vendorId}`);
     return response.data;
   },
 
   rejectVendor: async (vendorId: number, rejectionData: VendorRejection) => {
-    const response = await api.post(`/admin/vendors/reject/${vendorId}`, rejectionData);
+    const response = await api.patch(`/admin/vendors/reject/${vendorId}`, rejectionData);
     return response.data;
   },
 
@@ -59,6 +89,11 @@ export const adminAPI = {
 
   reactivateVendor: async (vendorId: number, reasonData: VendorRejection) => {
     const response = await api.put(`/admin/vendors/reactivate/${vendorId}`, reasonData);
+    return response.data;
+  },
+
+  getVendorForApproval: async (vendorId: number) => {
+    const response = await api.get(`/admin/vendors/${vendorId}/approval`);
     return response.data;
   },
 };

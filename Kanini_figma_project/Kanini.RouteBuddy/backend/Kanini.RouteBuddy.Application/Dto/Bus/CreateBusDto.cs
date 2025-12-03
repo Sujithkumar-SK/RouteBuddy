@@ -38,10 +38,11 @@ public class CreateBusDto
     [Description("e.g., 1539 for AC+WiFi+Charging+USB+ReadingLight+RecliningSeats")]
     public BusAmenities Amenities { get; set; } = BusAmenities.None;
 
-    [Range(1, int.MaxValue, ErrorMessage = "Invalid seat layout template ID")]
+    [Required(ErrorMessage = "Seat layout template is required")]
+    [Range(1, int.MaxValue, ErrorMessage = "Valid seat layout template must be selected")]
     [DisplayName("Seat Layout Template ID")]
-    [Description("e.g., 1, 2, 3 (Optional)")]
-    public int? SeatLayoutTemplateId { get; set; }
+    [Description("e.g., 1, 2, 3 (Required for booking functionality)")]
+    public int SeatLayoutTemplateId { get; set; }
 
     [StringLength(100, MinimumLength = 2, ErrorMessage = "Driver name must be between 2 and 100 characters")]
     [RegularExpression(@"^[a-zA-Z\s]+$", ErrorMessage = "Driver name can only contain letters and spaces")]

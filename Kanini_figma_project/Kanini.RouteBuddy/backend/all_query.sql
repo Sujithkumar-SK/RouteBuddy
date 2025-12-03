@@ -450,58 +450,41 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
-    DECLARE @TotalBuses INT = 0;
-    DECLARE @ActiveBuses INT = 0;
-    DECLARE @PendingBuses INT = 0;
-    DECLARE @TotalRoutes INT = 0;
-    DECLARE @TotalSchedules INT = 0;
-    DECLARE @UpcomingSchedules INT = 0;
-    DECLARE @VendorStatus NVARCHAR(50) = '';
-    
-    -- Get bus counts
     SELECT 
-        @TotalBuses = COUNT(*),
-        @ActiveBuses = SUM(CASE WHEN Status = 1 THEN 1 ELSE 0 END),
-        @PendingBuses = SUM(CASE WHEN Status = 0 THEN 1 ELSE 0 END)
-    FROM Buses 
-    WHERE VendorId = @VendorId AND IsActive = 1;
-    
-    -- Get route count
-    SELECT @TotalRoutes = COUNT(DISTINCT bs.RouteId)
-    FROM BusSchedules bs
-    INNER JOIN Buses b ON bs.BusId = b.BusId
-    WHERE b.VendorId = @VendorId AND b.IsActive = 1 AND bs.IsActive = 1;
-    
-    -- Get schedule counts
-    SELECT 
-        @TotalSchedules = COUNT(*),
-        @UpcomingSchedules = SUM(CASE WHEN TravelDate >= CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END)
-    FROM BusSchedules bs
-    INNER JOIN Buses b ON bs.BusId = b.BusId
-    WHERE b.VendorId = @VendorId AND bs.IsActive = 1;
-    
-    -- Get vendor status
-    SELECT @VendorStatus = 
-        CASE Status
-            WHEN 0 THEN 'PendingApproval'
-            WHEN 1 THEN 'Active'
-            WHEN 2 THEN 'Inactive'
-            WHEN 3 THEN 'Suspended'
-            WHEN 4 THEN 'Rejected'
-            ELSE 'Unknown'
-        END
-    FROM Vendors 
-    WHERE VendorId = @VendorId;
-    
-    -- Return results
-    SELECT 
-        @TotalBuses AS TotalBuses,
-        @ActiveBuses AS ActiveBuses,
-        @PendingBuses AS PendingBuses,
-        @TotalRoutes AS TotalRoutes,
-        @TotalSchedules AS TotalSchedules,
-        @UpcomingSchedules AS UpcomingSchedules,
-        @VendorStatus AS VendorStatus;
+        -- Bus counts
+        ISNULL((SELECT COUNT(*) FROM Buses WHERE VendorId = @VendorId), 0) AS TotalBuses,
+        ISNULL((SELECT COUNT(*) FROM Buses WHERE VendorId = @VendorId AND Status = 1 AND IsActive = 1), 0) AS ActiveBuses,
+        ISNULL((SELECT COUNT(*) FROM Buses WHERE VendorId = @VendorId AND Status = 0), 0) AS PendingBuses,
+        
+        -- Route count
+        ISNULL((SELECT COUNT(DISTINCT bs.RouteId) 
+                FROM BusSchedules bs
+                INNER JOIN Buses b ON bs.BusId = b.BusId
+                WHERE b.VendorId = @VendorId), 0) AS TotalRoutes,
+        
+        -- Schedule counts
+        ISNULL((SELECT COUNT(*) 
+                FROM BusSchedules bs
+                INNER JOIN Buses b ON bs.BusId = b.BusId
+                WHERE b.VendorId = @VendorId AND bs.IsActive = 1), 0) AS TotalSchedules,
+        
+        ISNULL((SELECT COUNT(*) 
+                FROM BusSchedules bs
+                INNER JOIN Buses b ON bs.BusId = b.BusId
+                WHERE b.VendorId = @VendorId AND bs.IsActive = 1 
+                AND bs.TravelDate >= CAST(GETDATE() AS DATE)), 0) AS UpcomingSchedules,
+        
+        -- Vendor status
+        ISNULL((SELECT 
+                    CASE Status 
+                        WHEN 0 THEN 'Pending Approval'
+                        WHEN 1 THEN 'Active'
+                        WHEN 2 THEN 'Suspended'
+                        WHEN 3 THEN 'Rejected'
+                        ELSE 'Unknown'
+                    END
+                FROM Vendors 
+                WHERE VendorId = @VendorId), 'Unknown') AS VendorStatus;
 END
 GO
 ------------------------------
@@ -761,12 +744,13 @@ BEGIN
         v.TaxRegistrationNumber,
         v.Status,
         v.IsActive,
+        v.CreatedOn,
         u.Email,
         u.Phone
     FROM Vendors v
     INNER JOIN Users u ON v.UserId = u.UserId
     WHERE v.VendorId = @VendorId
-    AND v.IsActive = 1;
+    ORDER BY v.CreatedOn DESC;
 END
 GO
 ------------------------------
@@ -885,23 +869,24 @@ BEGIN
     SET NOCOUNT ON;
     
     SELECT 
-        v.VendorId, 
-        v.UserId, 
-        v.AgencyName, 
-        v.OwnerName, 
+        v.VendorId,
+        v.UserId,
+        v.AgencyName,
+        v.OwnerName,
         v.BusinessLicenseNumber,
-        v.OfficeAddress, 
+        v.OfficeAddress,
         v.FleetSize,
         v.TaxRegistrationNumber,
-        v.IsActive, 
         v.Status,
+        v.IsActive,
         v.CreatedOn,
-        u.Email, 
+        u.Email,
         u.Phone
-    FROM Vendors v 
-    INNER JOIN Users u ON v.UserId = u.UserId 
+    FROM Vendors v
+    INNER JOIN Users u ON v.UserId = u.UserId
     ORDER BY v.CreatedOn DESC
-    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+    OFFSET @Offset ROWS
+    FETCH NEXT @PageSize ROWS ONLY;
 END
 GO
 ----------------------------------------------------
@@ -925,3 +910,613 @@ BEGIN
 END
 GO
 ----------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetPlaceAutocomplete
+    @Query NVARCHAR(50),
+    @Limit INT = 10
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Get all unique cities from Routes table when query is empty, otherwise filter
+    IF @Query = ''
+    BEGIN
+        SELECT 
+            ROW_NUMBER() OVER (ORDER BY CityName) as StopId,
+            CityName as Name,
+            NULL as Landmark
+        FROM (
+            SELECT DISTINCT r.Source as CityName FROM Routes r WHERE r.IsActive = 1
+            UNION
+            SELECT DISTINCT r.Destination as CityName FROM Routes r WHERE r.IsActive = 1
+        ) Cities
+        ORDER BY CityName ASC;
+    END
+    ELSE
+    BEGIN
+        SELECT TOP (@Limit)
+            ROW_NUMBER() OVER (ORDER BY Priority, CityName) as StopId,
+            CityName as Name,
+            NULL as Landmark
+        FROM (
+            SELECT DISTINCT 
+                r.Source as CityName,
+                CASE WHEN r.Source LIKE @Query + '%' THEN 1 ELSE 2 END as Priority
+            FROM Routes r 
+            WHERE r.IsActive = 1 AND r.Source LIKE '%' + @Query + '%'
+            UNION
+            SELECT DISTINCT 
+                r.Destination as CityName,
+                CASE WHEN r.Destination LIKE @Query + '%' THEN 1 ELSE 2 END as Priority
+            FROM Routes r 
+            WHERE r.IsActive = 1 AND r.Destination LIKE '%' + @Query + '%'
+        ) Cities
+        ORDER BY Priority, CityName ASC;
+    END
+END
+GO
+----------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_ValidatePlaceExists
+    @PlaceName NVARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Check if place exists in Routes table (either as source or destination)
+    SELECT CASE WHEN COUNT(1) > 0 THEN 1 ELSE 0 END as PlaceExists
+    FROM Routes r
+    WHERE r.IsActive = 1
+        AND (LOWER(TRIM(r.Source)) = LOWER(TRIM(@PlaceName))
+             OR LOWER(TRIM(r.Destination)) = LOWER(TRIM(@PlaceName)));
+END
+GO
+------------------------------------------------------
+-- Stored Procedure: Get Vendor For Approval with Documents
+CREATE OR ALTER PROCEDURE sp_GetVendorForApproval
+    @VendorId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Get vendor details
+    SELECT 
+        v.VendorId,
+        v.UserId,
+        v.AgencyName,
+        v.OwnerName,
+        v.BusinessLicenseNumber,
+        v.OfficeAddress,
+        v.FleetSize,
+        v.TaxRegistrationNumber,
+        v.Status,
+        v.IsActive,
+        v.CreatedOn,
+        u.Email,
+        u.Phone,
+        CASE v.Status
+            WHEN 0 THEN 'PendingApproval'
+            WHEN 1 THEN 'Active'
+            WHEN 2 THEN 'Rejected'
+        END as StatusText
+    FROM Vendors v
+    INNER JOIN Users u ON v.UserId = u.UserId
+    WHERE v.VendorId = @VendorId;
+    
+    -- Get vendor documents
+    SELECT 
+        vd.DocumentId,
+        vd.VendorId,
+        vd.DocumentFile,
+        vd.DocumentPath,
+        vd.IssueDate,
+        vd.ExpiryDate,
+        vd.UploadedAt,
+        vd.IsVerified,
+        vd.VerifiedAt,
+        vd.VerifiedBy,
+        vd.RejectedReason,
+        vd.Status,
+        CASE vd.DocumentFile
+            WHEN 0 THEN 'BusinessLicense'
+            WHEN 1 THEN 'TaxRegistration'
+            WHEN 2 THEN 'IdentityProof'
+            WHEN 3 THEN 'AddressProof'
+        END as DocumentType
+    FROM VendorDocuments vd
+    WHERE vd.VendorId = @VendorId
+    ORDER BY vd.UploadedAt DESC;
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetSeatLayoutTemplatesByBusType
+    @BusType INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        SELECT 
+            SeatLayoutTemplateId,
+            TemplateName,
+            TotalSeats,
+            BusType,
+            Description,
+            IsActive,
+            CreatedBy,
+            CreatedOn,
+            UpdatedBy,
+            UpdatedOn,
+            (SELECT COUNT(*) FROM SeatLayoutDetails WHERE SeatLayoutTemplateId = SLT.SeatLayoutTemplateId) as SeatDetailsCount
+        FROM SeatLayoutTemplates SLT
+        WHERE IsActive = 1 
+        AND (@BusType IS NULL OR BusType = @BusType)
+        ORDER BY CreatedOn DESC; -- Rule 9: Recent records first
+        
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_ApplyTemplateToLayout
+    @BusId INT,
+    @TemplateId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        -- Update bus with template ID
+        UPDATE Buses 
+        SET SeatLayoutTemplateId = @TemplateId,
+            UpdatedOn = GETUTCDATE(),
+            UpdatedBy = 'System'
+        WHERE BusId = @BusId;
+        
+        COMMIT TRANSACTION;
+        
+        SELECT 1 as Success;
+        
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        THROW;
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetBusPhotoById
+    @BusPhotoId INT
+AS
+BEGIN
+    SELECT BusPhotoId, BusId, ImagePath, Caption, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn 
+    FROM BusPhotos 
+    WHERE BusPhotoId = @BusPhotoId
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetBusPhotosByBusId
+    @BusId INT
+AS
+BEGIN
+    SELECT BusPhotoId, BusId, ImagePath, Caption, CreatedBy, CreatedOn, UpdatedBy, UpdatedOn 
+    FROM BusPhotos 
+    WHERE BusId = @BusId 
+    ORDER BY CreatedOn
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_CheckBusPhotoExists
+    @BusPhotoId INT
+AS
+BEGIN
+    SELECT COUNT(1) 
+    FROM BusPhotos 
+    WHERE BusPhotoId = @BusPhotoId
+END
+GO
+------------------------------------------------------
+-- Stored Procedure: Search Routes with Real-time Filtering
+CREATE OR ALTER PROCEDURE sp_SearchRoutes
+    @Source NVARCHAR(100) = NULL,
+    @Destination NVARCHAR(100) = NULL,
+    @Limit INT = 10
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Validate parameters
+    IF @Limit <= 0 OR @Limit > 50
+        SET @Limit = 10;
+    
+    SELECT TOP (@Limit)
+        r.RouteId,
+        r.Source,
+        r.Destination,
+        r.Distance,
+        r.Duration,
+        r.BasePrice,
+        COUNT(rs.RouteStopId) as TotalStops,
+        r.IsActive
+    FROM Routes r
+    LEFT JOIN RouteStops rs ON r.RouteId = rs.RouteId
+    WHERE r.IsActive = 1
+        AND (@Source IS NULL OR r.Source LIKE '%' + @Source + '%')
+        AND (@Destination IS NULL OR r.Destination LIKE '%' + @Destination + '%')
+    GROUP BY r.RouteId, r.Source, r.Destination, r.Distance, r.Duration, r.BasePrice, r.IsActive, r.CreatedOn
+    ORDER BY r.CreatedOn DESC;
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetBusPhotoCountByBusId
+    @BusId INT
+AS
+BEGIN
+    SELECT COUNT(*) 
+    FROM BusPhotos 
+    WHERE BusId = @BusId
+END
+GO
+------------------------------------------------------
+-- Stored Procedure: Get Route Stops with Detailed Information
+CREATE OR ALTER PROCEDURE sp_GetRouteStopsWithDetails
+    @RouteId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Validate route exists
+    IF NOT EXISTS (SELECT 1 FROM Routes WHERE RouteId = @RouteId AND IsActive = 1)
+    BEGIN
+        RAISERROR('Route not found or inactive', 16, 1);
+        RETURN;
+    END
+    
+    SELECT 
+        rs.RouteStopId,
+        rs.StopId,
+        s.Name as StopName,
+        s.Landmark,
+        rs.OrderNumber,
+        rs.ArrivalTime,
+        rs.DepartureTime
+    FROM RouteStops rs
+    INNER JOIN Stops s ON rs.StopId = s.StopId
+    WHERE rs.RouteId = @RouteId
+        AND s.IsActive = 1
+    ORDER BY rs.OrderNumber ASC;
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetScheduleById]
+    @ScheduleId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        -- Validate input
+        IF @ScheduleId <= 0
+        BEGIN
+            SELECT 'ERROR' AS Result, 'INVALID_SCHEDULE_ID' AS ErrorMessage;
+            RETURN;
+        END
+        
+        -- Get schedule data
+        SELECT ScheduleId, BusId, RouteId, TravelDate, DepartureTime, ArrivalTime, 
+               AvailableSeats, IsActive
+        FROM BusSchedules 
+        WHERE ScheduleId = @ScheduleId AND IsActive = 1;
+        
+        IF @@ROWCOUNT = 0
+        BEGIN
+            SELECT 'ERROR' AS Result, 'SCHEDULE_NOT_FOUND' AS ErrorMessage;
+        END
+        ELSE
+        BEGIN
+            SELECT 'SUCCESS' AS Result;
+        END
+        
+    END TRY
+    BEGIN CATCH
+        SELECT 'ERROR' AS Result, ERROR_MESSAGE() AS ErrorMessage;
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetSchedulesByVendor]
+    @VendorId INT,
+    @PageNumber INT,
+    @PageSize INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        -- Validate input parameters
+        IF @VendorId <= 0 OR @PageNumber <= 0 OR @PageSize <= 0
+        BEGIN
+            SELECT 'ERROR' AS Result, 'INVALID_PARAMETERS' AS ErrorMessage;
+            RETURN;
+        END
+        
+        DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+        
+        -- Get paginated schedules with bus and route information
+        SELECT s.ScheduleId, s.BusId, b.BusName, s.RouteId, r.Source, r.Destination,
+               s.TravelDate, s.DepartureTime, s.ArrivalTime, s.AvailableSeats, 
+               s.Status, s.IsActive
+        FROM BusSchedules s
+        INNER JOIN Buses b ON s.BusId = b.BusId
+        INNER JOIN Routes r ON s.RouteId = r.RouteId
+        WHERE b.VendorId = @VendorId AND s.IsActive = 1 
+        ORDER BY s.CreatedOn DESC 
+        OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+        
+        SELECT 'SUCCESS' AS Result;
+        
+    END TRY
+    BEGIN CATCH
+        SELECT 'ERROR' AS Result, ERROR_MESSAGE() AS ErrorMessage;
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetScheduleCountByVendor
+    @VendorId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        IF @VendorId IS NULL OR @VendorId <= 0
+        BEGIN
+            RAISERROR('Invalid VendorId parameter', 16, 1);
+            RETURN;
+        END
+        
+        SELECT COUNT(*)
+        FROM BusSchedules bs
+        INNER JOIN Buses b ON bs.BusId = b.BusId
+        WHERE b.VendorId = @VendorId 
+        AND bs.IsActive = 1;
+        
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+        
+        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_CheckScheduleExists
+    @BusId INT,
+    @RouteId INT,
+    @TravelDate DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        IF @BusId IS NULL OR @BusId <= 0
+        BEGIN
+            RAISERROR('Invalid BusId parameter', 16, 1);
+            RETURN;
+        END
+        
+        IF @RouteId IS NULL OR @RouteId <= 0
+        BEGIN
+            RAISERROR('Invalid RouteId parameter', 16, 1);
+            RETURN;
+        END
+        
+        IF @TravelDate IS NULL
+        BEGIN
+            RAISERROR('Invalid TravelDate parameter', 16, 1);
+            RETURN;
+        END
+        
+        SELECT COUNT(*)
+        FROM BusSchedules
+        WHERE BusId = @BusId 
+        AND RouteId = @RouteId 
+        AND CAST(TravelDate AS DATE) = @TravelDate;
+        
+    END TRY
+    BEGIN CATCH
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+        
+        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetAllActiveRoutes
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        SELECT 
+            r.RouteId,
+            r.Source,
+            r.Destination,
+            r.Distance,
+            r.Duration,
+            r.BasePrice,
+            COUNT(rs.RouteStopId) as TotalStops,
+            r.IsActive
+        FROM Routes r
+        LEFT JOIN RouteStops rs ON r.RouteId = rs.RouteId
+        WHERE r.IsActive = 1
+        GROUP BY r.RouteId, r.Source, r.Destination, r.Distance, r.Duration, r.BasePrice, r.IsActive, r.CreatedOn
+        ORDER BY r.CreatedOn DESC;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllActiveStops]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        SELECT 
+            StopId,
+            Name,
+            Landmark,
+            IsActive,
+            CreatedOn
+        FROM Stops 
+        WHERE IsActive = 1
+        ORDER BY CreatedOn DESC;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetRouteById]
+    @RouteId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        -- Validate input
+        IF @RouteId <= 0
+        BEGIN
+            SELECT 'ERROR' AS Result, 'INVALID_ROUTE_ID' AS ErrorMessage;
+            RETURN;
+        END
+        
+        -- Get route data
+        SELECT RouteId, Source, Destination, Distance, Duration, BasePrice, IsActive 
+        FROM Routes 
+        WHERE RouteId = @RouteId AND IsActive = 1;
+        
+        IF @@ROWCOUNT = 0
+        BEGIN
+            SELECT 'ERROR' AS Result, 'ROUTE_NOT_FOUND' AS ErrorMessage;
+        END
+        ELSE
+        BEGIN
+            SELECT 'SUCCESS' AS Result;
+        END
+        
+    END TRY
+    BEGIN CATCH
+        SELECT 'ERROR' AS Result, ERROR_MESSAGE() AS ErrorMessage;
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetRouteStops]
+    @ScheduleId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        rs.RouteStopId,
+        rs.StopId,
+        s.Name AS StopName,
+        s.Landmark,
+        rs.OrderNumber,
+        rs.ArrivalTime,
+        rs.DepartureTime
+    FROM BusSchedules bs
+    INNER JOIN RouteStops rs ON bs.ScheduleId = rs.ScheduleId
+    INNER JOIN Stops s ON rs.StopId = s.StopId
+    WHERE bs.ScheduleId = @ScheduleId
+        AND bs.Status = 1 -- Scheduled
+        AND bs.IsActive = 1
+        AND s.IsActive = 1
+    ORDER BY rs.OrderNumber ASC;
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_ValidateSeatsAndStops]
+    @ScheduleId INT,
+    @TravelDate DATE,
+    @SeatNumbers NVARCHAR(MAX), -- Comma-separated seat numbers
+    @BoardingStopId INT,
+    @DroppingStopId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Validate stops exist in route and order is correct
+    DECLARE @BoardingOrder INT, @DroppingOrder INT;
+    
+    SELECT @BoardingOrder = rs.OrderNumber
+    FROM BusSchedules bs
+    INNER JOIN RouteStops rs ON bs.ScheduleId = rs.ScheduleId
+    WHERE bs.ScheduleId = @ScheduleId AND rs.RouteStopId = @BoardingStopId;
+    
+    SELECT @DroppingOrder = rs.OrderNumber
+    FROM BusSchedules bs
+    INNER JOIN RouteStops rs ON bs.ScheduleId = rs.ScheduleId
+    WHERE bs.ScheduleId = @ScheduleId AND rs.RouteStopId = @DroppingStopId;
+    
+    -- Check if stops are valid
+    IF @BoardingOrder IS NULL OR @DroppingOrder IS NULL
+    BEGIN
+        SELECT 'INVALID_STOPS' AS ValidationResult;
+        RETURN;
+    END
+    
+    -- Check if dropping stop is after boarding stop
+    IF @DroppingOrder <= @BoardingOrder
+    BEGIN
+        SELECT 'INVALID_STOP_ORDER' AS ValidationResult;
+        RETURN;
+    END
+    
+    -- Validate seat availability (reuse existing logic)
+    SELECT 
+        sld.SeatNumber,
+        sld.SeatType,
+        sld.SeatPosition,
+        sld.PriceTier,
+        r.BasePrice,
+        b.BusType,
+        b.Amenities,
+        CASE WHEN bks.BookedSeatId IS NOT NULL THEN 1 ELSE 0 END AS IsBooked
+    FROM BusSchedules bs
+    INNER JOIN Buses b ON bs.BusId = b.BusId
+    INNER JOIN Routes r ON bs.RouteId = r.RouteId
+    INNER JOIN SeatLayoutTemplates slt ON b.SeatLayoutTemplateId = slt.SeatLayoutTemplateId
+    INNER JOIN SeatLayoutDetails sld ON slt.SeatLayoutTemplateId = sld.SeatLayoutTemplateId
+    LEFT JOIN BookedSeats bks ON bks.SeatNumber = sld.SeatNumber 
+        AND bks.TravelDate = @TravelDate 
+        AND EXISTS (
+            SELECT 1 FROM BookingSegments bsg 
+            INNER JOIN Bookings bk ON bsg.BookingId = bk.BookingId
+            WHERE bsg.ScheduleId = @ScheduleId 
+            AND bks.BookingSegmentId = bsg.BookingSegmentId
+            AND bk.Status IN (1, 2) -- Pending or Confirmed
+            AND bk.IsActive = 1
+        )
+    WHERE bs.ScheduleId = @ScheduleId
+        AND bs.TravelDate = @TravelDate
+        AND bs.Status = 1 -- Scheduled
+        AND bs.IsActive = 1
+        AND b.Status = 1 -- Active
+        AND b.IsActive = 1
+        AND sld.SeatNumber IN (SELECT value FROM STRING_SPLIT(@SeatNumbers, ','))
+    ORDER BY sld.RowNumber, sld.ColumnNumber;
+END
+GO
+------------------------------------------------------

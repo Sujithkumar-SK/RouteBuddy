@@ -210,4 +210,23 @@ public class UserRepository : IUserRepository
             throw;
         }
     }
+
+    public async Task UpdateUserActiveStatusAsync(int userId, bool isActive)
+    {
+        try
+        {
+            _logger.LogInformation("Updating active status for userId {UserId} to {IsActive}", userId, isActive);
+
+            var utcNow = DateTime.UtcNow;
+            await _context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE Users SET IsActive = {isActive}, UpdatedBy = {"Admin"}, UpdatedOn = {utcNow} WHERE UserId = {userId}");
+
+            _logger.LogInformation("Active status updated successfully for userId {UserId}", userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating active status for userId {UserId}", userId);
+            throw;
+        }
+    }
 }

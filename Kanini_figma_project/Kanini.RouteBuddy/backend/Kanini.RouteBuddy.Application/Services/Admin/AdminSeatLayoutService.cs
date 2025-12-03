@@ -424,4 +424,44 @@ public class AdminSeatLayoutService : IAdminSeatLayoutService
 
         return Result.Success();
     }
+
+    public async Task<Result<List<SeatLayoutTemplateListDto>>> GetTemplatesByBusTypeAsync(int busType)
+    {
+        try
+        {
+            _logger.LogInformation(MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeStarted, busType);
+
+            var result = await _seatLayoutRepository.GetTemplatesByBusTypeAsync(busType);
+            if (result.IsFailure)
+            {
+                _logger.LogError(
+                    MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeFailed,
+                    result.Error.Description
+                );
+                return Result.Failure<List<SeatLayoutTemplateListDto>>(result.Error);
+            }
+
+            var templateListDtos = _mapper.Map<List<SeatLayoutTemplateListDto>>(result.Value);
+
+            _logger.LogInformation(
+                MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeCompleted,
+                templateListDtos.Count
+            );
+            return Result.Success(templateListDtos);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                MagicStrings.LogMessages.SeatLayoutTemplatesByBusTypeFailed,
+                ex.Message
+            );
+            return Result.Failure<List<SeatLayoutTemplateListDto>>(
+                Error.Failure(
+                    "AdminSeatLayoutService.GetByBusTypeFailed",
+                    MagicStrings.ErrorMessages.UnexpectedError
+                )
+            );
+        }
+    }
 }

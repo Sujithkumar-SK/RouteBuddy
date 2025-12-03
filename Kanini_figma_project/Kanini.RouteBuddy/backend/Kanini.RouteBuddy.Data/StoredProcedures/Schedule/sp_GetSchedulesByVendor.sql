@@ -16,11 +16,13 @@ BEGIN
         
         DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
         
-        -- Get paginated schedules
-        SELECT s.ScheduleId, s.BusId, s.RouteId, s.TravelDate, s.DepartureTime, 
-               s.ArrivalTime, s.AvailableSeats, s.IsActive
+        -- Get paginated schedules with bus and route information
+        SELECT s.ScheduleId, s.BusId, b.BusName, s.RouteId, r.Source, r.Destination,
+               s.TravelDate, s.DepartureTime, s.ArrivalTime, s.AvailableSeats, 
+               s.Status, s.IsActive
         FROM BusSchedules s
         INNER JOIN Buses b ON s.BusId = b.BusId
+        INNER JOIN Routes r ON s.RouteId = r.RouteId
         WHERE b.VendorId = @VendorId AND s.IsActive = 1 
         ORDER BY s.CreatedOn DESC 
         OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;

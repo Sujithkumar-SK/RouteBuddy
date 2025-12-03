@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Kanini.RouteBuddy.Application.Dto.Bus;
 using Kanini.RouteBuddy.Application.Dto.Common;
 using Kanini.RouteBuddy.Application.Services.Buses;
+using Kanini.RouteBuddy.Common;
 using Kanini.RouteBuddy.Common.Errors;
 using Kanini.RouteBuddy.Common.Services;
 using Kanini.RouteBuddy.Domain.Enums;
@@ -28,16 +29,25 @@ public class BusController : ControllerBase
         _logger = logger;
     }
 
-    private int GetVendorIdFromClaims()
+    private async Task<int> GetVendorIdFromClaimsAsync()
     {
-        // For testing without JWT - return default vendor ID
-        if (User?.Identity?.IsAuthenticated != true)
-            return 1; // Default vendor ID for testing
+        try
+        {
+            if (User?.Identity?.IsAuthenticated != true)
+                return 0;
 
-        var vendorIdClaim = User.FindFirst("VendorId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
-        if (vendorIdClaim != null && int.TryParse(vendorIdClaim.Value, out int vendorId))
-            return vendorId;
-        return 1; // Default fallback
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out int userId))
+                return 0;
+
+            var vendor = await _busService.GetVendorByUserIdAsync(userId);
+            return vendor?.VendorId ?? 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MagicStrings.LogMessages.VendorIdRetrievalFailed, ex.Message);
+            return 0;
+        }
     }
 
     [HttpGet("my-buses")]
@@ -51,7 +61,7 @@ public class BusController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized(
                     ApiResponseDto<PagedResultDto<BusResponseDto>>.ErrorResult(
@@ -114,7 +124,7 @@ public class BusController : ControllerBase
             _logger.LogError(
                 ex,
                 BusMessages.LogMessages.BusesByVendorException,
-                GetVendorIdFromClaims()
+                await GetVendorIdFromClaimsAsync()
             );
             return StatusCode(
                 500,
@@ -128,7 +138,7 @@ public class BusController : ControllerBase
             _logger.LogError(
                 ex,
                 BusMessages.LogMessages.BusesByVendorException,
-                GetVendorIdFromClaims()
+                await GetVendorIdFromClaimsAsync()
             );
             return StatusCode(
                 500,
@@ -146,7 +156,7 @@ public class BusController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized(
                     ApiResponseDto<BusResponseDto>.ErrorResult("Invalid vendor authentication")
@@ -276,7 +286,7 @@ public class BusController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized(
                     ApiResponseDto<BusResponseDto>.ErrorResult("Invalid vendor authentication")
@@ -330,7 +340,7 @@ public class BusController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized(
                     ApiResponseDto<BusResponseDto>.ErrorResult("Invalid vendor authentication")
@@ -384,7 +394,7 @@ public class BusController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized(
                     ApiResponseDto<BusResponseDto>.ErrorResult("Invalid vendor authentication")
@@ -438,7 +448,7 @@ public class BusController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized(
                     ApiResponseDto<BusResponseDto>.ErrorResult("Invalid vendor authentication")
@@ -495,7 +505,7 @@ public class BusController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized(
                     ApiResponseDto<BusResponseDto>.ErrorResult("Invalid vendor authentication")
@@ -555,7 +565,7 @@ public class BusController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized(
                     ApiResponseDto<object>.ErrorResult("Invalid vendor authentication")
@@ -599,7 +609,7 @@ public class BusController : ControllerBase
     {
         try
         {
-            var vendorId = GetVendorIdFromClaims();
+            var vendorId = await GetVendorIdFromClaimsAsync();
             if (vendorId <= 0)
                 return Unauthorized(
                     ApiResponseDto<List<BusResponseDto>>.ErrorResult(
@@ -637,7 +647,7 @@ public class BusController : ControllerBase
             _logger.LogError(
                 ex,
                 BusMessages.LogMessages.AwaitingConfirmationBusesException,
-                GetVendorIdFromClaims()
+                0 // Cannot await in catch block
             );
             return StatusCode(
                 500,
@@ -651,7 +661,7 @@ public class BusController : ControllerBase
             _logger.LogError(
                 ex,
                 BusMessages.LogMessages.AwaitingConfirmationBusesException,
-                GetVendorIdFromClaims()
+                0 // Cannot await in catch block
             );
             return StatusCode(
                 500,
@@ -659,6 +669,42 @@ public class BusController : ControllerBase
                     BusMessages.ErrorMessages.UnexpectedError
                 )
             );
+        }
+    }
+
+    [HttpPost("{busId}/apply-template/{templateId}")]
+    public async Task<IActionResult> ApplyTemplate(int busId, int templateId)
+    {
+        try
+        {
+            var vendorId = await GetVendorIdFromClaimsAsync();
+            if (vendorId <= 0)
+                return Unauthorized(
+                    ApiResponseDto<object>.ErrorResult("Invalid vendor authentication")
+                );
+
+            if (busId <= 0 || templateId <= 0)
+                return BadRequest(
+                    ApiResponseDto<object>.ErrorResult("Invalid bus ID or template ID")
+                );
+
+            _logger.LogInformation(MagicStrings.LogMessages.BusTemplateApplicationStarted, busId, templateId);
+
+            var result = await _busService.ApplyTemplateAsync(busId, templateId, vendorId);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation(MagicStrings.LogMessages.BusTemplateApplicationCompleted, busId);
+                return Ok(ApiResponseDto<object>.SuccessResult(new { }, "Template applied successfully"));
+            }
+
+            _logger.LogWarning(MagicStrings.LogMessages.BusTemplateApplicationFailed, result.Error.Description);
+            return BadRequest(ApiResponseDto<object>.ErrorResult(result.Error.Description));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MagicStrings.LogMessages.BusTemplateApplicationFailed, ex.Message);
+            return StatusCode(500, ApiResponseDto<object>.ErrorResult("Template application failed"));
         }
     }
 }

@@ -331,6 +331,8 @@ public class VendorRepository : IVendorRepository
     {
         try
         {
+            VendorFileLogger.LogInfo("Getting dashboard summary for vendor: {0}", vendorId);
+            
             using var connection = new SqlConnection(_connectionString);
             using var command = new SqlCommand("sp_GetVendorDashboardSummary", connection);
             command.CommandType = CommandType.StoredProcedure;
@@ -341,7 +343,7 @@ public class VendorRepository : IVendorRepository
             
             if (await reader.ReadAsync())
             {
-                return (
+                var result = (
                     reader.GetInt32("TotalBuses"),
                     reader.GetInt32("ActiveBuses"),
                     reader.GetInt32("PendingBuses"),
@@ -350,14 +352,23 @@ public class VendorRepository : IVendorRepository
                     reader.GetInt32("UpcomingSchedules"),
                     reader.GetString("VendorStatus")
                 );
+                
+                VendorFileLogger.LogInfo("Dashboard summary retrieved - Buses: {0}, Routes: {1}, Status: {2}", result.Item1, result.Item4, result.Item7);
+                return result;
             }
             
+            VendorFileLogger.LogWarning("No dashboard data found for vendor: {0}", vendorId);
             return (0, 0, 0, 0, 0, 0, "Unknown");
         }
         catch (SqlException ex)
         {
             VendorFileLogger.LogError("SQL error getting dashboard summary for vendor: {0}", ex, vendorId);
-            return (0, 0, 0, 0, 0, 0, "Unknown");
+            throw;
+        }
+        catch (Exception ex)
+        {
+            VendorFileLogger.LogError("Unexpected error getting dashboard summary for vendor: {0}", ex, vendorId);
+            throw;
         }
     }
 
@@ -404,6 +415,123 @@ public class VendorRepository : IVendorRepository
         {
             VendorFileLogger.LogError("SQL error filtering vendors", ex);
             return new List<Domain.Entities.Vendor>();
+        }
+    }
+
+    public async Task<VendorApprovalData?> GetVendorForApprovalAsync(int vendorId)
+    {
+        try
+        {
+            using var connection = new SqlConnection(_connectionString);
+            using var command = new SqlCommand("sp_GetVendorForApproval", connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@VendorId", vendorId);
+            
+            await connection.OpenAsync();
+            using var reader = await command.ExecuteReaderAsync();
+            
+            VendorApprovalData? result = null;
+            
+            // Read vendor details
+            if (await reader.ReadAsync())
+            {
+                result = new VendorApprovalData
+                {
+                    Vendor = new Domain.Entities.Vendor
+                    {
+                        VendorId = reader.GetInt32("VendorId"),
+                        UserId = reader.GetInt32("UserId"),
+                        AgencyName = reader.GetString("AgencyName"),
+                        OwnerName = reader.GetString("OwnerName"),
+                        BusinessLicenseNumber = reader.GetString("BusinessLicenseNumber"),
+                        OfficeAddress = reader.GetString("OfficeAddress"),
+                        FleetSize = reader.GetInt32("FleetSize"),
+                        TaxRegistrationNumber = reader.IsDBNull("TaxRegistrationNumber") ? null : reader.GetString("TaxRegistrationNumber"),
+                        Status = (VendorStatus)reader.GetInt32("Status"),
+                        IsActive = reader.GetBoolean("IsActive"),
+                        CreatedOn = reader.GetDateTime("CreatedOn"),
+                        User = new Domain.Entities.User
+                        {
+                            UserId = reader.GetInt32("UserId"),
+                            Email = reader.GetString("Email"),
+                            Phone = reader.GetString("Phone")
+                        }
+                    }
+                };
+            }
+            
+            // Read documents
+            if (result != null && await reader.NextResultAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    result.Documents.Add(new Domain.Entities.VendorDocument
+                    {
+                        DocumentId = reader.GetInt32("DocumentId"),
+                        VendorId = reader.GetInt32("VendorId"),
+                        DocumentFile = (DocumentCategory)reader.GetInt32("DocumentFile"),
+                        DocumentPath = reader.GetString("DocumentPath"),
+                        IssueDate = reader.IsDBNull("IssueDate") ? null : reader.GetDateTime("IssueDate"),
+                        ExpiryDate = reader.IsDBNull("ExpiryDate") ? null : reader.GetDateTime("ExpiryDate"),
+                        UploadedAt = reader.GetDateTime("UploadedAt"),
+                        IsVerified = reader.GetBoolean("IsVerified"),
+                        VerifiedAt = reader.IsDBNull("VerifiedAt") ? null : reader.GetDateTime("VerifiedAt"),
+                        VerifiedBy = reader.IsDBNull("VerifiedBy") ? null : reader.GetString("VerifiedBy"),
+                        RejectedReason = reader.IsDBNull("RejectedReason") ? null : reader.GetString("RejectedReason"),
+                        Status = (DocumentStatus)reader.GetInt32("Status")
+                    });
+                }
+            }
+            
+            return result;
+        }
+        catch (SqlException ex)
+        {
+            VendorFileLogger.LogError("SQL error getting vendor for approval: {0}", ex, vendorId);
+            return null;
+        }
+    }
+
+    public async Task<Domain.Entities.Vendor> UpdateVendorOnlyAsync(Domain.Entities.Vendor vendor)
+    {
+        try
+        {
+            vendor.UpdatedOn = DateTime.UtcNow;
+            vendor.UpdatedBy = "Admin";
+            
+            // Only update vendor entity, not related entities
+            _context.Entry(vendor).State = EntityState.Modified;
+            _context.Entry(vendor).Property(v => v.UserId).IsModified = false;
+            
+            await _context.SaveChangesAsync();
+            return vendor;
+        }
+        catch (SqlException ex)
+        {
+            VendorFileLogger.LogError("SQL error updating vendor only", ex);
+            return vendor;
+        }
+        catch (DbUpdateException ex)
+        {
+            VendorFileLogger.LogError("Database update error updating vendor only", ex);
+            return vendor;
+        }
+    }
+
+    public async Task UpdateVendorDocumentsStatusAsync(int vendorId, DocumentStatus status, string verifiedBy)
+    {
+        try
+        {
+            var utcNow = DateTime.UtcNow;
+            await _context.Database.ExecuteSqlInterpolatedAsync(
+                $"UPDATE VendorDocuments SET Status = {(int)status}, IsVerified = {status == DocumentStatus.Verified}, VerifiedBy = {verifiedBy}, VerifiedAt = {utcNow}, UpdatedBy = {verifiedBy}, UpdatedOn = {utcNow} WHERE VendorId = {vendorId}");
+            
+            VendorFileLogger.LogInfo("Updated documents status for vendor: {0}", vendorId);
+        }
+        catch (SqlException ex)
+        {
+            VendorFileLogger.LogError("SQL error updating vendor documents status: {0}", ex, vendorId);
+            throw;
         }
     }
 }

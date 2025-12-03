@@ -1,5 +1,7 @@
 using AutoMapper;
 using Kanini.RouteBuddy.Application.Dto;
+using Kanini.RouteBuddy.Application.Dto.Stop;
+using Kanini.RouteBuddy.Application.Services.Stop;
 using Kanini.RouteBuddy.Common;
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Data.Repositories.Buses;
@@ -16,18 +18,21 @@ public class Bus_Search_Book_Service : IBus_Search_Book_Service
 {
     private readonly IBus_Search_Book_Repository _busRepository;
     private readonly ICustomerRepository _customerRepository;
+    private readonly IStopService _stopService;
     private readonly IMapper _mapper;
     private readonly ILogger<Bus_Search_Book_Service> _logger;
 
     public Bus_Search_Book_Service(
         IBus_Search_Book_Repository busRepository,
         ICustomerRepository customerRepository,
+        IStopService stopService,
         IMapper mapper,
         ILogger<Bus_Search_Book_Service> logger
     )
     {
         _busRepository = busRepository;
         _customerRepository = customerRepository;
+        _stopService = stopService;
         _mapper = mapper;
         _logger = logger;
     }
@@ -52,6 +57,32 @@ public class Bus_Search_Book_Service : IBus_Search_Book_Service
                     Error.Failure(
                         "BusSearch.InvalidDate",
                         MagicStrings.ErrorMessages.TravelDateInvalid
+                    )
+                );
+            }
+
+            // Validate source place exists
+            var sourceValidation = await _stopService.ValidatePlaceExistsAsync(request.Source.Trim());
+            if (sourceValidation.IsFailure || !sourceValidation.Value)
+            {
+                _logger.LogWarning(MagicStrings.LogMessages.PlaceValidationFailed, "Invalid source place");
+                return Result.Failure<List<BusSearchResponseDto>>(
+                    Error.Failure(
+                        "BusSearch.InvalidSource",
+                        MagicStrings.ErrorMessages.InvalidPlace
+                    )
+                );
+            }
+
+            // Validate destination place exists
+            var destinationValidation = await _stopService.ValidatePlaceExistsAsync(request.Destination.Trim());
+            if (destinationValidation.IsFailure || !destinationValidation.Value)
+            {
+                _logger.LogWarning(MagicStrings.LogMessages.PlaceValidationFailed, "Invalid destination place");
+                return Result.Failure<List<BusSearchResponseDto>>(
+                    Error.Failure(
+                        "BusSearch.InvalidDestination",
+                        MagicStrings.ErrorMessages.InvalidPlace
                     )
                 );
             }
@@ -618,6 +649,32 @@ public class Bus_Search_Book_Service : IBus_Search_Book_Service
             _logger.LogError(ex, "Failed to get customer for UserId: {UserId}", userId);
             return Result.Failure<CustomerEntity>(
                 Error.Failure("GetCustomer.Failed", MagicStrings.ErrorMessages.UnexpectedError)
+            );
+        }
+    }
+
+    public async Task<Result<List<PlaceAutocompleteResponseDto>>> GetPlaceAutocompleteAsync(PlaceAutocompleteRequestDto request)
+    {
+        try
+        {
+            _logger.LogInformation(MagicStrings.LogMessages.PlaceAutocompleteStarted, request.Query);
+
+            var result = await _stopService.GetPlaceAutocompleteAsync(request);
+
+            if (result.IsFailure)
+            {
+                _logger.LogError(MagicStrings.LogMessages.PlaceAutocompleteFailed, result.Error.Description);
+                return Result.Failure<List<PlaceAutocompleteResponseDto>>(result.Error);
+            }
+
+            _logger.LogInformation(MagicStrings.LogMessages.PlaceAutocompleteCompleted, result.Value.Count);
+            return Result.Success(result.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, MagicStrings.LogMessages.PlaceAutocompleteFailed, ex.Message);
+            return Result.Failure<List<PlaceAutocompleteResponseDto>>(
+                Error.Failure("PlaceAutocomplete.UnexpectedError", MagicStrings.ErrorMessages.UnexpectedError)
             );
         }
     }
