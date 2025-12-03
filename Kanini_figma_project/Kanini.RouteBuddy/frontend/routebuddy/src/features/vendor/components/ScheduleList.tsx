@@ -15,16 +15,40 @@ import {
   Chip,
   CircularProgress,
   Alert,
-  Pagination
+  Pagination,
+  Menu,
+  MenuItem,
+  ButtonGroup
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, ArrowDropDown as ArrowDropDownIcon } from '@mui/icons-material';
 import { scheduleAPI, type VendorSchedule } from '../scheduleAPI';
 
 interface ScheduleListProps {
   onCreateNew: () => void;
+  onCreateBulk: () => void;
 }
 
-const ScheduleList = ({ onCreateNew }: ScheduleListProps) => {
+const ScheduleList = ({ onCreateNew, onCreateBulk }: ScheduleListProps) => {
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleCreateSingle = () => {
+    handleClose();
+    onCreateNew();
+  };
+
+  const handleCreateBulk = () => {
+    handleClose();
+    onCreateBulk();
+  };
   const [schedules, setSchedules] = useState<VendorSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,13 +104,28 @@ const ScheduleList = ({ onCreateNew }: ScheduleListProps) => {
     <Box>
       <Box display="flex" justifyContent="between" alignItems="center" mb={3}>
         <Typography variant="h5">My Schedules</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={onCreateNew}
+        <ButtonGroup variant="contained">
+          <Button
+            startIcon={<AddIcon />}
+            onClick={onCreateNew}
+          >
+            Create Schedule
+          </Button>
+          <Button
+            size="small"
+            onClick={handleClick}
+          >
+            <ArrowDropDownIcon />
+          </Button>
+        </ButtonGroup>
+        <Menu
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleClose}
         >
-          Create Schedule
-        </Button>
+          <MenuItem onClick={handleCreateSingle}>Single Schedule</MenuItem>
+          <MenuItem onClick={handleCreateBulk}>Bulk Schedules</MenuItem>
+        </Menu>
       </Box>
 
       {error && (

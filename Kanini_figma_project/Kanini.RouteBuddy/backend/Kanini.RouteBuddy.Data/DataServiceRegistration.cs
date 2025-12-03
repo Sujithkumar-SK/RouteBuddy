@@ -51,6 +51,7 @@ namespace Kanini.RouteBuddy.Data
             services.AddScoped<Repositories.Route.IRouteRepository, Repositories.Route.RouteRepository>();
             services.AddScoped<IRouteStopRepository, RouteStopRepository>();
             services.AddScoped<IStopRepository, StopRepository>();
+            services.AddScoped<Repositories.VendorAnalytics.IVendorAnalyticsRepository, Repositories.VendorAnalytics.VendorAnalyticsRepository>();
             return services;
         }
     }

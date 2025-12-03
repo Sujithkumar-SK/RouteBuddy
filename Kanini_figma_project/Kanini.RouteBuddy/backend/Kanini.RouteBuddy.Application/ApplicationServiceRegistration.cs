@@ -40,6 +40,7 @@ namespace Kanini.RouteBuddy.Application
             services.AddScoped<IAdminBusService, AdminBusService>();
             services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<Services.Vendor.IVendorService, Services.Vendor.VendorService>();
+            services.AddScoped<Services.Vendor.IVendorAnalyticsService, Services.Vendor.VendorAnalyticsService>();
             services.AddScoped<IScheduleService, ScheduleService>();
             services.AddScoped<Services.Route.IRouteService, Services.Route.RouteService>();
             services.AddScoped<IRouteStopService, RouteStopService>();

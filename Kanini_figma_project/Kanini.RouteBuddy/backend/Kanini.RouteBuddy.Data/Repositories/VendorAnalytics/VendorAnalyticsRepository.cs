@@ -324,7 +324,7 @@ public class VendorAnalyticsRepository : IVendorAnalyticsRepository
             while (await reader.ReadAsync())
             {
                 alerts.Add(new {
-                    AlertId = reader.IsDBNull(reader.GetOrdinal("AlertId")) ? 0 : reader.GetInt32(reader.GetOrdinal("AlertId")),
+                    AlertId = reader.IsDBNull(reader.GetOrdinal("AlertId")) ? 0 : Convert.ToInt32(reader.GetValue(reader.GetOrdinal("AlertId"))),
                     Type = reader.IsDBNull(reader.GetOrdinal("Type")) ? "" : reader.GetString(reader.GetOrdinal("Type")),
                     Message = reader.IsDBNull(reader.GetOrdinal("Message")) ? "" : reader.GetString(reader.GetOrdinal("Message")),
                     Severity = reader.IsDBNull(reader.GetOrdinal("Severity")) ? "" : reader.GetString(reader.GetOrdinal("Severity")),

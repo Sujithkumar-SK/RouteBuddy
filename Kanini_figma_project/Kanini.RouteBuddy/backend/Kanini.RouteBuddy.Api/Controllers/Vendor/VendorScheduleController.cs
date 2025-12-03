@@ -364,4 +364,58 @@ public class VendorScheduleController : ControllerBase
             return StatusCode(500, ApiResponseDto<PagedResultDto<ScheduleResponseDto>>.ErrorResult("An unexpected error occurred"));
         }
     }
+
+    [HttpPost("bulk")]
+    public async Task<ActionResult<ApiResponseDto<List<ScheduleResponseDto>>>> CreateBulkSchedule(
+        [FromBody] VendorCreateBulkScheduleDto dto)
+    {
+        try
+        {
+            var vendorId = await GetVendorIdFromClaimsAsync();
+            if (vendorId <= 0)
+            {
+                return Unauthorized(ApiResponseDto<List<ScheduleResponseDto>>.ErrorResult("Invalid vendor authentication"));
+            }
+
+            _logger.LogInformation("Vendor {VendorId} creating bulk schedules for bus {BusId} on route {RouteId} from {StartDate} to {EndDate}", 
+                vendorId, dto.BusId, dto.RouteId, dto.StartDate, dto.EndDate);
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return BadRequest(ApiResponseDto<List<ScheduleResponseDto>>.ErrorResult(string.Join("; ", errors)));
+            }
+
+            var createDto = new CreateBulkScheduleDto
+            {
+                BusId = dto.BusId,
+                RouteId = dto.RouteId,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate,
+                DepartureTime = dto.DepartureTime,
+                ArrivalTime = dto.ArrivalTime,
+                OperatingDays = dto.OperatingDays
+            };
+
+            var result = await _scheduleService.CreateBulkScheduleAsync(createDto, vendorId);
+
+            if (result.IsSuccess)
+            {
+                _logger.LogInformation("Bulk schedules created successfully. Count: {Count}", result.Value.Count);
+                return Ok(ApiResponseDto<List<ScheduleResponseDto>>.SuccessResult(result.Value, $"Successfully created {result.Value.Count} schedules"));
+            }
+
+            return BadRequest(ApiResponseDto<List<ScheduleResponseDto>>.ErrorResult(result.Error.Description));
+        }
+        catch (SqlException ex)
+        {
+            _logger.LogError(ex, "Database error creating bulk schedules");
+            return StatusCode(500, ApiResponseDto<List<ScheduleResponseDto>>.ErrorResult("Database error occurred"));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating bulk schedules");
+            return StatusCode(500, ApiResponseDto<List<ScheduleResponseDto>>.ErrorResult("An unexpected error occurred"));
+        }
+    }
 }

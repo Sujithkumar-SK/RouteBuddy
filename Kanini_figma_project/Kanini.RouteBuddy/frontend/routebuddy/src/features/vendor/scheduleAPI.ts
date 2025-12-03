@@ -34,6 +34,16 @@ export interface CreateScheduleRequest {
   arrivalTime: string;
 }
 
+export interface CreateBulkScheduleRequest {
+  busId: number;
+  routeId: number;
+  startDate: string;
+  endDate: string;
+  departureTime: string;
+  arrivalTime: string;
+  operatingDays: number[]; // 0=Sunday, 1=Monday, etc.
+}
+
 export interface CreateRouteStopRequest {
   stopId: number;
   orderNumber: number;
@@ -81,6 +91,11 @@ export const scheduleAPI = {
 
   getSchedule: async (scheduleId: number) => {
     const response = await api.get(`/vendor/schedules/${scheduleId}`);
+    return response.data;
+  },
+
+  createBulkSchedule: async (data: CreateBulkScheduleRequest) => {
+    const response = await api.post('/vendor/schedules/bulk', data);
     return response.data;
   }
 };

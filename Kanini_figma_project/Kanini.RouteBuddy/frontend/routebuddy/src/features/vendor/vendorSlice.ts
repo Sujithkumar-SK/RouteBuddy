@@ -49,7 +49,7 @@ const initialState: VendorState = {
   error: null,
 };
 
-// Single consolidated async thunk
+// Dashboard async thunk
 export const fetchVendorDashboard = createAsyncThunk(
   'vendor/fetchDashboard',
   async (_, { rejectWithValue }) => {
@@ -57,6 +57,19 @@ export const fetchVendorDashboard = createAsyncThunk(
       return await vendorAPI.getDashboardData();
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Failed to fetch dashboard data');
+    }
+  }
+);
+
+// Analytics async thunk
+export const fetchVendorAnalytics = createAsyncThunk(
+  'vendor/fetchAnalytics',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await vendorAPI.getAnalytics();
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.error || 'Failed to fetch analytics data');
     }
   }
 );
@@ -84,6 +97,25 @@ const vendorSlice = createSlice({
       })
       .addCase(fetchVendorDashboard.rejected, (state, action) => {
         state.loading.dashboard = false;
+        state.error = action.payload as string;
+      })
+      .addCase(fetchVendorAnalytics.pending, (state) => {
+        state.loading.analytics = true;
+        state.error = null;
+      })
+      .addCase(fetchVendorAnalytics.fulfilled, (state, action) => {
+        state.loading.analytics = false;
+        const analytics = action.payload;
+        state.revenueAnalytics = analytics.revenueAnalytics;
+        state.performanceMetrics = analytics.performanceMetrics;
+        state.fleetStatus = analytics.fleetStatus;
+        state.quickStats = analytics.quickStats;
+        state.recentBookings = analytics.recentBookings;
+        state.notifications = analytics.notifications;
+        state.alerts = analytics.alerts;
+      })
+      .addCase(fetchVendorAnalytics.rejected, (state, action) => {
+        state.loading.analytics = false;
         state.error = action.payload as string;
       });
   },

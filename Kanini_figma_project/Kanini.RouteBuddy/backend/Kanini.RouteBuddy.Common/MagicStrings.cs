@@ -50,6 +50,14 @@ public static class MagicStrings
         public const string GetScheduleCountByVendor = "sp_GetScheduleCountByVendor";
         public const string CheckScheduleExists = "sp_CheckScheduleExists";
         public const string GetRouteById = "sp_GetRouteById";
+        public const string GetVendorRevenueAnalytics = "sp_GetVendorRevenueAnalytics";
+        public const string GetVendorPerformanceMetrics = "sp_GetVendorPerformanceMetrics";
+        public const string GetVendorFleetStatus = "sp_GetVendorFleetStatus";
+        public const string GetVendorQuickStats = "sp_GetVendorQuickStats";
+        public const string GetVendorRecentBookings = "sp_GetVendorRecentBookings";
+        public const string GetVendorNotifications = "sp_GetVendorNotifications";
+        public const string GetVendorAlerts = "sp_GetVendorAlerts";
+        public const string GetVendorMaintenanceSchedule = "sp_GetVendorMaintenanceSchedule";
     }
 
     public static class LogMessages

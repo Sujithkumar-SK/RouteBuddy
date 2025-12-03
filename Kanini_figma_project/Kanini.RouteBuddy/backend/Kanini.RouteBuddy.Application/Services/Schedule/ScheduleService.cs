@@ -250,10 +250,13 @@ public class ScheduleService : IScheduleService
 
     public async Task<Result<List<ScheduleResponseDto>>> CreateBulkScheduleAsync(CreateBulkScheduleDto dto, int vendorId)
     {
+        var createdScheduleIds = new List<int>();
+        
         try
         {
             _logger.LogInformation(ScheduleMessages.LogMessages.CreatingBulkSchedule, dto.BusId, dto.RouteId, dto.StartDate, dto.EndDate);
 
+            // Validate bus ownership and status
             var busResult = await _busRepository.GetByIdAsync(dto.BusId);
             if (!busResult.IsSuccess || busResult.Value == null || busResult.Value.VendorId != vendorId)
             {
@@ -268,6 +271,31 @@ public class ScheduleService : IScheduleService
                 return Result.Failure<List<ScheduleResponseDto>>(Error.Failure(ScheduleMessages.ErrorCodes.BusNotActive, ScheduleMessages.ErrorMessages.BusNotActive));
             }
 
+            // Validate date range
+            if (dto.StartDate.Date < DateTime.UtcNow.Date)
+            {
+                _logger.LogWarning(ScheduleMessages.LogMessages.PastDateSchedule, dto.StartDate);
+                return Result.Failure<List<ScheduleResponseDto>>(Error.Failure(ScheduleMessages.ErrorCodes.PastDate, ScheduleMessages.ErrorMessages.PastDateSchedule));
+            }
+
+            // Validate time difference (same as single schedule)
+            var timeDifference = dto.ArrivalTime > dto.DepartureTime 
+                ? dto.ArrivalTime - dto.DepartureTime 
+                : TimeSpan.FromDays(1) - dto.DepartureTime + dto.ArrivalTime;
+
+            if (timeDifference.TotalMinutes < 30)
+            {
+                _logger.LogWarning(ScheduleMessages.LogMessages.InvalidScheduleTime, dto.DepartureTime, dto.ArrivalTime);
+                return Result.Failure<List<ScheduleResponseDto>>(Error.Failure(ScheduleMessages.ErrorCodes.InvalidTime, "Journey must be at least 30 minutes long"));
+            }
+
+            if (timeDifference.TotalHours > 24)
+            {
+                _logger.LogWarning(ScheduleMessages.LogMessages.InvalidScheduleTime, dto.DepartureTime, dto.ArrivalTime);
+                return Result.Failure<List<ScheduleResponseDto>>(Error.Failure(ScheduleMessages.ErrorCodes.InvalidTime, "Journey cannot exceed 24 hours"));
+            }
+
+            // Validate route
             var routeResult = await _routeRepository.GetByIdAsync(dto.RouteId);
             if (!routeResult.IsSuccess || routeResult.Value == null)
             {
@@ -278,6 +306,7 @@ public class ScheduleService : IScheduleService
             var createdSchedules = new List<ScheduleResponseDto>();
             var currentDate = dto.StartDate.Date;
 
+            // Create schedules for each valid date
             while (currentDate <= dto.EndDate.Date)
             {
                 if (dto.OperatingDays.Any() && !dto.OperatingDays.Contains(currentDate.DayOfWeek))
@@ -286,36 +315,56 @@ public class ScheduleService : IScheduleService
                     continue;
                 }
 
+                // Check if schedule already exists
                 var existsResult = await _scheduleRepository.ExistsByBusRouteAndDateAsync(dto.BusId, dto.RouteId, currentDate);
                 if (!existsResult.IsSuccess)
                 {
                     _logger.LogError(ScheduleMessages.LogMessages.ScheduleExistenceCheckFailed, dto.BusId, dto.RouteId, currentDate);
+                    await RollbackCreatedSchedules(createdScheduleIds);
                     return Result.Failure<List<ScheduleResponseDto>>(Error.Failure(ScheduleMessages.ErrorCodes.DatabaseError, ScheduleMessages.ErrorMessages.DatabaseError));
                 }
 
                 if (existsResult.Value)
                 {
+                    _logger.LogInformation("Schedule already exists for {Date}, skipping", currentDate);
                     currentDate = currentDate.AddDays(1);
                     continue;
                 }
 
+                // Create schedule
                 var schedule = _mapper.Map<BusSchedule>(dto);
                 schedule.TravelDate = currentDate;
                 schedule.AvailableSeats = bus.TotalSeats;
                 schedule.Status = ScheduleStatus.Scheduled;
                 schedule.IsActive = true;
+                schedule.CreatedBy = $"Vendor-{vendorId}";
+                schedule.CreatedOn = DateTime.UtcNow;
 
                 var createResult = await _scheduleRepository.CreateAsync(schedule);
                 if (!createResult.IsSuccess)
                 {
                     _logger.LogError(ScheduleMessages.LogMessages.ScheduleCreationFailed, dto.BusId, dto.RouteId);
+                    await RollbackCreatedSchedules(createdScheduleIds);
                     return Result.Failure<List<ScheduleResponseDto>>(Error.Failure(ScheduleMessages.ErrorCodes.CreationFailed, ScheduleMessages.ErrorMessages.ScheduleCreationFailed));
                 }
 
+                // Track created schedule for potential rollback
+                createdScheduleIds.Add(createResult.Value.ScheduleId);
+
+                // Load related entities for response
+                createResult.Value.Bus = bus;
+                createResult.Value.Route = routeResult.Value;
+                
                 var scheduleDto = _mapper.Map<ScheduleResponseDto>(createResult.Value);
                 createdSchedules.Add(scheduleDto);
 
                 currentDate = currentDate.AddDays(1);
+            }
+
+            if (createdSchedules.Count == 0)
+            {
+                _logger.LogWarning("No schedules were created - all dates either already exist or don't match operating days");
+                return Result.Failure<List<ScheduleResponseDto>>(Error.Failure(ScheduleMessages.ErrorCodes.CreationFailed, "No schedules were created. All dates may already exist or don't match operating days."));
             }
 
             _logger.LogInformation(ScheduleMessages.LogMessages.BulkScheduleCreatedSuccessfully, createdSchedules.Count);
@@ -324,7 +373,35 @@ public class ScheduleService : IScheduleService
         catch (Exception ex)
         {
             _logger.LogError(ex, ScheduleMessages.LogMessages.BulkScheduleCreationException, dto.BusId, dto.RouteId);
+            await RollbackCreatedSchedules(createdScheduleIds);
             return Result.Failure<List<ScheduleResponseDto>>(Error.Failure(ScheduleMessages.ErrorCodes.UnexpectedError, ScheduleMessages.ErrorMessages.UnexpectedError));
+        }
+    }
+
+    private async Task RollbackCreatedSchedules(List<int> scheduleIds)
+    {
+        if (scheduleIds.Count == 0) return;
+
+        try
+        {
+            _logger.LogWarning("Rolling back {Count} created schedules due to error", scheduleIds.Count);
+            
+            foreach (var scheduleId in scheduleIds)
+            {
+                try
+                {
+                    await _scheduleRepository.DeleteAsync(scheduleId);
+                    _logger.LogInformation("Rolled back schedule {ScheduleId}", scheduleId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to rollback schedule {ScheduleId}", scheduleId);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during schedule rollback process");
         }
     }
 }
