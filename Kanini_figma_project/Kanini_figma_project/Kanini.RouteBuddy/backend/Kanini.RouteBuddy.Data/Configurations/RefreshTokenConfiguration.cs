@@ -1,0 +1,24 @@
+using Kanini.RouteBuddy.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Kanini.RouteBuddy.Data.Configurations;
+
+public class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
+{
+    public void Configure(EntityTypeBuilder<RefreshToken> builder)
+    {
+        builder.HasKey(rt => rt.RefreshTokenId);
+
+        builder.Property(rt => rt.Token).IsRequired().HasMaxLength(500);
+        builder.Property(rt => rt.ExpiresAt).IsRequired();
+        builder.Property(rt => rt.IsRevoked).HasDefaultValue(false);
+
+        builder.HasIndex(rt => rt.Token).IsUnique();
+
+        builder.HasOne(rt => rt.User)
+            .WithMany()
+            .HasForeignKey(rt => rt.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    }
+}

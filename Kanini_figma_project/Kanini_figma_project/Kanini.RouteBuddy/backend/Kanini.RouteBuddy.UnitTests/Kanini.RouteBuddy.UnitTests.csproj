@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="NUnit" />
+    <PackageReference Include="NUnit3TestAdapter" />
+    <PackageReference Include="NUnit.Analyzers" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kanini.RouteBuddy.Api\Kanini.RouteBuddy.Api.csproj" />
+    <ProjectReference Include="..\Kanini.RouteBuddy.Application\Kanini.RouteBuddy.Application.csproj" />
+    <ProjectReference Include="..\Kanini.RouteBuddy.Common\Kanini.RouteBuddy.Common.csproj" />
+    <ProjectReference Include="..\Kanini.RouteBuddy.Data\Kanini.RouteBuddy.Data.csproj" />
+  </ItemGroup>
+
+</Project>
