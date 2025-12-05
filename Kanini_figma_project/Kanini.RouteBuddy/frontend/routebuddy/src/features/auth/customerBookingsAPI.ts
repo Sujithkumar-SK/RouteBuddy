@@ -32,13 +32,13 @@ export interface CancelBookingResponse {
 }
 
 export const customerBookingsAPI = {
-  getBookings: async (customerId: number, status?: number, fromDate?: string, toDate?: string): Promise<CustomerBooking[]> => {
+  getBookings: async (status?: number, fromDate?: string, toDate?: string): Promise<CustomerBooking[]> => {
     const params = new URLSearchParams();
     if (status !== undefined) params.append('status', status.toString());
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
     
-    const response = await api.get(`/customer/profile/${customerId}/bookings?${params}`);
+    const response = await api.get(`/customer/profile/my-bookings?${params}`);
     return response.data;
   },
 

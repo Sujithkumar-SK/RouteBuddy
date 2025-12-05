@@ -21,14 +21,13 @@ const initialState: CustomerBookingsState = {
 
 export const fetchCustomerBookings = createAsyncThunk(
   'customerBookings/fetchBookings',
-  async ({ customerId, status, fromDate, toDate }: { 
-    customerId: number; 
+  async ({ status, fromDate, toDate }: { 
     status?: number; 
     fromDate?: string; 
     toDate?: string; 
   }, { rejectWithValue }) => {
     try {
-      const response = await customerBookingsAPI.getBookings(customerId, status, fromDate, toDate);
+      const response = await customerBookingsAPI.getBookings(status, fromDate, toDate);
       return response;
     } catch (error: any) {
       const errorMsg = error.response?.data?.error || error.message || 'Failed to fetch bookings';

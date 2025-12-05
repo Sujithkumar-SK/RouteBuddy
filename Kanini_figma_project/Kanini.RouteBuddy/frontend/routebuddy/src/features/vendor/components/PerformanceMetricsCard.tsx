@@ -1,5 +1,6 @@
 import { Card, CardContent, Typography, Box, Grid, LinearProgress } from '@mui/material';
 import { Speed, BookOnline } from '@mui/icons-material';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface PerformanceMetricsCardProps {
   monthlyBookings: number;
@@ -56,6 +57,31 @@ const PerformanceMetricsCard = ({ monthlyBookings, onTimePerformance }: Performa
             </Box>
           </Grid>
         </Grid>
+
+        <Box mt={3}>
+          <Typography variant="h6" gutterBottom>
+            Performance Overview
+          </Typography>
+          <Box height={200}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={[
+                { metric: 'Bookings', value: monthlyBookings },
+                { metric: 'On-Time %', value: onTimePerformance }
+              ]}>
+                <defs>
+                  <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1976d2" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#42a5f5" stopOpacity={0.3}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="metric" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="url(#performanceGradient)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+        </Box>
       </CardContent>
     </Card>
   );

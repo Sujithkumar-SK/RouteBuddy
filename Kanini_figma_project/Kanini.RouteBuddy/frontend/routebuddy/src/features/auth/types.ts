@@ -76,3 +76,18 @@ export interface RegistrationResponse {
 export interface ProfileCompletionResponse {
   message: string;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface VerifyForgotPasswordOtpRequest {
+  email: string;
+  otp: string;
+  otpToken: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  newPassword: string;
+}

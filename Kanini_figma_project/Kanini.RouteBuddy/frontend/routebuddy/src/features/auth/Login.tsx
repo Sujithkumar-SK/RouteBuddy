@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
   Card,
@@ -16,6 +16,7 @@ import { ROUTES } from '../../utils/constants';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const { loading, error } = useAppSelector((state) => state.auth);
 
@@ -23,6 +24,15 @@ const Login = () => {
     email: '',
     password: '',
   });
+  const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the message from location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,6 +81,12 @@ const Login = () => {
             Welcome back to RouteBuddy
           </Typography>
 
+          {successMessage && (
+            <Alert severity="success" sx={{ mb: 2 }}>
+              {successMessage}
+            </Alert>
+          )}
+
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
@@ -106,6 +122,15 @@ const Login = () => {
               sx={{ mb: 2, py: 1.5 }}
             >
               {loading ? <CircularProgress size={24} /> : 'Login'}
+            </Button>
+
+            <Button
+              fullWidth
+              variant="text"
+              onClick={() => navigate(ROUTES.FORGOT_PASSWORD)}
+              sx={{ mb: 1 }}
+            >
+              Forgot Password?
             </Button>
 
             <Button

@@ -1,5 +1,6 @@
 import { Card, CardContent, Typography, Box, Grid } from '@mui/material';
 import { TrendingUp, AttachMoney, CalendarToday, DateRange } from '@mui/icons-material';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface RevenueAnalyticsCardProps {
   totalRevenue: number;
@@ -61,6 +62,32 @@ const RevenueAnalyticsCard = ({ totalRevenue, monthlyRevenue, weeklyRevenue }: R
             </Box>
           </Grid>
         </Grid>
+
+        <Box mt={3}>
+          <Typography variant="h6" gutterBottom>
+            Revenue Breakdown
+          </Typography>
+          <Box height={250}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={[
+                { period: 'Weekly', amount: weeklyRevenue },
+                { period: 'Monthly', amount: monthlyRevenue },
+                { period: 'Total', amount: totalRevenue }
+              ]}>
+                <defs>
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1976d2" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#1976d2" stopOpacity={0.3}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="period" />
+                <YAxis tickFormatter={(value) => `₹${(value / 1000).toFixed(0)}K`} />
+                <Tooltip formatter={(value) => [formatCurrency(Number(value)), 'Revenue']} />
+                <Bar dataKey="amount" fill="url(#revenueGradient)" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
+        </Box>
       </CardContent>
     </Card>
   );

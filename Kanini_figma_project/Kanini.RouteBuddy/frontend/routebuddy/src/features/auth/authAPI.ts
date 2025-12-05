@@ -5,6 +5,9 @@ import type {
   ResendOtpRequest,
   VerifyRegistrationOtpRequest,
   LoginRequest,
+  ForgotPasswordRequest,
+  VerifyForgotPasswordOtpRequest,
+  ResetPasswordRequest,
 } from './types';
 
 export const authAPI = {
@@ -44,6 +47,21 @@ export const authAPI = {
         'Content-Type': 'multipart/form-data',
       },
     });
+    return response.data;
+  },
+
+  forgotPassword: async (data: ForgotPasswordRequest) => {
+    const response = await api.post(API_ENDPOINTS.FORGOT_PASSWORD, data);
+    return response.data;
+  },
+
+  verifyForgotPasswordOtp: async (data: VerifyForgotPasswordOtpRequest) => {
+    const response = await api.post(API_ENDPOINTS.VERIFY_FORGOT_PASSWORD_OTP, data);
+    return response.data;
+  },
+
+  resetPassword: async (data: ResetPasswordRequest) => {
+    const response = await api.post(API_ENDPOINTS.RESET_PASSWORD, data);
     return response.data;
   },
 };

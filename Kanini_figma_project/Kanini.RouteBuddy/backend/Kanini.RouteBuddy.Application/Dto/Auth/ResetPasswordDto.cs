@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Kanini.RouteBuddy.Common.Validators;
 
 namespace Kanini.RouteBuddy.Application.Dto.Auth;
 
@@ -9,9 +10,7 @@ public class ResetPasswordDto
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    public string Otp { get; set; } = string.Empty;
-
-    [Required]
     [MinLength(8)]
+    [StrongPassword]
     public string NewPassword { get; set; } = string.Empty;
 }

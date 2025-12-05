@@ -8,6 +8,9 @@ import { ROUTES } from '../utils/constants';
 import Signup from '../features/auth/Signup';
 import OTPVerification from '../features/auth/OTPVerification';
 import Login from '../features/auth/Login';
+import ForgotPassword from '../features/auth/ForgotPassword';
+import VerifyForgotOtp from '../features/auth/VerifyForgotOtp';
+import ResetPassword from '../features/auth/ResetPassword';
 import CustomerProfile from '../features/auth/CustomerProfile';
 import VendorProfile from '../features/auth/VendorProfile';
 
@@ -76,6 +79,9 @@ const AppRoutes = () => {
       <Route path={ROUTES.LOGIN} element={<Login />} />
       <Route path={ROUTES.SIGNUP} element={<Signup />} />
       <Route path={ROUTES.VERIFY_OTP} element={<OTPVerification />} />
+      <Route path={ROUTES.FORGOT_PASSWORD} element={<ForgotPassword />} />
+      <Route path={ROUTES.VERIFY_FORGOT_OTP} element={<VerifyForgotOtp />} />
+      <Route path={ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
       <Route path={ROUTES.CUSTOMER_PROFILE} element={<CustomerProfile />} />
       <Route path={ROUTES.VENDOR_PROFILE} element={<VendorProfile />} />
       <Route path={ROUTES.SEARCH_RESULTS} element={<SearchResultsPage />} />

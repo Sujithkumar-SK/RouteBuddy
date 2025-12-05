@@ -54,7 +54,6 @@ const MyBookingsPage = () => {
   useEffect(() => {
     if (user?.userId) {
       dispatch(fetchCustomerBookings({ 
-        customerId: user.userId,
         ...filters 
       }));
     }
@@ -68,7 +67,7 @@ const MyBookingsPage = () => {
   };
 
   const applyFilters = () => {
-    const filterParams: any = { customerId: user?.userId || 0 };
+    const filterParams: any = {};
     
     if (localFilters.status) filterParams.status = parseInt(localFilters.status);
     if (localFilters.fromDate) filterParams.fromDate = localFilters.fromDate;
@@ -81,7 +80,7 @@ const MyBookingsPage = () => {
   const clearFilters = () => {
     setLocalFilters({ status: '', fromDate: '', toDate: '' });
     dispatch(setFilters({}));
-    dispatch(fetchCustomerBookings({ customerId: user?.userId || 0 }));
+    dispatch(fetchCustomerBookings({}));
   };
 
   const handleDownloadTicket = (bookingId: number) => {
@@ -110,7 +109,7 @@ const MyBookingsPage = () => {
         });
         
         // Refresh bookings
-        dispatch(fetchCustomerBookings({ customerId: user.userId, ...filters }));
+        dispatch(fetchCustomerBookings({ ...filters }));
       } catch (error: any) {
         setSnackbar({ 
           open: true, 
