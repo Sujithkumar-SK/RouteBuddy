@@ -15,4 +15,9 @@ public interface IUserRepository
     Task UpdateUserPasswordAsync(int userId, string newPasswordHash);
     Task UpdateLastLoginAsync(int userId);
     Task UpdateUserActiveStatusAsync(int userId, bool isActive);
+    
+    // Admin user management methods
+    Task<IEnumerable<Entities.User>> GetAllUsersAsync(int pageNumber, int pageSize);
+    Task<IEnumerable<Entities.User>> FilterUsersAsync(string? searchTerm, string? role, bool? isActive);
+    Task<bool> UpdateUserStatusAsync(int userId, bool isActive);
 }

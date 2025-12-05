@@ -16,6 +16,9 @@ BEGIN
         b.DriverContact,
         b.IsActive,
         b.CreatedOn,
+        b.CreatedBy,
+        b.UpdatedBy,
+        b.SeatLayoutTemplateId,
         v.AgencyName AS VendorName,
         v.VendorId
     FROM Buses b

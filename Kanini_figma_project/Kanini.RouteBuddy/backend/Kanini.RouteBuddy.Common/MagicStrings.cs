@@ -50,6 +50,7 @@ public static class MagicStrings
         public const string GetScheduleCountByVendor = "sp_GetScheduleCountByVendor";
         public const string CheckScheduleExists = "sp_CheckScheduleExists";
         public const string GetRouteById = "sp_GetRouteById";
+        public const string GetAllRoutes = "sp_GetAllRoutes";
         public const string GetVendorRevenueAnalytics = "sp_GetVendorRevenueAnalytics";
         public const string GetVendorPerformanceMetrics = "sp_GetVendorPerformanceMetrics";
         public const string GetVendorFleetStatus = "sp_GetVendorFleetStatus";

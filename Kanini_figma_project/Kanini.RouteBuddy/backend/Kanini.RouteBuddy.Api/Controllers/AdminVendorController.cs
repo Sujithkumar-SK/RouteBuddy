@@ -2,12 +2,14 @@ using Kanini.RouteBuddy.Api.Constants;
 using Kanini.RouteBuddy.Application.Dto.Admin;
 using Kanini.RouteBuddy.Application.Dto.Vendor;
 using Kanini.RouteBuddy.Application.Services.Vendor;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kanini.RouteBuddy.Api.Controllers
 {
     [ApiController]
     [Route("api/admin/vendors")]
+    [Authorize(Roles = "Admin")]
     public class AdminVendorController : ControllerBase
     {
         private readonly IVendorService _vendorService;

@@ -63,7 +63,7 @@ namespace Kanini.RouteBuddy.Data.Repositories.Booking
                         },
                         Payment = new Entities.Payment
                         {
-                            PaymentStatus = (PaymentStatus)reader.GetInt32("PaymentStatus")
+                            PaymentStatus = reader.IsDBNull("PaymentStatus") ? PaymentStatus.Pending : (PaymentStatus)reader.GetInt32("PaymentStatus")
                         },
                         Segments = new List<Entities.BookingSegment>
                         {
@@ -144,7 +144,7 @@ namespace Kanini.RouteBuddy.Data.Repositories.Booking
                         },
                         Payment = new Entities.Payment
                         {
-                            PaymentStatus = (PaymentStatus)reader.GetInt32("PaymentStatus")
+                            PaymentStatus = reader.IsDBNull("PaymentStatus") ? PaymentStatus.Pending : (PaymentStatus)reader.GetInt32("PaymentStatus")
                         },
                         Segments = new List<Entities.BookingSegment>
                         {
@@ -222,7 +222,7 @@ namespace Kanini.RouteBuddy.Data.Repositories.Booking
                         },
                         Payment = new Entities.Payment
                         {
-                            PaymentStatus = (PaymentStatus)reader.GetInt32("PaymentStatus")
+                            PaymentStatus = reader.IsDBNull("PaymentStatus") ? PaymentStatus.Pending : (PaymentStatus)reader.GetInt32("PaymentStatus")
                         },
                         Segments = new List<Entities.BookingSegment>
                         {

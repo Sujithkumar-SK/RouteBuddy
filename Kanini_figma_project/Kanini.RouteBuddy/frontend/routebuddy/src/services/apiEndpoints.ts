@@ -16,4 +16,9 @@ export const API_ENDPOINTS = {
   // Customer Profile
   GET_MY_PROFILE: '/customer/profile/my-profile',
   UPDATE_MY_PROFILE: '/customer/profile/my-profile',
+  
+  // Routes & Stops
+  ROUTES: '/route',
+  STOPS: '/stop',
 };
+

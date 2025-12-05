@@ -1549,3 +1549,268 @@ BEGIN
 END
 GO
 ------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetAllBookings
+AS
+BEGIN
+    SELECT 
+        b.BookingId,
+        b.PNRNo,
+        b.TotalSeats,
+        b.TotalAmount,
+        b.TravelDate,
+        b.Status,
+        b.BookedAt,
+        CONCAT(c.FirstName, ' ', c.LastName) AS CustomerName,
+        u.Email AS CustomerEmail,
+        u.Phone AS CustomerPhone,
+        bus.BusName,
+        CONCAT(r.Source, ' - ', r.Destination) AS Route,
+        CASE 
+            WHEN b.Status = 3 AND rf.RefundStatus = 2 THEN 4  -- Cancelled and Refunded (add new enum value)
+            WHEN b.Status = 3 AND rf.RefundStatus = 1 THEN 1  -- Cancelled but refund pending
+            WHEN b.Status = 3 AND (rf.RefundStatus IS NULL OR rf.RefundStatus = 3) THEN 3  -- Cancelled, refund failed
+            WHEN b.Status = 1 THEN 1  -- Pending booking, payment pending
+            ELSE ISNULL(p.PaymentStatus, 1)  -- Use actual payment status or default to pending
+        END AS PaymentStatus
+    FROM Bookings b
+    INNER JOIN Customers c ON b.CustomerId = c.CustomerId
+    INNER JOIN Users u ON c.UserId = u.UserId
+    INNER JOIN BookingSegments bs ON b.BookingId = bs.BookingId
+    INNER JOIN BusSchedules sch ON bs.ScheduleId = sch.ScheduleId
+    INNER JOIN Buses bus ON sch.BusId = bus.BusId
+    INNER JOIN Routes r ON sch.RouteId = r.RouteId
+    LEFT JOIN Payments p ON b.BookingId = p.BookingId
+    LEFT JOIN Cancellations can ON b.BookingId = can.BookingId
+    LEFT JOIN Refunds rf ON p.PaymentId = rf.PaymentId
+    ORDER BY b.BookedAt DESC
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_FilterBusesForAdmin]
+    @SearchName NVARCHAR(100) = NULL,
+    @Status INT = NULL,
+    @IsActive BIT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        b.BusId,
+        b.BusName,
+        b.BusType,
+        b.TotalSeats,
+        b.RegistrationNo,
+        b.Status,
+        b.Amenities,
+        b.DriverName,
+        b.DriverContact,
+        b.IsActive,
+        b.CreatedOn,
+        b.CreatedBy,
+        b.UpdatedBy,
+        b.SeatLayoutTemplateId,
+        v.AgencyName AS VendorName,
+        v.VendorId
+    FROM Buses b
+    INNER JOIN Vendors v ON b.VendorId = v.VendorId
+    INNER JOIN Users u ON v.UserId = u.UserId
+    WHERE 
+        (@SearchName IS NULL OR b.BusName LIKE '%' + @SearchName + '%' OR v.AgencyName LIKE '%' + @SearchName + '%')
+        AND (@Status IS NULL OR b.Status = @Status)
+        AND (@IsActive IS NULL OR b.IsActive = @IsActive)
+    ORDER BY b.CreatedOn DESC;
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllBusesForAdmin]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        b.BusId,
+        b.BusName,
+        b.BusType,
+        b.TotalSeats,
+        b.RegistrationNo,
+        b.Status,
+        b.Amenities,
+        b.DriverName,
+        b.DriverContact,
+        b.IsActive,
+        b.CreatedOn,
+        b.CreatedBy,
+        b.UpdatedBy,
+        b.SeatLayoutTemplateId,
+        v.AgencyName AS VendorName,
+        v.VendorId
+    FROM Buses b
+    INNER JOIN Vendors v ON b.VendorId = v.VendorId
+    INNER JOIN Users u ON v.UserId = u.UserId
+    ORDER BY b.CreatedOn DESC;
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetBusesByStatus]
+    @Status INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        b.BusId,
+        b.BusName,
+        b.BusType,
+        b.TotalSeats,
+        b.RegistrationNo,
+        b.Status,
+        b.Amenities,
+        b.DriverName,
+        b.DriverContact,
+        b.IsActive,
+        b.CreatedOn,
+        b.CreatedBy,
+        b.UpdatedBy,
+        b.SeatLayoutTemplateId,
+        v.AgencyName AS VendorName,
+        v.VendorId
+    FROM Buses b
+    INNER JOIN Vendors v ON b.VendorId = v.VendorId
+    INNER JOIN Users u ON v.UserId = u.UserId
+    WHERE b.Status = @Status
+    ORDER BY b.CreatedOn DESC;
+END
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_GetAllCustomersWithSummary]
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        c.CustomerId,
+        CONCAT(c.FirstName, ' ', c.LastName) AS FullName,
+        c.Gender,
+        DATEDIFF(YEAR, c.DateOfBirth, GETDATE()) AS Age,
+        c.IsActive,
+        c.CreatedOn,
+        u.Email,
+        u.Phone,
+        u.UserId,
+        ISNULL(booking_stats.TotalBookings, 0) AS TotalBookings,
+        ISNULL(booking_stats.TotalSpent, 0) AS TotalSpent,
+        booking_stats.LastBookingDate
+    FROM Customers c
+    INNER JOIN Users u ON c.UserId = u.UserId
+    LEFT JOIN (
+        SELECT 
+            b.CustomerId,
+            COUNT(*) AS TotalBookings,
+            SUM(b.TotalAmount) AS TotalSpent,
+            MAX(b.BookedAt) AS LastBookingDate
+        FROM Bookings b
+        WHERE b.Status IN (1, 2) -- Pending or Confirmed bookings
+        GROUP BY b.CustomerId
+    ) booking_stats ON c.CustomerId = booking_stats.CustomerId
+    ORDER BY c.CreatedOn DESC;
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE [dbo].[sp_FilterCustomersWithSummary]
+    @SearchName NVARCHAR(100) = NULL,
+    @IsActive BIT = NULL,
+    @MinAge INT = NULL,
+    @MaxAge INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    SELECT 
+        c.CustomerId,
+        CONCAT(c.FirstName, ' ', c.LastName) AS FullName,
+        c.Gender,
+        DATEDIFF(YEAR, c.DateOfBirth, GETDATE()) AS Age,
+        c.IsActive,
+        c.CreatedOn,
+        u.Email,
+        u.Phone,
+        u.UserId,
+        ISNULL(booking_stats.TotalBookings, 0) AS TotalBookings,
+        ISNULL(booking_stats.TotalSpent, 0) AS TotalSpent,
+        booking_stats.LastBookingDate
+    FROM Customers c
+    INNER JOIN Users u ON c.UserId = u.UserId
+    LEFT JOIN (
+        SELECT 
+            b.CustomerId,
+            COUNT(*) AS TotalBookings,
+            SUM(b.TotalAmount) AS TotalSpent,
+            MAX(b.BookedAt) AS LastBookingDate
+        FROM Bookings b
+        WHERE b.Status IN (1, 2) -- Pending or Confirmed bookings
+        GROUP BY b.CustomerId
+    ) booking_stats ON c.CustomerId = booking_stats.CustomerId
+    WHERE 
+        (@SearchName IS NULL OR CONCAT(c.FirstName, ' ', c.LastName) LIKE '%' + @SearchName + '%' OR u.Email LIKE '%' + @SearchName + '%')
+        AND (@IsActive IS NULL OR c.IsActive = @IsActive)
+        AND (@MinAge IS NULL OR DATEDIFF(YEAR, c.DateOfBirth, GETDATE()) >= @MinAge)
+        AND (@MaxAge IS NULL OR DATEDIFF(YEAR, c.DateOfBirth, GETDATE()) <= @MaxAge)
+    ORDER BY c.CreatedOn DESC;
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetAllStops
+    @PageNumber INT = 1,
+    @PageSize INT = 10
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        DECLARE @Offset INT = (@PageNumber - 1) * @PageSize;
+        
+        SELECT 
+            StopId,
+            Name,
+            Landmark,
+            IsActive,
+            CreatedBy,
+            CreatedOn,
+            UpdatedBy,
+            UpdatedOn
+        FROM Stops 
+        WHERE IsActive = 1
+        ORDER BY CreatedOn DESC
+        OFFSET @Offset ROWS
+        FETCH NEXT @PageSize ROWS ONLY;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+------------------------------------------------------
+CREATE OR ALTER PROCEDURE sp_GetStopById
+    @StopId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    BEGIN TRY
+        SELECT 
+            StopId,
+            Name,
+            Landmark,
+            IsActive,
+            CreatedBy,
+            CreatedOn,
+            UpdatedBy,
+            UpdatedOn
+        FROM Stops 
+        WHERE StopId = @StopId AND IsActive = 1;
+    END TRY
+    BEGIN CATCH
+        THROW;
+    END CATCH
+END
+GO
+------------------------------------------------------

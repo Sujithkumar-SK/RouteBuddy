@@ -524,7 +524,7 @@ public class BusRepository : IBusRepository
 
     private static BusEntity MapBusFromReader(SqlDataReader reader)
     {
-        return new BusEntity
+        var bus = new BusEntity
         {
             BusId = reader.GetInt32("BusId"),
             BusName = reader.GetString("BusName"),
@@ -540,7 +540,22 @@ public class BusRepository : IBusRepository
             IsActive = reader.GetBoolean("IsActive"),
             CreatedOn = reader.GetDateTime("CreatedOn"),
             VendorId = reader.GetInt32("VendorId"),
+            CreatedBy = reader.IsDBNull("CreatedBy") ? string.Empty : reader.GetString("CreatedBy"),
+            UpdatedBy = reader.IsDBNull("UpdatedBy") ? null : reader.GetString("UpdatedBy"),
+            SeatLayoutTemplateId = reader.IsDBNull("SeatLayoutTemplateId") ? null : reader.GetInt32("SeatLayoutTemplateId")
         };
+
+        // Create vendor with agency name if available
+        if (!reader.IsDBNull("VendorName"))
+        {
+            bus.Vendor = new Domain.Entities.Vendor
+            {
+                VendorId = reader.GetInt32("VendorId"),
+                AgencyName = reader.GetString("VendorName")
+            };
+        }
+
+        return bus;
     }
 
     public async Task<Result<bool>> ApplyTemplateAsync(int busId, int templateId)

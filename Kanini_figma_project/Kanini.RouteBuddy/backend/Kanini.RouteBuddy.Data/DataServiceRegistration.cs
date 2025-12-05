@@ -45,12 +45,14 @@ namespace Kanini.RouteBuddy.Data
             services.AddScoped<IVendorRepository, VendorRepository>();
             services.AddScoped<Repositories.Customer.ICustomerRepository, Repositories.Customer.CustomerRepository>();
             services.AddScoped<Repositories.VendorDocuments.IVendorDocumentRepository, Repositories.VendorDocuments.VendorDocumentRepository>();
+            services.AddScoped<Repositories.Booking.IBookingRepository, Repositories.Booking.BookingRepository>();
             services.AddScoped<Repositories.Booking.IBookingCancellationRepository, Repositories.Booking.BookingCancellationRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<Repositories.Schedule.IScheduleRepository, Repositories.Schedule.ScheduleRepository>();
             services.AddScoped<Repositories.Route.IRouteRepository, Repositories.Route.RouteRepository>();
             services.AddScoped<IRouteStopRepository, RouteStopRepository>();
             services.AddScoped<IStopRepository, StopRepository>();
+            services.AddScoped<Repositories.OTP.IOTPRepository, Repositories.OTP.OTPRepository>();
             services.AddScoped<Repositories.VendorAnalytics.IVendorAnalyticsRepository, Repositories.VendorAnalytics.VendorAnalyticsRepository>();
             return services;
         }

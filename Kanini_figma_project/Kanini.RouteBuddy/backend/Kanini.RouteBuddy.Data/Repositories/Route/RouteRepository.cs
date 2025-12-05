@@ -109,7 +109,7 @@ public class RouteRepository : IRouteRepository
             RouteFileLogger.LogInfo("Getting all routes, page: {0}, size: {1}", pageNumber, pageSize);
             
             using var connection = new SqlConnection(_connectionString);
-            using var command = new SqlCommand("sp_GetAllRoutes", connection);
+            using var command = new SqlCommand(MagicStrings.StoredProcedures.GetAllRoutes, connection);
             command.CommandType = CommandType.StoredProcedure;
             command.Parameters.AddWithValue("@PageNumber", pageNumber);
             command.Parameters.AddWithValue("@PageSize", pageSize);

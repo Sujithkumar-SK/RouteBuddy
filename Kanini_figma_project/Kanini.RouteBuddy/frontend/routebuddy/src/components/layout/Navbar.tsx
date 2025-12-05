@@ -59,6 +59,11 @@ const Navbar = () => {
             </Button>
             <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_VENDORS)}>Vendors</Button>
             <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_BUSES)}>Buses</Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_BOOKINGS)}>Bookings</Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_ROUTES)}>Routes</Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_USERS)}>Users</Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_REPORTS)}>Reports</Button>
+            <Button color="inherit" onClick={() => navigate(ROUTES.ADMIN_SETTINGS)}>Settings</Button>
           </>
         );
       default: // Customer

@@ -1,11 +1,13 @@
 using Kanini.RouteBuddy.Application.Services.Admin;
 using Kanini.RouteBuddy.Common.Errors;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kanini.RouteBuddy.Api.Controllers
 {
     [ApiController]
     [Route("api/admin/buses")]
+    [Authorize(Roles = "Admin")]
     public class AdminBusController : ControllerBase
     {
         private readonly IAdminBusService _adminBusService;

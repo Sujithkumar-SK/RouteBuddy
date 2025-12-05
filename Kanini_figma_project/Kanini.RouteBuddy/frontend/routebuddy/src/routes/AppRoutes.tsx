@@ -16,6 +16,11 @@ import HomePage from '../pages/HomePage';
 import CustomerDashboard from '../pages/CustomerDashboard';
 import VendorDashboard from '../pages/VendorDashboard';
 import AdminDashboard from '../pages/AdminDashboard';
+import AdminVendorsPage from '../pages/AdminVendorsPage';
+import AdminBusesPage from '../pages/AdminBusesPage';
+import AdminBookingsPage from '../pages/AdminBookingsPage';
+import AdminRoutesPage from '../pages/AdminRoutesPage';
+import AdminUsersPage from '../pages/AdminUsersPage';
 import SearchResultsPage from '../pages/SearchResultsPage';
 import SeatSelectionPage from '../pages/SeatSelectionPage';
 import PaymentPage from '../pages/PaymentPage';
@@ -25,8 +30,8 @@ import MyBookingsPage from '../pages/MyBookingsPage';
 import BusFleetManagementPage from '../pages/BusFleetManagementPage';
 import VendorAnalyticsPage from '../pages/VendorAnalyticsPage';
 import VendorSchedulesPage from '../pages/VendorSchedulesPage';
-import EditBusForm from '../features/vendor/components/EditBusForm';
-import BusPhotoManager from '../features/vendor/components/BusPhotoManager';
+import EditBusFormPage from '../features/vendor/components/EditBusFormPage';
+import BusPhotoManagerPage from '../features/vendor/components/BusPhotoManagerPage';
 
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -36,6 +41,24 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const isActuallyAuthenticated = isAuthenticated && user && user.userId;
   
   return isActuallyAuthenticated ? <>{children}</> : <Navigate to={ROUTES.LOGIN} replace />;
+};
+
+const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  
+  // Check if user is authenticated and has admin role
+  const isActuallyAuthenticated = isAuthenticated && user && user.userId;
+  const isAdmin = user?.role === 'Admin';
+  
+  if (!isActuallyAuthenticated) {
+    return <Navigate to={ROUTES.LOGIN} replace />;
+  }
+  
+  if (!isAdmin) {
+    return <Navigate to={ROUTES.HOME} replace />;
+  }
+  
+  return <>{children}</>;
 };
 
 const AppRoutes = () => {
@@ -96,9 +119,49 @@ const AppRoutes = () => {
       <Route
         path={ROUTES.ADMIN_DASHBOARD}
         element={
-          <ProtectedRoute>
+          <AdminProtectedRoute>
             <AdminDashboard />
-          </ProtectedRoute>
+          </AdminProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN_VENDORS}
+        element={
+          <AdminProtectedRoute>
+            <AdminVendorsPage />
+          </AdminProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN_BUSES}
+        element={
+          <AdminProtectedRoute>
+            <AdminBusesPage />
+          </AdminProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN_BOOKINGS}
+        element={
+          <AdminProtectedRoute>
+            <AdminBookingsPage />
+          </AdminProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN_ROUTES}
+        element={
+          <AdminProtectedRoute>
+            <AdminRoutesPage />
+          </AdminProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN_USERS}
+        element={
+          <AdminProtectedRoute>
+            <AdminUsersPage />
+          </AdminProtectedRoute>
         }
       />
       <Route
@@ -129,7 +192,7 @@ const AppRoutes = () => {
         path="/vendor/fleet/edit/:busId"
         element={
           <ProtectedRoute>
-            <EditBusForm />
+            <EditBusFormPage />
           </ProtectedRoute>
         }
       />
@@ -137,7 +200,7 @@ const AppRoutes = () => {
         path="/vendor/fleet/photos/:busId"
         element={
           <ProtectedRoute>
-            <BusPhotoManager />
+            <BusPhotoManagerPage />
           </ProtectedRoute>
         }
       />
@@ -149,7 +212,22 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path={ROUTES.ADMIN_REPORTS}
+        element={
+          <AdminProtectedRoute>
+            <AdminDashboard />
+          </AdminProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.ADMIN_SETTINGS}
+        element={
+          <AdminProtectedRoute>
+            <AdminDashboard />
+          </AdminProtectedRoute>
+        }
+      />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to={ROUTES.LOGIN} />} />

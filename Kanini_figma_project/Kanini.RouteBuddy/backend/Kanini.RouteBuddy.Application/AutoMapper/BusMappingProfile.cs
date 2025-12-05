@@ -21,7 +21,9 @@ public class BusMappingProfile : Profile
             .ForMember(dest => dest.IsActive, opt => opt.Ignore())
             .ForMember(dest => dest.SeatLayoutTemplateId, opt => opt.Ignore());
         CreateMap<Bus, BusResponseDto>()
-            .ForMember(dest => dest.VendorName, opt => opt.Ignore())
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedOn));
+            .ForMember(dest => dest.VendorName, opt => opt.MapFrom(src => src.Vendor != null ? src.Vendor.AgencyName : string.Empty))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedOn))
+            .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy ?? string.Empty))
+            .ForMember(dest => dest.UpdatedBy, opt => opt.MapFrom(src => src.UpdatedBy));
     }
 }

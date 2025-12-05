@@ -1,5 +1,6 @@
 using AutoMapper;
 using BCrypt.Net;
+using Kanini.RouteBuddy.Application.Dto;
 using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Common;
 using Kanini.RouteBuddy.Common.Utility;
@@ -293,6 +294,93 @@ public class UserService : IUserService
             return Result.Failure<string>(
                 Error.Failure("Email.SendFailed", MagicStrings.ErrorMessages.InternalServerError)
             );
+        }
+    }
+
+    // Admin user management methods
+    public async Task<IEnumerable<UserResponseDto>> GetAllUsersAsync(int pageNumber, int pageSize)
+    {
+        try
+        {
+            _logger.LogInformation("Getting all users - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
+            
+            var users = await _userRepository.GetAllUsersAsync(pageNumber, pageSize);
+            var userDtos = _mapper.Map<IEnumerable<UserResponseDto>>(users);
+            
+            return userDtos;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all users");
+            return Enumerable.Empty<UserResponseDto>();
+        }
+    }
+
+    public async Task<IEnumerable<UserResponseDto>> FilterUsersAsync(string? searchTerm, string? role, bool? isActive)
+    {
+        try
+        {
+            _logger.LogInformation("Filtering users - Search: {SearchTerm}, Role: {Role}, Active: {IsActive}", 
+                searchTerm, role, isActive);
+            
+            var users = await _userRepository.FilterUsersAsync(searchTerm, role, isActive);
+            var userDtos = _mapper.Map<IEnumerable<UserResponseDto>>(users);
+            
+            return userDtos;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error filtering users");
+            return Enumerable.Empty<UserResponseDto>();
+        }
+    }
+
+    public async Task<UserResponseDto?> GetUserByIdAsync(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Getting user by ID: {UserId}", userId);
+            
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null)
+                return null;
+                
+            return _mapper.Map<UserResponseDto>(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting user by ID: {UserId}", userId);
+            return null;
+        }
+    }
+
+    public async Task<bool> ActivateUserAsync(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Activating user: {UserId}", userId);
+            
+            return await _userRepository.UpdateUserStatusAsync(userId, true);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error activating user: {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> DeactivateUserAsync(int userId)
+    {
+        try
+        {
+            _logger.LogInformation("Deactivating user: {UserId}", userId);
+            
+            return await _userRepository.UpdateUserStatusAsync(userId, false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deactivating user: {UserId}", userId);
+            return false;
         }
     }
 }

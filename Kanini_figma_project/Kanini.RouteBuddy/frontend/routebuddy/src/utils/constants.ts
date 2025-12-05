@@ -52,6 +52,11 @@ export const ROUTES = {
   // Admin routes
   ADMIN_VENDORS: '/admin/vendors',
   ADMIN_BUSES: '/admin/buses',
+  ADMIN_BOOKINGS: '/admin/bookings',
+  ADMIN_ROUTES: '/admin/routes',
+  ADMIN_USERS: '/admin/users',
+  ADMIN_REPORTS: '/admin/reports',
+  ADMIN_SETTINGS: '/admin/settings',
 };
 
 export const getBusTypeName = (type: number): string => {

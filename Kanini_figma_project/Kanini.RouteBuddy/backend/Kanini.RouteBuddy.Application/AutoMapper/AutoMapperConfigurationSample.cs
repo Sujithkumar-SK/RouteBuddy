@@ -25,6 +25,7 @@ namespace Kanini.RouteBuddy.Application.AutoMapper
             config.AddProfile<BusMappingProfile>();
             config.AddProfile<BusPhotoMappingProfile>();
             config.AddProfile<BookingProfile>();
+            config.AddProfile<BookingMappingProfile>();
             config.AddProfile<RouteStopProfile>();
             config.AddProfile<BusFilterProfile>();
             config.AddProfile<ConnectingRouteProfile>();

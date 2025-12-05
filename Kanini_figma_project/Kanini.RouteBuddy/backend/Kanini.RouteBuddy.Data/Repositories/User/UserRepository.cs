@@ -229,4 +229,89 @@ public class UserRepository : IUserRepository
             throw;
         }
     }
+
+    // Admin user management methods
+    public async Task<IEnumerable<Entities.User>> GetAllUsersAsync(int pageNumber, int pageSize)
+    {
+        try
+        {
+            _logger.LogInformation("Getting all users - Page: {PageNumber}, Size: {PageSize}", pageNumber, pageSize);
+            
+            var users = await _context.Users
+                .OrderByDescending(u => u.CreatedOn)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+                
+            return users;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting all users");
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<Entities.User>> FilterUsersAsync(string? searchTerm, string? role, bool? isActive)
+    {
+        try
+        {
+            _logger.LogInformation("Filtering users - Search: {SearchTerm}, Role: {Role}, Active: {IsActive}", 
+                searchTerm, role, isActive);
+            
+            var query = _context.Users.AsQueryable();
+            
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query = query.Where(u => u.Email.Contains(searchTerm) || u.Phone.Contains(searchTerm));
+            }
+            
+            if (!string.IsNullOrEmpty(role) && Enum.TryParse<Kanini.RouteBuddy.Domain.Enums.UserRole>(role, out var userRole))
+            {
+                query = query.Where(u => u.Role == userRole);
+            }
+            
+            if (isActive.HasValue)
+            {
+                query = query.Where(u => u.IsActive == isActive.Value);
+            }
+            
+            var users = await query.OrderByDescending(u => u.CreatedOn).ToListAsync();
+            return users;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error filtering users");
+            throw;
+        }
+    }
+
+    public async Task<bool> UpdateUserStatusAsync(int userId, bool isActive)
+    {
+        try
+        {
+            _logger.LogInformation("Updating user status for userId {UserId} to {IsActive}", userId, isActive);
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                _logger.LogWarning("User not found for userId {UserId}", userId);
+                return false;
+            }
+
+            user.IsActive = isActive;
+            user.UpdatedBy = "Admin";
+            user.UpdatedOn = DateTime.UtcNow;
+            
+            await _context.SaveChangesAsync();
+            
+            _logger.LogInformation("User status updated successfully for userId {UserId}", userId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating user status for userId {UserId}", userId);
+            return false;
+        }
+    }
 }

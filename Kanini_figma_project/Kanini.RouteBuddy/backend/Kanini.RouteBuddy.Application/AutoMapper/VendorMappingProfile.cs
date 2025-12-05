@@ -19,7 +19,7 @@ public class VendorMappingProfile : Profile
         CreateMap<Vendor, AdminVendorDTO>()
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User != null ? src.User.Email : string.Empty))
             .ForMember(dest => dest.Phone, opt => opt.MapFrom(src => src.User != null ? src.User.Phone : string.Empty))
-            .ForMember(dest => dest.TotalBuses, opt => opt.MapFrom(src => src.Buses != null ? src.Buses.Count : 0));
+            .ForMember(dest => dest.TotalBuses, opt => opt.MapFrom(src => src.FleetSize));
         
 
     }

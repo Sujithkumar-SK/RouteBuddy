@@ -6,7 +6,6 @@ import {
   Tabs,
   Tab,
   Card,
-  CardContent,
   Table,
   TableBody,
   TableCell,
@@ -26,7 +25,6 @@ import {
 } from '@mui/material';
 import { CheckCircle, Cancel, Visibility, Description, CheckCircleOutline, ErrorOutline } from '@mui/icons-material';
 import Layout from '../components/layout/Layout';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppDispatch';
 import { fetchPendingVendors, fetchAllVendors, approveVendor, rejectVendor, clearError } from '../features/admin/adminSlice';
 import type { AdminVendor, VendorApproval } from '../features/admin/adminAPI';
@@ -47,7 +45,7 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const AdminDashboard = () => {
+const AdminVendorsPage = () => {
   const dispatch = useAppDispatch();
   const { pendingVendors, vendors, loading, error } = useAppSelector((state) => state.admin);
   
@@ -146,7 +144,7 @@ const AdminDashboard = () => {
     <Layout>
       <Container maxWidth="xl" sx={{ py: 4 }}>
         <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
-          🛡️ Admin Dashboard
+          👥 Vendor Management
         </Typography>
 
         {error && (
@@ -160,6 +158,7 @@ const AdminDashboard = () => {
             <Tabs value={tabValue} onChange={handleTabChange}>
               <Tab label={`Pending Approvals (${pendingVendors.length})`} />
               <Tab label={`All Vendors (${vendors.length})`} />
+              <Tab label="Analytics Overview" />
             </Tabs>
           </Box>
 
@@ -284,9 +283,165 @@ const AdminDashboard = () => {
               </TableContainer>
             )}
           </TabPanel>
+
+          <TabPanel value={tabValue} index={2}>
+            <Typography variant="h6" sx={{ mb: 3 }}>
+              Vendor Analytics Overview
+            </Typography>
+            
+            <Card sx={{ bgcolor: 'white', border: '1px solid #f0f0f0', borderRadius: 2, p: 3, mb: 3 }}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 2 }}>
+                <Box sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                    {vendors.filter(v => v.status === 1 && v.isActive).length}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#666', fontSize: '12px' }}>Active ({((vendors.filter(v => v.status === 1 && v.isActive).length / (vendors.length + pendingVendors.length)) * 100).toFixed(1)}%)</Typography>
+                </Box>
+                
+                <Box sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                    {pendingVendors.length}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#666', fontSize: '12px' }}>Pending ({((pendingVendors.length / (vendors.length + pendingVendors.length)) * 100).toFixed(1)}%)</Typography>
+                </Box>
+                
+                <Box sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                    {vendors.filter(v => v.status === 2 || (v.status === 1 && !v.isActive)).length}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#666', fontSize: '12px' }}>Inactive ({((vendors.filter(v => v.status === 2 || (v.status === 1 && !v.isActive)).length / (vendors.length + pendingVendors.length)) * 100).toFixed(1)}%)</Typography>
+                </Box>
+                
+                <Box sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                    {vendors.filter(v => v.status === 3).length}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#666', fontSize: '12px' }}>Suspended ({((vendors.filter(v => v.status === 3).length / (vendors.length + pendingVendors.length)) * 100).toFixed(1)}%)</Typography>
+                </Box>
+                
+                <Box sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                    {vendors.filter(v => v.status === 4).length}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#666', fontSize: '12px' }}>Rejected ({((vendors.filter(v => v.status === 4).length / (vendors.length + pendingVendors.length)) * 100).toFixed(1)}%)</Typography>
+                </Box>
+                
+                <Box sx={{ p: 2, bgcolor: '#fafafa', borderRadius: 2 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                    {vendors.length + pendingVendors.length}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#666', fontSize: '12px' }}>Total Vendors</Typography>
+                </Box>
+              </Box>
+            </Card>
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, mb: 3 }}>
+              <Card sx={{ bgcolor: 'white', border: '1px solid #f0f0f0', borderRadius: 2, p: 3 }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#333' }}>Registration Analytics</Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+                  <Box sx={{ textAlign: 'center', p: 2 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                      {(() => {
+                        const now = new Date();
+                        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+                        return [...vendors, ...pendingVendors].filter(v => new Date(v.createdOn) >= monthStart).length;
+                      })()}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#666' }}>This Month</Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'center', p: 2 }}>
+                    <Typography variant="h5" sx={{ fontWeight: 700, color: '#333' }}>
+                      {(() => {
+                        const now = new Date();
+                        const yearStart = new Date(now.getFullYear(), 0, 1);
+                        return [...vendors, ...pendingVendors].filter(v => new Date(v.createdOn) >= yearStart).length;
+                      })()}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#666' }}>This Year</Typography>
+                  </Box>
+                </Box>
+              </Card>
+              
+              <Card sx={{ bgcolor: 'white', border: '1px solid #f0f0f0', borderRadius: 2, p: 3 }}>
+                <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#333' }}>Yearly Registration Trend</Typography>
+                <Box sx={{ height: 100, display: 'flex', alignItems: 'end', gap: 3, px: 2 }}>
+                  {(() => {
+                    const currentYear = new Date().getFullYear();
+                    const years = [currentYear - 2, currentYear - 1, currentYear];
+                    const counts = years.map(year => {
+                      const yearStart = new Date(year, 0, 1);
+                      const yearEnd = new Date(year + 1, 0, 1);
+                      return [...vendors, ...pendingVendors].filter(v => {
+                        const date = new Date(v.createdOn);
+                        return date >= yearStart && date < yearEnd;
+                      }).length;
+                    });
+                    const maxCount = Math.max(...counts, 1);
+                    return counts.map((count, index) => (
+                      <Box key={index} sx={{ 
+                        flex: 1, 
+                        height: `${(count / maxCount) * 100}%`, 
+                        bgcolor: index === 2 ? '#333' : '#f0f0f0', 
+                        borderRadius: 1,
+                        minHeight: '20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Typography variant="caption" sx={{ fontSize: '12px', color: index === 2 ? '#fff' : '#666', fontWeight: 600 }}>
+                          {count}
+                        </Typography>
+                      </Box>
+                    ));
+                  })()}
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 2 }}>
+                  {[new Date().getFullYear() - 2, new Date().getFullYear() - 1, new Date().getFullYear()].map(year => (
+                    <Typography key={year} variant="caption" sx={{ color: '#666' }}>{year}</Typography>
+                  ))}
+                </Box>
+              </Card>
+            </Box>
+            
+            <Card sx={{ bgcolor: 'white', border: '1px solid #f0f0f0', borderRadius: 2, p: 3, mb: 3 }}>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, color: '#333' }}>Fleet Size Distribution</Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {(() => {
+                  const small = vendors.filter(v => v.totalBuses >= 1 && v.totalBuses <= 5).length;
+                  const medium = vendors.filter(v => v.totalBuses >= 6 && v.totalBuses <= 20).length;
+                  const large = vendors.filter(v => v.totalBuses >= 21).length;
+                  const maxCount = Math.max(small, medium, large, 1);
+                  
+                  return [
+                    { label: 'Small Operators (1-5 buses)', count: small, color: '#e3f2fd' },
+                    { label: 'Medium Operators (6-20 buses)', count: medium, color: '#fff3e0' },
+                    { label: 'Large Operators (21+ buses)', count: large, color: '#ffebee' }
+                  ].map((item, index) => (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Typography variant="body2" sx={{ minWidth: '200px', color: '#666', fontSize: '12px' }}>
+                        {item.label}
+                      </Typography>
+                      <Box sx={{ flex: 1, height: 24, bgcolor: '#f5f5f5', borderRadius: 1, position: 'relative' }}>
+                        <Box sx={{ 
+                          width: `${(item.count / maxCount) * 100}%`, 
+                          height: '100%', 
+                          bgcolor: item.color,
+                          borderRadius: 1
+                        }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ fontSize: '12px', fontWeight: 600, color: '#333', minWidth: '20px' }}>
+                        {item.count}
+                      </Typography>
+                    </Box>
+                  ));
+                })()}
+              </Box>
+            </Card>
+
+          </TabPanel>
         </Card>
 
-        {/* Vendor Details Dialog */}
+        {/* Dialogs remain the same */}
         <Dialog open={viewDialog.open} onClose={() => setViewDialog({ open: false, vendor: null, loading: false })} maxWidth="md" fullWidth>
           <DialogTitle>Vendor Application Details</DialogTitle>
           <DialogContent>
@@ -412,7 +567,6 @@ const AdminDashboard = () => {
           </DialogActions>
         </Dialog>
 
-        {/* Rejection Dialog */}
         <Dialog open={rejectDialog.open} onClose={() => setRejectDialog({ open: false, vendor: null })} maxWidth="sm" fullWidth>
           <DialogTitle>Reject Vendor Application</DialogTitle>
           <DialogContent>
@@ -449,4 +603,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default AdminVendorsPage;
