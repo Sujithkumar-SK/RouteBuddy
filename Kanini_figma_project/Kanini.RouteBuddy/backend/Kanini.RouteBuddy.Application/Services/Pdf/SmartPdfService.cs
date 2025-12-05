@@ -1,0 +1,1 @@
+// This file has been removed - functionality consolidated into PdfService.cs using QuestPDF
