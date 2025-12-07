@@ -49,10 +49,11 @@ const VendorDashboard = () => {
 
   return (
     <Layout>
+      <div className="vendor-dashboard-container">
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Vendor Dashboard
-        </Typography>
+        <div className="vendor-dashboard-header">
+          <h1 className="vendor-dashboard-title">Vendor Dashboard</h1>
+        </div>
 
         <Grid container spacing={3}>
           {/* Dashboard Summary */}
@@ -110,6 +111,7 @@ const VendorDashboard = () => {
           </Grid>
         </Grid>
       </Container>
+      </div>
     </Layout>
   );
 };

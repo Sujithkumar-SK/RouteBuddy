@@ -1,13 +1,9 @@
 import { useState } from 'react';
 import {
-  Card,
-  CardContent,
-  Typography,
   FormGroup,
   FormControlLabel,
   Checkbox,
   Slider,
-  Box,
   Select,
   MenuItem,
   FormControl,
@@ -105,105 +101,97 @@ const BusFilters = () => {
   };
 
   return (
-    <Card sx={{ mb: 3 }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ fontWeight: 600 }}>
-            Filters
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            {getActiveFiltersCount() > 0 && (
-              <Chip 
-                label={`${getActiveFiltersCount()} active`} 
-                size="small" 
-                color="primary" 
-              />
-            )}
-            <Button size="small" onClick={handleReset}>
-              Clear All
-            </Button>
-          </Box>
-        </Box>
+    <div className="filters-card">
+      <div className="filters-header">
+        <h3 className="filters-title">Filters</h3>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {getActiveFiltersCount() > 0 && (
+            <Chip 
+              label={`${getActiveFiltersCount()} active`} 
+              size="small" 
+              color="primary" 
+            />
+          )}
+          <Button size="small" onClick={handleReset}>
+            Clear All
+          </Button>
+        </div>
+      </div>
 
-        {/* Sort By */}
-        <Box sx={{ mb: 3 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>Sort By</InputLabel>
-            <Select
-              value={localFilters.sortBy}
-              label="Sort By"
-              onChange={(e) => handleSortChange(e.target.value)}
-            >
-              {sortOptions.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-
-        {/* Bus Types */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-            Bus Type
-          </Typography>
-          <FormGroup row>
-            {busTypeOptions.map((option) => (
-              <FormControlLabel
-                key={option.value}
-                control={
-                  <Checkbox
-                    checked={localFilters.busTypes.includes(option.value)}
-                    onChange={(e) => handleBusTypeChange(option.value, e.target.checked)}
-                    size="small"
-                  />
-                }
-                label={option.label}
-              />
+      {/* Sort By */}
+      <div className="filter-section">
+        <FormControl fullWidth size="small">
+          <InputLabel>Sort By</InputLabel>
+          <Select
+            value={localFilters.sortBy}
+            label="Sort By"
+            onChange={(e) => handleSortChange(e.target.value)}
+          >
+            {sortOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
             ))}
-          </FormGroup>
-        </Box>
+          </Select>
+        </FormControl>
+      </div>
 
-        {/* Amenities */}
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-            Amenities
-          </Typography>
-          <FormGroup row>
-            {amenityOptions.map((option) => (
-              <FormControlLabel
-                key={option.value}
-                control={
-                  <Checkbox
-                    checked={localFilters.amenities.includes(option.value)}
-                    onChange={(e) => handleAmenityChange(option.value, e.target.checked)}
-                    size="small"
-                  />
-                }
-                label={option.label}
-              />
-            ))}
-          </FormGroup>
-        </Box>
+      {/* Bus Types */}
+      <div className="filter-section">
+        <div className="filter-section-title">Bus Type</div>
+        <FormGroup row>
+          {busTypeOptions.map((option) => (
+            <FormControlLabel
+              key={option.value}
+              control={
+                <Checkbox
+                  checked={localFilters.busTypes.includes(option.value)}
+                  onChange={(e) => handleBusTypeChange(option.value, e.target.checked)}
+                  size="small"
+                />
+              }
+              label={option.label}
+            />
+          ))}
+        </FormGroup>
+      </div>
 
-        {/* Price Range */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 600 }}>
-            Price Range: ₹{localFilters.priceRange[0]} - ₹{localFilters.priceRange[1]}
-          </Typography>
-          <Slider
-            value={localFilters.priceRange}
-            onChange={handlePriceChange}
-            valueLabelDisplay="auto"
-            min={0}
-            max={getMaxPrice()}
-            step={50}
-            valueLabelFormat={(value) => `₹${value}`}
-          />
-        </Box>
-      </CardContent>
-    </Card>
+      {/* Amenities */}
+      <div className="filter-section">
+        <div className="filter-section-title">Amenities</div>
+        <FormGroup row>
+          {amenityOptions.map((option) => (
+            <FormControlLabel
+              key={option.value}
+              control={
+                <Checkbox
+                  checked={localFilters.amenities.includes(option.value)}
+                  onChange={(e) => handleAmenityChange(option.value, e.target.checked)}
+                  size="small"
+                />
+              }
+              label={option.label}
+            />
+          ))}
+        </FormGroup>
+      </div>
+
+      {/* Price Range */}
+      <div className="filter-section">
+        <div className="filter-section-title">
+          Price Range: ₹{localFilters.priceRange[0]} - ₹{localFilters.priceRange[1]}
+        </div>
+        <Slider
+          value={localFilters.priceRange}
+          onChange={handlePriceChange}
+          valueLabelDisplay="auto"
+          min={0}
+          max={getMaxPrice()}
+          step={50}
+          valueLabelFormat={(value) => `₹${value}`}
+        />
+      </div>
+    </div>
   );
 };
 

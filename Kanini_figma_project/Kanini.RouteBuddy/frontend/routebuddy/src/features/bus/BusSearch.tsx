@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Card, TextField, Button, Typography, Alert } from '@mui/material';
+import { TextField, Button, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppDispatch';
 import { searchBuses } from './busSlice';
@@ -100,19 +100,17 @@ const BusSearch = () => {
   };
 
   return (
-    <Card sx={{ p: 3, mb: 3 }}>
-      <Typography variant="h5" gutterBottom sx={{ mb: 3, fontWeight: 600 }}>
-        🚌 Search Buses
-      </Typography>
+    <div className="bus-search-card">
+      <h2 className="bus-search-title">🚌 Search Buses</h2>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2, borderRadius: '8px' }}>
           {error}
         </Alert>
       )}
 
       <form onSubmit={handleSubmit}>
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr auto' }, gap: 2 }}>
+        <div className="bus-search-form">
           <PlaceAutocomplete
             label="From"
             value={formData.source}
@@ -151,13 +149,13 @@ const BusSearch = () => {
             variant="contained"
             type="submit"
             disabled={loading || !isFormValid()}
-            sx={{ height: 56, px: 4 }}
+            className="search-button"
           >
             {loading ? 'Searching...' : 'Search'}
           </Button>
-        </Box>
+        </div>
       </form>
-    </Card>
+    </div>
   );
 };
 

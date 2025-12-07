@@ -53,10 +53,11 @@ const VendorAnalyticsPage = () => {
 
   return (
     <Layout>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Analytics & Reports
-        </Typography>
+      <div className="analytics-container">
+        <Container maxWidth="xl" sx={{ py: 4 }}>
+          <div className="analytics-header">
+            <h1 className="analytics-title">Analytics & Reports</h1>
+          </div>
 
         <Grid container spacing={3}>
           {/* Revenue Analytics */}
@@ -121,6 +122,7 @@ const VendorAnalyticsPage = () => {
           </Grid>
         </Grid>
       </Container>
+      </div>
     </Layout>
   );
 };

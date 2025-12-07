@@ -1,12 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Card,
-  CardContent,
   TextField,
   Button,
-  Typography,
   Alert,
   CircularProgress,
 } from '@mui/material';
@@ -39,24 +35,11 @@ const ForgotPassword = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: '#f5f5f5',
-        p: 2,
-      }}
-    >
-      <Card sx={{ maxWidth: 400, width: '100%' }}>
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom align="center">
-            Forgot Password
-          </Typography>
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-            Enter your email address and we'll send you an OTP to reset your password
-          </Typography>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-card-content">
+          <h1 className="auth-title">Forgot Password</h1>
+          <p className="auth-subtitle">Enter your email address and we'll send you an OTP to reset your password</p>
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -64,7 +47,7 @@ const ForgotPassword = () => {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="auth-form">
             <TextField
               fullWidth
               label="Email"
@@ -72,7 +55,6 @@ const ForgotPassword = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              sx={{ mb: 3 }}
             />
 
             <Button
@@ -80,7 +62,7 @@ const ForgotPassword = () => {
               variant="contained"
               type="submit"
               disabled={loading}
-              sx={{ mb: 2, py: 1.5 }}
+              className="auth-button"
             >
               {loading ? <CircularProgress size={24} /> : 'Send Reset OTP'}
             </Button>
@@ -89,13 +71,14 @@ const ForgotPassword = () => {
               fullWidth
               variant="text"
               onClick={() => navigate(ROUTES.LOGIN)}
+              className="auth-link-button"
             >
               Back to Login
             </Button>
           </form>
-        </CardContent>
-      </Card>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 };
 

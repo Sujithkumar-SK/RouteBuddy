@@ -142,10 +142,11 @@ const AdminVendorsPage = () => {
 
   return (
     <Layout>
+      <div className="vendor-management-container">
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
-          👥 Vendor Management
-        </Typography>
+        <div className="vendor-management-header">
+          <h1 className="vendor-management-title">👥 Vendor Management</h1>
+        </div>
 
         {error && (
           <Alert severity="error" sx={{ mb: 3 }} onClose={() => dispatch(clearError())}>
@@ -153,14 +154,14 @@ const AdminVendorsPage = () => {
           </Alert>
         )}
 
-        <Card>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <div className="admin-card">
+          <div className="admin-tabs-container">
             <Tabs value={tabValue} onChange={handleTabChange}>
               <Tab label={`Pending Approvals (${pendingVendors.length})`} />
               <Tab label={`All Vendors (${vendors.length})`} />
               <Tab label="Analytics Overview" />
             </Tabs>
-          </Box>
+          </div>
 
           <TabPanel value={tabValue} index={0}>
             <Typography variant="h6" sx={{ mb: 2 }}>
@@ -439,7 +440,7 @@ const AdminVendorsPage = () => {
             </Card>
 
           </TabPanel>
-        </Card>
+        </div>
 
         {/* Dialogs remain the same */}
         <Dialog open={viewDialog.open} onClose={() => setViewDialog({ open: false, vendor: null, loading: false })} maxWidth="md" fullWidth>
@@ -599,6 +600,7 @@ const AdminVendorsPage = () => {
           </DialogActions>
         </Dialog>
       </Container>
+      </div>
     </Layout>
   );
 };

@@ -76,18 +76,19 @@ const AdminBusesPage = () => {
 
   return (
     <Layout>
+      <div className="bus-management-container">
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Typography variant="h4" sx={{ mb: 3, fontWeight: 600 }}>
-          🚌 Bus Management
-        </Typography>
+        <div className="bus-management-header">
+          <h1 className="bus-management-title">🚌 Bus Management</h1>
+        </div>
 
-        <Card>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <div className="admin-card">
+          <div className="admin-tabs-container">
             <Tabs value={tabValue} onChange={handleTabChange}>
               <Tab label="Overview" />
               <Tab label={`All Buses (${buses.length})`} />
             </Tabs>
-          </Box>
+          </div>
 
           <TabPanel value={tabValue} index={0}>
             <Typography variant="h6" sx={{ mb: 3 }}>
@@ -357,8 +358,9 @@ const AdminBusesPage = () => {
               </TableContainer>
             )}
           </TabPanel>
-        </Card>
+        </div>
       </Container>
+      </div>
     </Layout>
   );
 };

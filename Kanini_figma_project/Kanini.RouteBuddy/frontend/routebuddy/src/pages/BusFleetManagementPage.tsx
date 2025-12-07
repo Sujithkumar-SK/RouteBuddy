@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
   Container,
   Tabs,
   Tab,
-  Typography,
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
@@ -30,7 +28,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`bus-fleet-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+      {value === index && <div style={{ padding: '2rem 0' }}>{children}</div>}
     </div>
   );
 }
@@ -58,14 +56,14 @@ const BusFleetManagementPage: React.FC = () => {
 
   return (
     <Layout>
+      <div className="fleet-container">
       <Container maxWidth="xl">
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={activeTab} onChange={handleTabChange} aria-label="bus fleet management tabs">
-              <Tab label="My Fleet" />
-              <Tab label="Add Bus" />
-            </Tabs>
-          </Box>
+        <div className="fleet-tabs-container">
+          <Tabs value={activeTab} onChange={handleTabChange} aria-label="bus fleet management tabs">
+            <Tab label="My Fleet" />
+            <Tab label="Add Bus" />
+          </Tabs>
+        </div>
 
           <TabPanel value={activeTab} index={0}>
             <BusFleetList />
@@ -74,10 +72,8 @@ const BusFleetManagementPage: React.FC = () => {
           <TabPanel value={activeTab} index={1}>
             <AddBusForm />
           </TabPanel>
-
-
-        </Box>
       </Container>
+      </div>
     </Layout>
   );
 };

@@ -1,4 +1,4 @@
-import { Box, Typography, Alert, CircularProgress, Container, Grid } from '@mui/material';
+import { Alert, CircularProgress, Container } from '@mui/material';
 import { useAppSelector } from '../../hooks/useAppDispatch';
 import BusCard from '../../components/ui/BusCard';
 import BusFilters from './BusFilters';
@@ -13,10 +13,10 @@ const BusList = ({ onViewSeats }: BusListProps) => {
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
+        <div className="loading-container">
           <CircularProgress />
-          <Typography sx={{ ml: 2 }}>Searching buses...</Typography>
-        </Box>
+          <span style={{ marginLeft: '1rem' }}>Searching buses...</span>
+        </div>
       </Container>
     );
   }
@@ -40,34 +40,34 @@ const BusList = ({ onViewSeats }: BusListProps) => {
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Search Summary */}
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
+      <div className="search-summary fade-in">
+        <h2 className="search-summary-title">
           {searchParams.source} → {searchParams.destination}
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
+        </h2>
+        <p className="search-summary-info">
           {new Date(searchParams.travelDate).toLocaleDateString('en-US', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
           })} • {filteredResults.length} buses found
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
-      <Grid container spacing={3}>
+      <div className="results-grid">
         {/* Filters Sidebar */}
-        <Grid item xs={12} md={3}>
+        <div>
           <BusFilters />
-        </Grid>
+        </div>
 
         {/* Bus Results */}
-        <Grid item xs={12} md={9}>
+        <div>
           {filteredResults.length === 0 ? (
-            <Alert severity="info">
+            <Alert severity="info" sx={{ borderRadius: '12px' }}>
               No buses found matching your criteria. Try adjusting your filters.
             </Alert>
           ) : (
-            <Box>
+            <div>
               {filteredResults.map((bus) => (
                 <BusCard
                   key={bus.scheduleId}
@@ -75,10 +75,10 @@ const BusList = ({ onViewSeats }: BusListProps) => {
                   onViewSeats={onViewSeats}
                 />
               ))}
-            </Box>
+            </div>
           )}
-        </Grid>
-      </Grid>
+        </div>
+      </div>
     </Container>
   );
 };

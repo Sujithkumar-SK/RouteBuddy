@@ -165,6 +165,7 @@ const PaymentPage = () => {
 
   return (
     <Layout>
+      <div className="payment-container">
       <Container maxWidth="md" sx={{ py: 4 }}>
         {/* Timer Alert */}
         <Alert 
@@ -264,6 +265,7 @@ const PaymentPage = () => {
           </Typography>
         </Box>
       </Container>
+      </div>
     </Layout>
   );
 };

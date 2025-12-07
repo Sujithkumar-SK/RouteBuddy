@@ -26,15 +26,17 @@ const VendorSchedulesPage = () => {
 
   return (
     <Layout>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {view === 'list' ? (
-          <ScheduleList onCreateNew={handleCreateNew} onCreateBulk={handleCreateBulk} />
-        ) : view === 'create' ? (
-          <CreateScheduleForm onBack={handleBack} onSuccess={handleSuccess} />
-        ) : (
-          <CreateBulkScheduleForm onBack={handleBack} onSuccess={handleSuccess} />
-        )}
-      </Container>
+      <div className="schedule-container">
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          {view === 'list' ? (
+            <ScheduleList onCreateNew={handleCreateNew} onCreateBulk={handleCreateBulk} />
+          ) : view === 'create' ? (
+            <CreateScheduleForm onBack={handleBack} onSuccess={handleSuccess} />
+          ) : (
+            <CreateBulkScheduleForm onBack={handleBack} onSuccess={handleSuccess} />
+          )}
+        </Container>
+      </div>
     </Layout>
   );
 };

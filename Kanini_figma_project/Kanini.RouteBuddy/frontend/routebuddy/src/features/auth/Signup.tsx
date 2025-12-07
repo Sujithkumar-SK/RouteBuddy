@@ -1,12 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box,
-  Card,
-  CardContent,
   TextField,
   Button,
-  Typography,
   MenuItem,
   Alert,
   CircularProgress,
@@ -174,24 +170,11 @@ const Signup = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: '#f5f5f5',
-        p: 2,
-      }}
-    >
-      <Card sx={{ maxWidth: 500, width: '100%' }}>
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom align="center">
-            Sign Up
-          </Typography>
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-            Create your RouteBuddy account
-          </Typography>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-card-content">
+          <h1 className="auth-title">Sign Up</h1>
+          <p className="auth-subtitle">Create your RouteBuddy account</p>
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -199,7 +182,7 @@ const Signup = () => {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="auth-form">
             <TextField
               fullWidth
               label="Email"
@@ -209,7 +192,6 @@ const Signup = () => {
               onChange={handleChange}
               error={!!formErrors.email}
               helperText={formErrors.email}
-              sx={{ mb: 2 }}
             />
 
             <TextField
@@ -221,7 +203,6 @@ const Signup = () => {
               error={!!formErrors.phone}
               helperText={formErrors.phone}
               placeholder="9876543210"
-              sx={{ mb: 2 }}
             />
 
             <TextField
@@ -233,7 +214,6 @@ const Signup = () => {
               onChange={handleChange}
               error={!!formErrors.password}
               helperText={formErrors.password}
-              sx={{ mb: 2 }}
             />
 
             <TextField
@@ -245,7 +225,6 @@ const Signup = () => {
               onChange={handleChange}
               error={!!formErrors.confirmPassword}
               helperText={formErrors.confirmPassword}
-              sx={{ mb: 2 }}
             />
 
             <TextField
@@ -256,22 +235,21 @@ const Signup = () => {
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               error={!!formErrors.role}
               helperText={formErrors.role}
-              sx={{ mb: 3 }}
             >
               <MenuItem value="1">Customer</MenuItem>
               <MenuItem value="2">Vendor</MenuItem>
             </TextField>
 
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
+            <div className="recaptcha-wrapper">
               <div id="recaptcha-container"></div>
-            </Box>
+            </div>
 
             <Button
               fullWidth
               variant="contained"
               type="submit"
               disabled={loading || !recaptchaToken || !isFormValid()}
-              sx={{ mb: 2, py: 1.5 }}
+              className="auth-button"
             >
               {loading ? <CircularProgress size={24} /> : 'Send OTP'}
             </Button>
@@ -280,13 +258,14 @@ const Signup = () => {
               fullWidth
               variant="text"
               onClick={() => navigate(ROUTES.LOGIN)}
+              className="auth-link-button"
             >
               Already have an account? Login
             </Button>
           </form>
-        </CardContent>
-      </Card>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 };
 

@@ -142,20 +142,19 @@ const MyBookingsPage = () => {
 
   return (
     <Layout>
+      <div className="bookings-container">
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-          <BookmarkBorder color="primary" />
-          <Typography variant="h4" sx={{ fontWeight: 600 }}>
-            My Bookings
-          </Typography>
-        </Box>
+        <div className="bookings-header">
+          <BookmarkBorder style={{ fontSize: '2.5rem', color: '#667eea' }} />
+          <h1 className="bookings-title">My Bookings</h1>
+        </div>
 
         {/* Filters */}
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <FilterList color="action" />
-            <Typography variant="h6">Filters</Typography>
-          </Box>
+        <div className="bookings-filters-paper">
+          <div className="bookings-filters-header">
+            <FilterList style={{ color: '#666' }} />
+            <h3 className="bookings-filters-title">Filters</h3>
+          </div>
           
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
@@ -209,7 +208,7 @@ const MyBookingsPage = () => {
               </Box>
             </Grid>
           </Grid>
-        </Paper>
+        </div>
 
         {/* Error Alert */}
         {error && (
@@ -276,6 +275,7 @@ const MyBookingsPage = () => {
           </Alert>
         </Snackbar>
       </Container>
+      </div>
     </Layout>
   );
 };

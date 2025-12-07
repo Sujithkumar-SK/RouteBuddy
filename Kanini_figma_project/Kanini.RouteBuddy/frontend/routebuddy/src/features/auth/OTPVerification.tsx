@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Box,
-  Card,
-  CardContent,
   TextField,
   Button,
-  Typography,
   Alert,
   CircularProgress,
 } from '@mui/material';
@@ -121,24 +117,11 @@ const OTPVerification = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: '#f5f5f5',
-        p: 2,
-      }}
-    >
-      <Card sx={{ maxWidth: 400, width: '100%' }}>
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom align="center">
-            Verify Email
-          </Typography>
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-            Enter the 6-digit code sent to {email}
-          </Typography>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-card-content">
+          <h1 className="auth-title">Verify Email</h1>
+          <p className="auth-subtitle">Enter the 6-digit code sent to {email}</p>
 
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
@@ -146,36 +129,39 @@ const OTPVerification = () => {
             </Alert>
           )}
 
-          <TextField
-            fullWidth
-            label="OTP Code"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-            inputProps={{ maxLength: 6, style: { textAlign: 'center', fontSize: '24px', letterSpacing: '8px' } }}
-            sx={{ mb: 3 }}
-          />
+          <div className="auth-form">
+            <TextField
+              fullWidth
+              label="OTP Code"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              inputProps={{ maxLength: 6 }}
+              className="otp-input"
+            />
 
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={handleVerify}
-            disabled={loading || otp.length !== 6}
-            sx={{ mb: 2, py: 1.5 }}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
-          </Button>
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handleVerify}
+              disabled={loading || otp.length !== 6}
+              className="auth-button"
+            >
+              {loading ? <CircularProgress size={24} /> : 'Verify OTP'}
+            </Button>
 
-          <Button
-            fullWidth
-            variant="text"
-            onClick={handleResend}
-            disabled={!canResend || loading || resendLoading}
-          >
-            {resendLoading ? <CircularProgress size={20} /> : canResend ? 'Resend OTP' : `Resend in ${resendTimer}s`}
-          </Button>
-        </CardContent>
-      </Card>
-    </Box>
+            <Button
+              fullWidth
+              variant="text"
+              onClick={handleResend}
+              disabled={!canResend || loading || resendLoading}
+              className="auth-link-button"
+            >
+              {resendLoading ? <CircularProgress size={20} /> : canResend ? 'Resend OTP' : <span className="timer-text">Resend in {resendTimer}s</span>}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

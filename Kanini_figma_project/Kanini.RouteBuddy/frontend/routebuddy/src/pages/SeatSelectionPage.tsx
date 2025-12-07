@@ -161,27 +161,28 @@ const SeatSelectionPage = () => {
 
   return (
     <Layout>
-      <Container maxWidth="lg" sx={{ py: 4 }}>
-        {/* Header */}
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" sx={{ mb: 1 }}>
-            Select Seats
-          </Typography>
-          {seatLayout && (
-            <Typography variant="body1" color="text.secondary">
-              {seatLayout.bus.busName} • {new Date(travelDate).toLocaleDateString()}
-            </Typography>
-          )}
-        </Box>
+      <div className="seat-selection-container">
+        <Container maxWidth="lg" sx={{ py: 4 }}>
+          {/* Header */}
+          <div className="seat-selection-header">
+            <h2 className="seat-selection-title">Select Seats</h2>
+            {seatLayout && (
+              <p className="seat-selection-info">
+                {seatLayout.bus.busName} • {new Date(travelDate).toLocaleDateString()}
+              </p>
+            )}
+          </div>
 
         {/* Stepper */}
-        <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
+        <div className="stepper-container">
+          <Stepper activeStep={activeStep}>
+            {steps.map((label) => (
+              <Step key={label}>
+                <StepLabel>{label}</StepLabel>
+              </Step>
+            ))}
+          </Stepper>
+        </div>
 
         {/* Content */}
         <Grid container spacing={3}>
@@ -191,7 +192,7 @@ const SeatSelectionPage = () => {
         </Grid>
 
         {/* Navigation */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+        <div className="navigation-buttons">
           <Button
             onClick={handleBack}
             disabled={activeStep === 0}
@@ -199,7 +200,7 @@ const SeatSelectionPage = () => {
             Back
           </Button>
           
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <div className="navigation-right">
             <Button
               variant="outlined"
               onClick={() => navigate('/search-results')}
@@ -212,6 +213,7 @@ const SeatSelectionPage = () => {
                 variant="contained"
                 onClick={handleBooking}
                 disabled={!canProceedToNext()}
+                className="payment-button"
               >
                 Book Now
               </Button>
@@ -220,13 +222,15 @@ const SeatSelectionPage = () => {
                 variant="contained"
                 onClick={handleNext}
                 disabled={!canProceedToNext()}
+                className="search-button"
               >
                 Next
               </Button>
             )}
-          </Box>
-        </Box>
+          </div>
+        </div>
       </Container>
+      </div>
     </Layout>
   );
 };

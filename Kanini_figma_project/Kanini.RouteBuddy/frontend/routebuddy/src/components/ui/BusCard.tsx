@@ -1,4 +1,4 @@
-import { Card, CardContent, Box, Typography, Chip, Button, Rating } from '@mui/material';
+import { Chip, Button, Rating } from '@mui/material';
 import { AccessTime, EventSeat, Wifi, Power, Restaurant } from '@mui/icons-material';
 import { getBusTypeName, getAmenityNames, BusAmenities } from '../../utils/constants';
 import type { BusSearchResponse } from '../../features/bus/types';
@@ -39,81 +39,61 @@ const BusCard = ({ bus, onViewSeats }: BusCardProps) => {
   };
 
   return (
-    <Card sx={{ mb: 2, '&:hover': { boxShadow: 3 } }}>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                🚌 {bus.busName}
-              </Typography>
-              <Chip label={busTypeName} size="small" color="primary" />
-            </Box>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <Rating value={4.2} precision={0.1} size="small" readOnly />
-              <Typography variant="body2" color="text.secondary">
-                4.2 | {bus.availableSeats} seats available
-              </Typography>
-            </Box>
+    <div className="bus-card slide-in">
+      <div className="bus-card-content">
+        <div className="bus-card-left">
+          <div className="bus-card-header">
+            <h3 className="bus-name">🚌 {bus.busName}</h3>
+            <Chip label={busTypeName} size="small" color="primary" className="bus-type-badge" />
+          </div>
+          
+          <div className="bus-rating">
+            <Rating value={4.2} precision={0.1} size="small" readOnly />
+            <span style={{ fontSize: '0.875rem', color: '#666' }}>
+              4.2 | {bus.availableSeats} seats available
+            </span>
+          </div>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AccessTime fontSize="small" color="action" />
-                <Typography variant="body1" sx={{ fontWeight: 500 }}>
-                  {formatTime(bus.departureTime)} → {formatTime(bus.arrivalTime)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  ({calculateDuration()})
-                </Typography>
-              </Box>
-            </Box>
+          <div className="bus-timing">
+            <AccessTime fontSize="small" style={{ color: '#666' }} />
+            <span className="bus-timing-text">
+              {formatTime(bus.departureTime)} → {formatTime(bus.arrivalTime)}
+            </span>
+            <span className="bus-duration">({calculateDuration()})</span>
+          </div>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-              <EventSeat fontSize="small" color="action" />
-              <Typography variant="body2" color="text.secondary">
-                {busTypeName}
-              </Typography>
-              {amenityNames.slice(0, 3).map((amenity) => (
-                <Box key={amenity} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  {getAmenityIcon(amenity)}
-                  <Typography variant="body2" color="text.secondary">
-                    {amenity}
-                  </Typography>
-                </Box>
-              ))}
-              {amenityNames.length > 3 && (
-                <Typography variant="body2" color="text.secondary">
-                  +{amenityNames.length - 3} more
-                </Typography>
-              )}
-            </Box>
-          </Box>
+          <div className="bus-amenities">
+            <EventSeat fontSize="small" style={{ color: '#666' }} />
+            <span className="amenity-item">{busTypeName}</span>
+            {amenityNames.slice(0, 3).map((amenity) => (
+              <span key={amenity} className="amenity-item">
+                {getAmenityIcon(amenity)}
+                {amenity}
+              </span>
+            ))}
+            {amenityNames.length > 3 && (
+              <span className="amenity-item">+{amenityNames.length - 3} more</span>
+            )}
+          </div>
+        </div>
 
-          <Box sx={{ textAlign: 'right', ml: 2 }}>
-            <Typography variant="h5" sx={{ fontWeight: 600, color: 'primary.main' }}>
-              ₹{bus.basePrice}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              onwards
-            </Typography>
-            <Button
-              variant="contained"
-              onClick={() => onViewSeats(bus.scheduleId)}
-              sx={{ minWidth: 120 }}
-            >
-              VIEW SEATS →
-            </Button>
-          </Box>
-        </Box>
+        <div className="bus-card-right">
+          <div className="bus-price">₹{bus.basePrice}</div>
+          <div className="bus-price-label">onwards</div>
+          <Button
+            variant="contained"
+            onClick={() => onViewSeats(bus.scheduleId)}
+            className="view-seats-button"
+          >
+            VIEW SEATS →
+          </Button>
+        </div>
+      </div>
 
-        <Box sx={{ mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-          <Typography variant="body2" color="text.secondary">
-            {bus.vendorName} • {bus.source} → {bus.destination}
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
+      <div className="bus-card-footer">
+        {bus.vendorName} • {bus.source} → {bus.destination}
+      </div>
+    </div>
   );
 };
 

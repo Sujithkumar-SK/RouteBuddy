@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Box,
-  Card,
-  CardContent,
   TextField,
   Button,
-  Typography,
   Alert,
   CircularProgress,
 } from '@mui/material';
@@ -62,24 +58,11 @@ const Login = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: '#f5f5f5',
-        p: 2,
-      }}
-    >
-      <Card sx={{ maxWidth: 400, width: '100%' }}>
-        <CardContent sx={{ p: 4 }}>
-          <Typography variant="h4" gutterBottom align="center">
-            Login
-          </Typography>
-          <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
-            Welcome back to RouteBuddy
-          </Typography>
+    <div className="auth-container">
+      <div className="auth-card">
+        <div className="auth-card-content">
+          <h1 className="auth-title">Login</h1>
+          <p className="auth-subtitle">Welcome back to RouteBuddy</p>
 
           {successMessage && (
             <Alert severity="success" sx={{ mb: 2 }}>
@@ -93,7 +76,7 @@ const Login = () => {
             </Alert>
           )}
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="auth-form">
             <TextField
               fullWidth
               label="Email"
@@ -101,7 +84,6 @@ const Login = () => {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
-              sx={{ mb: 2 }}
             />
 
             <TextField
@@ -111,7 +93,6 @@ const Login = () => {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              sx={{ mb: 3 }}
             />
 
             <Button
@@ -119,7 +100,7 @@ const Login = () => {
               variant="contained"
               type="submit"
               disabled={loading}
-              sx={{ mb: 2, py: 1.5 }}
+              className="auth-button"
             >
               {loading ? <CircularProgress size={24} /> : 'Login'}
             </Button>
@@ -128,7 +109,7 @@ const Login = () => {
               fullWidth
               variant="text"
               onClick={() => navigate(ROUTES.FORGOT_PASSWORD)}
-              sx={{ mb: 1 }}
+              className="auth-link-button"
             >
               Forgot Password?
             </Button>
@@ -137,13 +118,14 @@ const Login = () => {
               fullWidth
               variant="text"
               onClick={() => navigate(ROUTES.SIGNUP)}
+              className="auth-link-button"
             >
               Don't have an account? Sign Up
             </Button>
           </form>
-        </CardContent>
-      </Card>
-    </Box>
+        </div>
+      </div>
+    </div>
   );
 };
 

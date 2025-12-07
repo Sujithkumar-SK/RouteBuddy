@@ -31,15 +31,15 @@ const SearchResultsPage = () => {
 
   return (
     <Layout>
-      <Box sx={{ minHeight: '100vh', bgcolor: 'grey.50' }}>
+      <div className="search-results-container">
         {/* Search Form - Always visible at top */}
-        <Box sx={{ bgcolor: 'white', borderBottom: 1, borderColor: 'divider' }}>
+        <div className="search-results-header">
           <BusSearch />
-        </Box>
+        </div>
 
         {/* Search Results */}
         <BusList onViewSeats={handleViewSeats} />
-      </Box>
+      </div>
     </Layout>
   );
 };
