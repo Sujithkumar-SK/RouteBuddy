@@ -125,20 +125,25 @@ namespace Kanini.RouteBuddy.Api.Controllers
             }
         }
 
-        [HttpPost("{customerId}/bookings/cancel")]
+        [HttpPost("{userId}/bookings/cancel")]
         [Authorize(Roles = "Customer")]
-        public async Task<ActionResult<CancelBookingResponseDto>> CancelBooking(int customerId, [FromBody] CancelBookingRequestDto request)
+        public async Task<ActionResult<CancelBookingResponseDto>> CancelBooking(int userId, [FromBody] CancelBookingRequestDto request)
         {
             try
             {
-                // Validate customer ID
-                if (customerId <= 0)
-                    return BadRequest(ErrorMessages.CustomerIdInvalid);
-
-                // Get customer ID from JWT token
+                // Get user ID from JWT token
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (!int.TryParse(userIdClaim, out int userId))
+                if (!int.TryParse(userIdClaim, out int tokenUserId))
                     return BadRequest("Invalid user token");
+
+                // Ensure the userId in URL matches the token
+                if (userId != tokenUserId)
+                    return Forbid();
+
+                // Get actual customer ID from user ID
+                var customerProfile = await _customerService.GetCustomerProfileByUserIdAsync(userId);
+                if (customerProfile == null)
+                    return BadRequest("Customer profile not found");
 
                 // Validate model
                 if (!ModelState.IsValid)
@@ -152,7 +157,7 @@ namespace Kanini.RouteBuddy.Api.Controllers
                 if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length < 10 || request.Reason.Length > 250)
                     return BadRequest("Cancellation reason must be between 10 and 250 characters");
 
-                var result = await _customerService.CancelBookingAsync(customerId, request);
+                var result = await _customerService.CancelBookingAsync(customerProfile.CustomerId, request);
                 
                 if (!result.IsSuccess)
                     return BadRequest(new { error = result.Message });
@@ -176,7 +181,7 @@ namespace Kanini.RouteBuddy.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error in cancel booking for customer: {CustomerId}, booking: {BookingId}", customerId, request.BookingId);
+                _logger.LogError(ex, "Unexpected error in cancel booking for user: {UserId}, booking: {BookingId}", userId, request.BookingId);
                 return StatusCode(500, string.Format(ErrorMessages.InternalServerError, ex.Message));
             }
         }

@@ -20,15 +20,50 @@ const Login = () => {
     email: '',
     password: '',
   });
+  const [formErrors, setFormErrors] = useState({
+    email: '',
+    password: '',
+  });
   const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     if (location.state?.message) {
       setSuccessMessage(location.state.message);
-      // Clear the message from location state
       window.history.replaceState({}, document.title);
     }
   }, [location]);
+
+  const validateEmail = (email: string) => {
+    if (!email) return 'Email is required';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Invalid email format';
+    return '';
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) return 'Password is required';
+    if (password.length < 8) return 'Password must be at least 8 characters';
+    return '';
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    let fieldError = '';
+    if (name === 'email') {
+      fieldError = validateEmail(value);
+    } else if (name === 'password') {
+      fieldError = validatePassword(value);
+    }
+
+    setFormErrors({ ...formErrors, [name]: fieldError });
+  };
+
+  const isFormValid = () => {
+    const hasNoErrors = Object.values(formErrors).every(error => error === '');
+    const hasAllFields = formData.email && formData.password;
+    return hasNoErrors && hasAllFields;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,26 +115,30 @@ const Login = () => {
             <TextField
               fullWidth
               label="Email"
+              name="email"
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
+              onChange={handleChange}
+              error={!!formErrors.email}
+              helperText={formErrors.email}
             />
 
             <TextField
               fullWidth
               label="Password"
+              name="password"
               type="password"
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
+              onChange={handleChange}
+              error={!!formErrors.password}
+              helperText={formErrors.password}
             />
 
             <Button
               fullWidth
               variant="contained"
               type="submit"
-              disabled={loading}
+              disabled={loading || !isFormValid()}
               className="auth-button"
             >
               {loading ? <CircularProgress size={24} /> : 'Login'}
