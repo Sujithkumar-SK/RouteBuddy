@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Kanini.RouteBuddy.Common\Kanini.RouteBuddy.Common.csproj" />
+    <ProjectReference Include="..\Kanini.RouteBuddy.Data\Kanini.RouteBuddy.Data.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="BookingConfirmationEmail.html" />
+    <EmbeddedResource Include="ConnectingBookingConfirmationEmail.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="FluentValidation" />
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="MimeKit" />
+    <PackageReference Include="QuestPDF" />
+    <PackageReference Include="Razorpay" />
+  </ItemGroup>
+</Project>
