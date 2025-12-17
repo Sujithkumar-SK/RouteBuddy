@@ -1,6 +1,7 @@
 using Kanini.RouteBuddy.Application.Dto.Auth;
 using Kanini.RouteBuddy.Application.Services.Email;
 using Kanini.RouteBuddy.Common;
+using Kanini.RouteBuddy.Common.Services;
 using Kanini.RouteBuddy.Common.Utility;
 using Kanini.RouteBuddy.Data.Repositories.Customer;
 using Kanini.RouteBuddy.Data.Repositories.Token;
@@ -28,6 +29,7 @@ public class AuthService : IAuthService
     private readonly IEmailService _emailService;
     private readonly ICaptchaService _captchaService;
     private readonly ILogger<AuthService> _logger;
+    private readonly BlobService _blobService;
 
     public AuthService(
         IUserRepository userRepository,
@@ -39,7 +41,8 @@ public class AuthService : IAuthService
         IJwtOtpService jwtOtpService,
         IEmailService emailService,
         ICaptchaService captchaService,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        BlobService blobService)
     {
         _userRepository = userRepository;
         _customerRepository = customerRepository;
@@ -51,6 +54,7 @@ public class AuthService : IAuthService
         _emailService = emailService;
         _captchaService = captchaService;
         _logger = logger;
+        _blobService = blobService;
     }
 
     public async Task<Result<OtpResponseDto>> RegisterWithOtpAsync(RegisterWithOtpRequestDto request)
@@ -583,17 +587,7 @@ public class AuthService : IAuthService
 
     private async Task<string> SaveDocumentAsync(Microsoft.AspNetCore.Http.IFormFile file, int vendorId, string category)
     {
-        var uploadsFolder = Path.Combine("wwwroot", "uploads", "vendors", vendorId.ToString());
-        Directory.CreateDirectory(uploadsFolder);
-        
-        var fileName = $"{category}_{DateTime.UtcNow.Ticks}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine(uploadsFolder, fileName);
-        
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-        
-        return $"/uploads/vendors/{vendorId}/{fileName}";
+        var uploadResult = await _blobService.UploadFileAsync(file);
+        return uploadResult.BlobUrl;
     }
 }

@@ -2,6 +2,7 @@ using Kanini.RouteBuddy.Application;
 using Kanini.RouteBuddy.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Kanini.RouteBuddy.Common.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,6 +48,14 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowCredentials();
     });
+});
+
+builder.Services.AddSingleton(sp =>
+{
+    var cfg = sp.GetRequiredService<IConfiguration>();
+    var conn = cfg["AzureBlob:ConnectionString"];
+    var container = cfg["AzureBlob:ContainerName"] ?? "busimages";
+    return new BlobService(conn, container);
 });
 
 // Configure logging to file

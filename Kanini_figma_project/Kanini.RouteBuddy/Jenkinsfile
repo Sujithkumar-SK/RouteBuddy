@@ -1,0 +1,95 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKERHUB_USERNAME = 'your-dockerhub-username'
+        BACKEND_IMAGE = "${DOCKERHUB_USERNAME}/routebuddy-backend"
+        FRONTEND_IMAGE = "${DOCKERHUB_USERNAME}/routebuddy-frontend"
+        AZURE_CREDENTIALS = credentials('azure-credentials')
+        AZURE_TENANT_ID = 'your-tenant-id'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/YOUR_USERNAME/YOUR_REPO.git'
+            }
+        }
+        
+        stage('Build Backend') {
+            steps {
+                dir('Kanini.RouteBuddy/backend') {
+                    script {
+                        docker.build("${BACKEND_IMAGE}:${BUILD_NUMBER}")
+                        docker.build("${BACKEND_IMAGE}:latest")
+                    }
+                }
+            }
+        }
+        
+        stage('Build Frontend') {
+            steps {
+                dir('Kanini.RouteBuddy/frontend/routebuddy') {
+                    script {
+                        docker.build("${FRONTEND_IMAGE}:${BUILD_NUMBER}")
+                        docker.build("${FRONTEND_IMAGE}:latest")
+                    }
+                }
+            }
+        }
+        
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
+                        docker.image("${BACKEND_IMAGE}:${BUILD_NUMBER}").push()
+                        docker.image("${BACKEND_IMAGE}:latest").push()
+                        docker.image("${FRONTEND_IMAGE}:${BUILD_NUMBER}").push()
+                        docker.image("${FRONTEND_IMAGE}:latest").push()
+                    }
+                }
+            }
+        }
+        
+        stage('Deploy to Azure') {
+            steps {
+                script {
+                    sh '''
+                        az login --service-principal -u ${AZURE_CREDENTIALS_USR} -p ${AZURE_CREDENTIALS_PSW} --tenant ${AZURE_TENANT_ID}
+                        
+                        az webapp config container set \
+                            --name routebuddy-api \
+                            --resource-group routebuddy-rg \
+                            --docker-custom-image-name ${BACKEND_IMAGE}:${BUILD_NUMBER} \
+                            --docker-registry-server-url https://registry.hub.docker.com
+                        
+                        az webapp config container set \
+                            --name routebuddy-frontend \
+                            --resource-group routebuddy-rg \
+                            --docker-custom-image-name ${FRONTEND_IMAGE}:${BUILD_NUMBER} \
+                            --docker-registry-server-url https://registry.hub.docker.com
+                        
+                        az webapp restart --name routebuddy-api --resource-group routebuddy-rg
+                        az webapp restart --name routebuddy-frontend --resource-group routebuddy-rg
+                    '''
+                }
+            }
+        }
+    }
+    
+    post {
+        success {
+            echo "✅ Deployment successful!"
+            echo "Backend: https://routebuddy-api.azurewebsites.net"
+            echo "Frontend: https://routebuddy-frontend.azurewebsites.net"
+        }
+        failure {
+            echo "❌ Deployment failed!"
+        }
+        always {
+            sh 'docker logout'
+            cleanWs()
+        }
+    }
+}

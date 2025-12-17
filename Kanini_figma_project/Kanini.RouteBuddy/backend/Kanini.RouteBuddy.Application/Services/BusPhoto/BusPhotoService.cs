@@ -17,16 +17,18 @@ public class BusPhotoService : IBusPhotoService
     private readonly IVendorRepository _vendorRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<BusPhotoService> _logger;
+    private readonly BlobService _blobService;
     private const int MaxPhotosPerBus = 10;
     private const long MaxFileSizeBytes = 5 * 1024 * 1024; // 5MB
 
-    public BusPhotoService(IBusPhotoRepository repository, IBusRepository busRepository, IVendorRepository vendorRepository, IMapper mapper, ILogger<BusPhotoService> logger)
+    public BusPhotoService(IBusPhotoRepository repository, IBusRepository busRepository, IVendorRepository vendorRepository, IMapper mapper, ILogger<BusPhotoService> logger, BlobService blobService)
     {
         _repository = repository;
         _busRepository = busRepository;
         _vendorRepository = vendorRepository;
         _mapper = mapper;
         _logger = logger;
+        _blobService = blobService;
     }
 
     public async Task<Result<BusPhotoDto>> CreateAsync(CreateBusPhotoDto createDto)
@@ -63,8 +65,9 @@ public class BusPhotoService : IBusPhotoService
             if (!await FileValidationService.IsValidDocumentContentAsync(createDto.Photo))
                 return Result.Failure<BusPhotoDto>(Error.Failure(BusPhotoMessages.ErrorCodes.BusPhotoInvalidContent, BusPhotoMessages.ErrorMessages.InvalidContent));
 
-            // Save image
-            var imagePath = await FileValidationService.SaveFileAsync(createDto.Photo, "bus-photos", $"bus_{createDto.BusId}_{Guid.NewGuid()}");
+            // Upload to Azure Blob Storage
+            var uploadResult = await _blobService.UploadFileAsync(createDto.Photo);
+            var imagePath = uploadResult.BlobUrl;
 
             // Get bus to find vendor
             var busResult = await _busRepository.GetByIdAsync(createDto.BusId);

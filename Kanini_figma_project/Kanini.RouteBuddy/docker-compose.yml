@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/routebuddy-backend:latest
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DatabaseConnectionString=${DB_CONNECTION_STRING}
+      - TokenKey=${TOKEN_KEY}
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend/routebuddy
+      dockerfile: Dockerfile
+    image: ${DOCKERHUB_USERNAME}/routebuddy-frontend:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

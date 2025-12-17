@@ -19,13 +19,15 @@ public class BusService : IBusService
     private readonly IVendorRepository _vendorRepository;
     private readonly IMapper _mapper;
     private readonly ILogger<BusService> _logger;
+    private readonly BlobService _blobService;
 
-    public BusService(IBusRepository busRepository, IVendorRepository vendorRepository, IMapper mapper, ILogger<BusService> logger)
+    public BusService(IBusRepository busRepository, IVendorRepository vendorRepository, IMapper mapper, ILogger<BusService> logger, BlobService blobService)
     {
         _busRepository = busRepository;
         _vendorRepository = vendorRepository;
         _mapper = mapper;
         _logger = logger;
+        _blobService = blobService;
     }
 
     public async Task<Result<BusResponseDto>> CreateBusAsync(CreateBusDto dto, int vendorId)
@@ -82,8 +84,9 @@ public class BusService : IBusService
             if (!await FileValidationService.IsValidDocumentContentAsync(dto.RegistrationCertificate))
                 return Result.Failure<BusResponseDto>(Error.Failure("RC.InvalidContent", "Registration certificate file appears to be corrupted or invalid"));
 
-            // Save registration certificate
-            var rcPath = await FileValidationService.SaveFileAsync(dto.RegistrationCertificate, "buses", $"rc_{vendorId}_{dto.RegistrationNo}");
+            // Upload registration certificate to Azure Blob
+            var uploadResult = await _blobService.UploadFileAsync(dto.RegistrationCertificate);
+            var rcPath = uploadResult.BlobUrl;
 
             var vendor = await _vendorRepository.GetByIdAsync(vendorId);
             

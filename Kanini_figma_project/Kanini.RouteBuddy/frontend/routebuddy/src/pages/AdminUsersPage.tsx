@@ -16,12 +16,8 @@ import {
   Paper,
   Chip,
   Avatar,
-  IconButton,
-  Menu,
-  MenuItem,
 } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Tooltip, LineChart, Line } from 'recharts';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import PersonIcon from '@mui/icons-material/Person';
 import Layout from '../components/layout/Layout';
 import api from '../services/api';
@@ -46,8 +42,7 @@ const AdminUsersPage = () => {
   const [users, setUsers] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+
 
   useEffect(() => {
     fetchUsers();
@@ -90,15 +85,7 @@ const AdminUsersPage = () => {
     setTabValue(newValue);
   };
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, user: any) => {
-    setAnchorEl(event.currentTarget);
-    setSelectedUser(user);
-  };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    setSelectedUser(null);
-  };
 
   // User analytics data
   const userStats = {
@@ -301,7 +288,6 @@ const AdminUsersPage = () => {
                       <TableCell>Role</TableCell>
                       <TableCell>Status</TableCell>
                       <TableCell>Last Login</TableCell>
-                      <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -341,11 +327,6 @@ const AdminUsersPage = () => {
                         <TableCell>
                           {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never'}
                         </TableCell>
-                        <TableCell>
-                          <IconButton onClick={(e) => handleMenuOpen(e, user)}>
-                            <MoreVertIcon />
-                          </IconButton>
-                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -372,9 +353,7 @@ const AdminUsersPage = () => {
                       <TableCell>Full Name</TableCell>
                       <TableCell>Age</TableCell>
                       <TableCell>Gender</TableCell>
-                      <TableCell>Date of Birth</TableCell>
                       <TableCell>Status</TableCell>
-                      <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -392,23 +371,17 @@ const AdminUsersPage = () => {
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {customer.firstName} {customer.middleName} {customer.lastName}
+                            {customer.fullName || 'N/A'}
                           </Typography>
                         </TableCell>
                         <TableCell>{customer.age || 'N/A'}</TableCell>
                         <TableCell>{getGenderName(customer.gender)}</TableCell>
-                        <TableCell>{new Date(customer.dateOfBirth).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <Chip 
                             label={customer.isActive ? 'Active' : 'Inactive'} 
                             color={customer.isActive ? 'success' : 'default'}
                             size="small"
                           />
-                        </TableCell>
-                        <TableCell>
-                          <IconButton onClick={(e) => handleMenuOpen(e, customer)}>
-                            <MoreVertIcon />
-                          </IconButton>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -419,14 +392,7 @@ const AdminUsersPage = () => {
           </TabPanel>
         </Card>
 
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-          <MenuItem onClick={handleMenuClose}>View Details</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Edit User</MenuItem>
-          <MenuItem onClick={handleMenuClose}>Reset Password</MenuItem>
-          <MenuItem onClick={handleMenuClose} sx={{ color: 'error.main' }}>
-            Deactivate User
-          </MenuItem>
-        </Menu>
+
       </Container>
     </Layout>
   );
